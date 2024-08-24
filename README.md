@@ -53,25 +53,25 @@ http://localhost:3000
 
 Here are some of the main temporary endpoints available in this application:
 
-• Anime:
-  • GET /anime/get/id: Get a list of anime details by ID.
-  • POST /anime/post: Adding new anime.
-  • PUT /anime/update/:id: Update anime data.
+- Anime:
+  - GET /anime/get/id: Get a list of anime details by ID.
+  - POST /anime/post: Adding new anime.
+  - PUT /anime/update/:id: Update anime data.
 
-• Genre:
-  • POST /genre/post: Adding new genre.
-  • DELETE /genre/delete/:id: Delete genre data.
+- Genre:
+  - POST /genre/post: Adding new genre.
+  - DELETE /genre/delete/:id: Delete genre data.
 
-• Review:
-  • POST /review/post: Adding new review.
-  • GET /review/get: Get all the review lists.
-  • GET /review/get/:id: Get a list of reviews by ID.
-  • PUT /review/update/:id: Update review data.
-  • DELETEE /review/delete/:id: Delete review data.
+- Review:
+  - POST /review/post: Adding new review.
+  - GET /review/get: Get all the review lists.
+  - GET /review/get/:id: Get a list of reviews by ID.
+  - PUT /review/update/:id: Update review data.
+  - DELETEE /review/delete/:id: Delete review data.
 
-• Photo_anime:
-  • PUT photo-anime/update/:id: Update data photo anime.
-  • DELETE photo-anime/delete/:id: Delete data photo anime.
+- Photo_anime:
+  - PUT photo-anime/update/:id: Update data photo anime.
+  - DELETE photo-anime/delete/:id: Delete data photo anime.
 
 ## Project Developer
 
