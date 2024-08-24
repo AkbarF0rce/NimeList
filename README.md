@@ -45,7 +45,7 @@ cp .env.example .env
 # Run the App
 npm run start:dev
 
-# Access the app in the browser via
+# Access via postman or others for testing 
 http://localhost:3000
 ```
 
