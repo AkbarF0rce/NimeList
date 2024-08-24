@@ -27,7 +27,7 @@ import { get } from 'http';
 export class AnimeController {
   constructor(private readonly animeService: AnimeService) {}
 
-  @Post('postAnime')
+  @Post('post')
   @UseInterceptors(
     FileFieldsInterceptor(
       [

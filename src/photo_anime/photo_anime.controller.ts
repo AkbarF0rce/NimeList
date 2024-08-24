@@ -9,7 +9,7 @@ import { diskStorage } from 'multer';
 export class PhotoAnimeController {
   constructor(private readonly photoAnimeService: PhotoAnimeService) {}
 
-  @Delete('deletePhoto/:id')
+  @Delete('delete/:id')
   async deletePhoto(@Param('id') id: number) {
     return this.photoAnimeService.deletePhoto(id);
   }

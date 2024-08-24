@@ -24,50 +24,58 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+NimeList is a web-based application for managing anime lists. This project was developed using NestJS and is designed to make it easier for users to search, manage, and review anime.
 
-## Installation
-
-```bash
-$ npm install
-```
-
-## Running the app
+## Step 1 -- Instalation Dependecies
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Test
+## Step 2 -- Configuration
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Copy the .env.example file to .env
+cp .env.example .env
 ```
 
-## Support
+## Step 3 -- How to Use
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+# Run the App
+npm run start:dev
 
-## Stay in touch
+# Access the app in the browser via
+http://localhost:3000
+```
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Api Endpoints
+
+Here are some of the main temporary endpoints available in this application:
+
+• Anime:
+  • GET /anime/get/id: Get a list of anime details by ID.
+  • POST /anime/post: Adding new anime.
+  • PUT /anime/update/:id: Update anime data.
+
+• Genre:
+  • POST /genre/post: Adding new genre.
+  • DELETE /genre/delete/:id: Delete genre data.
+
+• Review:
+  • POST /review/post: Adding new review.
+  • GET /review/get: Get all the review lists.
+  • GET /review/get/:id: Get a list of reviews by ID.
+  • PUT /review/update/:id: Update review data.
+  • DELETEE /review/delete/:id: Delete review data.
+
+• Photo_anime:
+  • PUT photo-anime/update/:id: Update data photo anime.
+  • DELETE photo-anime/delete/:id: Delete data photo anime.
+
+## Project Developer
+
+- Backend - Akbar Ridho Arrafi
+- Frontend - Fadlan Hamsyari P
 
 ## License
-
-Nest is [MIT licensed](LICENSE).
