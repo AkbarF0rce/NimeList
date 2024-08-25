@@ -73,6 +73,9 @@ Here are some of the main temporary endpoints available in this application:
   - PUT photo-anime/update/:id: Update data photo anime.
   - DELETE photo-anime/delete/:id: Delete data photo anime.
 
+- Topic:
+  - POST /topic/post: Adding new data topic.
+
 ## Project Developer
 
 - Backend - Akbar Ridho Arrafi
