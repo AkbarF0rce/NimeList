@@ -22,6 +22,7 @@ import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { UpdatePhotoDto } from './dto/update-photo.dto';
 import { get } from 'http';
+import { v4 } from 'uuid';
 
 @Controller('anime')
 export class AnimeController {
@@ -52,7 +53,7 @@ export class AnimeController {
             cb(null, uploadPath);
           },
           filename: (req, file, cb) => {
-            cb(null, `${file.originalname}`);
+            cb(null, `${v4()}${extname(file.originalname)}`);
           },
         }),
       },
