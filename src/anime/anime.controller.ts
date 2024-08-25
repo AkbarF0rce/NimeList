@@ -108,7 +108,11 @@ export class AnimeController {
     @Param('id') animeId: number,
     @Body() updateAnimeDto: CreateAnimeDto, // DTO untuk data anime
     @Body('genreIds') genreIds: number[], // Genre IDs yang ingin diupdate
-    @UploadedFiles() files: { photos?: Express.Multer.File[]; photo_cover?: Express.Multer.File[] }, // Menangani file foto yang diupload
+    @UploadedFiles()
+    files: {
+      photos?: Express.Multer.File[];
+      photo_cover?: Express.Multer.File[];
+    }, // Menangani file foto yang diupload
   ) {
     // Panggil service untuk mengupdate data
     const updatedAnime = await this.animeService.updateAnimeDetails(
