@@ -208,16 +208,20 @@ export class AnimeService {
       .leftJoinAndSelect('anime.review', 'review')
       .leftJoinAndSelect('anime.topic', 'topic')
       .select([
-        'anime.id as id',
-        'anime.title as title',
-        'anime.photo_cover as photo_cover',
+        'anime',
         'COUNT(DISTINCT review.id) as totalreview',
-        'COALESCE(AVG(review.rating), 0) as averageRating',
+        'COALESCE(AVG(review.rating), 0) as avgrating',
       ])
       .groupBy('anime.id')
       .getRawMany();
 
-    return animes;
+    return animes.map((anime) => ({
+      id: anime.id,
+      title: anime.title,
+      photo_cover: anime.photo_cover,
+      totalReview: anime.totalreview,
+      averageRating: parseFloat(anime.avgrating).toFixed(2),
+    }));
   }
 
   async getAnimeByGenre(genreId: number) {

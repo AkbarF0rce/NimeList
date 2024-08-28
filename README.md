@@ -46,7 +46,7 @@ cp .env.example .env
 npm run start:dev
 
 # Access via postman or others for testing 
-http://localhost:3000
+http://localhost:4321
 ```
 
 ## Api Endpoints
