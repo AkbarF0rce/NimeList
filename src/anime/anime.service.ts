@@ -208,7 +208,9 @@ export class AnimeService {
       .leftJoinAndSelect('anime.review', 'review')
       .leftJoinAndSelect('anime.topic', 'topic')
       .select([
-        'anime',
+        'anime.id as id',
+        'anime.title as title',
+        'anime.photo_cover as photo_cover',
         'COUNT(DISTINCT review.id) as totalreview',
         'COALESCE(AVG(review.rating), 0) as avgrating',
       ])
