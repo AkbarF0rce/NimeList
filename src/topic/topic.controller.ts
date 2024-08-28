@@ -1,9 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseInterceptors,
+  UploadedFiles,
+  Put,
+} from '@nestjs/common';
 import { TopicService } from './topic.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
 import { diskStorage } from 'multer';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { v4 } from 'uuid';
+import { extname } from 'path';
 
 @Controller('topic')
 export class TopicController {
@@ -13,23 +26,66 @@ export class TopicController {
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        { name: 'photos', maxCount: 4 }, // You can limit the number of photos
+        { name: 'photos', maxCount: 4 }, // Limit file foto yang akan diupload sesuai keinginan
       ],
       {
         storage: diskStorage({
-          destination: 'src/photo_topic/photos/', // Adjust the path based on your needs
+          destination: 'src/photo_topic/photos/', // Sesuaikan destinasi storage sesuai keinginan
           filename: (req, file, cb) => {
-            cb(null, `${file.originalname}`);
+            cb(null, `${v4()}${extname(file.originalname)}`);
           },
         }),
       },
     ),
   )
-  create(
+  async create(
     @Body() createTopicDto: CreateTopicDto,
-    @UploadedFiles() files: { photos?: Express.Multer.File[] }
+    @UploadedFiles() files: { photos?: Express.Multer.File[] },
   ) {
-    return this.topicService.create(createTopicDto, files.photos || []);
+    return await this.topicService.createTopic(
+      createTopicDto,
+      files.photos || [],
+    );
+  }
+
+  @Put('update/:id')
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'photos', maxCount: 4 }, // Limit file foto yang akan diupload sesuai keinginan
+      ],
+      {
+        storage: diskStorage({
+          destination: 'src/photo_topic/photos/', // Sesuaikan destinasi storage sesuai keinginan
+          filename: (req, file, cb) => {
+            cb(null, `${v4()}${extname(file.originalname)}`);
+          },
+        }),
+      },
+    ),
+  )
+  async update(
+    @Param('id') id: number,
+    @Body() updateTopicDto: CreateTopicDto,
+    @UploadedFiles()
+    files: {
+      photos?: Express.Multer.File[];
+    },
+  ) {
+    return await this.topicService.updateTopic(
+      id,
+      files.photos || [],
+      updateTopicDto,
+    );
+  }
+
+  @Delete('delete/:id')
+  async delete(@Param('id') id: number) {
+    return await this.topicService.deleteTopic(id);
+  }
+
+  @Get('get/:id')
+  async getTopicById(@Param('id') id: number) {
+    return await this.topicService.getTopicById(id);
   }
 }
-

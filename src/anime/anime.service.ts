@@ -9,6 +9,7 @@ import { In } from 'typeorm';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { Review } from 'src/reviews/reviews.entity';
+import { Topic } from 'src/topic/entities/topic.entity';
 
 @Injectable()
 export class AnimeService {
@@ -21,9 +22,11 @@ export class AnimeService {
     private photoRepository: Repository<PhotoAnime>,
     @InjectRepository(Review)
     private reviewRepository: Repository<Review>,
+    @InjectRepository(Topic)
+    private topicRepository: Repository<Topic>,
   ) {}
 
-  async create(
+  async createAnime(
     createAnimeDto: CreateAnimeDto,
     files: Express.Multer.File[],
     photo_cover: Express.Multer.File,
@@ -65,11 +68,7 @@ export class AnimeService {
     };
   }
 
-  async findAnimeById(id: number) {
-    return await this.animeRepository.findOne({ where: { id } });
-  }
-
-  async updateAnimeDetails(
+  async updateAnime(
     animeId: number,
     updateAnimeDto: CreateAnimeDto, // Data anime yang ingin diupdate
     genreIds: number[], // ID genre baru yang ingin dihubungkan dengan anime ini
@@ -128,7 +127,7 @@ export class AnimeService {
       }
     }
 
-    // 6. Simpan path dan file foto baru yang belum ada di database
+    // Simpan path dan file foto baru yang belum ada di database
     const existingFilePaths = anime.photos.map((photo) => photo.file_path);
     const newPhotos = photo_anime
       .filter((file) => !existingFilePaths.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
@@ -147,7 +146,7 @@ export class AnimeService {
     };
   }
 
-  async getAnime(animeId: number) {
+  async getAnimeById(animeId: number) {
     // Cari anime berdasarkan id
     const anime = await this.animeRepository.findOne({
       where: { id: animeId },
@@ -174,10 +173,67 @@ export class AnimeService {
     // Format rata-rata rating dengan dua angka di belakang koma
     const avgRating = parseFloat(getAvgRating.ratingAvg).toFixed(2);
 
+    // Hitung total topic dari id anime
+    const topicCount = await this.topicRepository
+      .createQueryBuilder('topic')
+      .where('topic.id_anime = :animeId', { animeId })
+      .getCount();
+
     return {
       anime,
       reviewCount,
       averageRating: parseFloat(avgRating) || 0, // Set 0 jika tidak ada rating
+      topicCount,
     };
+  }
+
+  async deleteAnime(animeId: number) {
+    // Hapus anime dari database berdasarkan id yang diberikan
+    const deleted = await this.animeRepository.softDelete({ id: animeId });
+
+    if (deleted) {
+      return 'data anime berhasil dihapus';
+    } else if (!deleted) {
+      return 'data anime gagal di hapus';
+    } else {
+      throw new NotFoundException('Anime tidak ditemukan');
+    }
+  }
+
+  async getAllAnime() {
+    const animes = await this.animeRepository
+      .createQueryBuilder('anime')
+      .leftJoinAndSelect('anime.genres', 'genres')
+      .leftJoinAndSelect('anime.photos', 'photos')
+      .leftJoinAndSelect('anime.review', 'review')
+      .leftJoinAndSelect('anime.topic', 'topic')
+      .select([
+        'anime.id as id',
+        'anime.title as title',
+        'anime.photo_cover as photo_cover',
+        'COUNT(DISTINCT review.id) as totalreview',
+        'COALESCE(AVG(review.rating), 0) as averageRating',
+      ])
+      .groupBy('anime.id')
+      .getRawMany();
+
+    return animes;
+  }
+
+  async getAnimeByGenre(genreId: number) {
+    // Cari anime berdasarkan id genre
+    const animes = await this.animeRepository.findBy({
+      genres: { id: genreId },
+    });
+
+    // Jika tidak ada anime yang mengandung genre yang dipilih
+    if (animes.length === 0) {
+      throw new NotFoundException(
+        'Anime yang mengandung genre ini tidak ditemukan',
+      );
+    }
+
+    // Tampilkan anime yang ada
+    return animes;
   }
 }

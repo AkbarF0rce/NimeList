@@ -5,7 +5,7 @@ export class CreateReviewDto {
     id_anime: number;
 
     @IsString()
-    ulasan: string;
+    review: string;
 
     @IsNumber()
     rating: number;

@@ -24,7 +24,7 @@
 
 ## Description
 
-NimeList is a web-based application for managing anime lists. This project was developed using NestJS and is designed to make it easier for users to search, manage, and review anime.
+NimeList is a web-based application for managing anime lists. This project was developed using NestJS, NextJS and PostgreSQL designed to make it easier for users to search and review anime.
 
 ## Step 1 -- Instalation Dependecies
 
@@ -54,18 +54,22 @@ http://localhost:3000
 Here are some of the main temporary endpoints available in this application:
 
 - Anime:
-  - GET /anime/get/id: Get a list of anime details by ID.
   - POST /anime/post: Adding new anime.
+  - GET /anime/get/id: Get a list of anime details by ID.
+  - GET /anime/get: Get all anime.
+  - GET /anime/get/by-genre/:id: Get a list of anime by genre ID. 
   - PUT /anime/update/:id: Update anime data.
+  - DELETE /anime/delete/:id: Soft delete anime by ID.
 
 - Genre:
   - POST /genre/post: Adding new genre.
+  - PUT /genre/update/:id: Update genre data.
   - DELETE /genre/delete/:id: Delete genre data.
 
 - Review:
   - POST /review/post: Adding new review.
   - GET /review/get: Get all the review lists.
-  - GET /review/get/:id: Get a list of reviews by ID.
+  - GET /review/get/:id: Get a list of review details by ID.
   - PUT /review/update/:id: Update review data.
   - DELETEE /review/delete/:id: Delete review data.
 
@@ -75,6 +79,9 @@ Here are some of the main temporary endpoints available in this application:
 
 - Topic:
   - POST /topic/post: Adding new data topic.
+  - GET /topic/get/:id: Get a list of topic details by ID.
+  - PUT /topic/update/:id: Update topic data.
+  - DELETE /topic/delete/:id: Delete data topic.
 
 ## Project Developer
 

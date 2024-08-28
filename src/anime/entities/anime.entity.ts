@@ -41,7 +41,7 @@ export class Anime {
   photos: PhotoAnime[];
 
   @OneToMany(() => Review, (review) => review.anime, { cascade: true })
-  review: Review;
+  review: Review[];
 
   @OneToMany(() => Topic, (topic) => topic.anime, { cascade: true })
   topic: Topic;

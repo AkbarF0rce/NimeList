@@ -28,10 +28,20 @@ export class GenreService {
     return `This action updates a #${id} genre`;
   }
 
-  async remove(id: number) {
+  async deleteGenre(id: number) {
     const deleted = await this.genreRepository.delete(id);
     if (deleted) {
       return `data deleted`;
+    }
+  }
+
+  async updateGenre(id: number, updateGenreDto: CreateGenreDto) {
+    // Update data genre berdasarkan id yang diberikan
+    const updated = await this.genreRepository.update(id, updateGenreDto);
+
+    // Tampilkan pesan jika data di update
+    if (updated) {
+      return `data updated`;
     }
   }
 }

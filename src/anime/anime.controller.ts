@@ -20,8 +20,6 @@ import {
 } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
-import { UpdatePhotoDto } from './dto/update-photo.dto';
-import { get } from 'http';
 import { v4 } from 'uuid';
 
 @Controller('anime')
@@ -67,7 +65,7 @@ export class AnimeController {
       photo_cover?: Express.Multer.File[];
     },
   ) {
-    return this.animeService.create(
+    return this.animeService.createAnime(
       createAnimeDto,
       files.photos || [],
       files.photo_cover?.[0],
@@ -78,8 +76,8 @@ export class AnimeController {
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        { name: 'photos', maxCount: 4 }, // photos for photo anime
-        { name: 'photo_cover', maxCount: 1 }, // photo_cover for anime cover
+        { name: 'photos', maxCount: 4 }, // photos untuk foto anime pada table photo_anime
+        { name: 'photo_cover', maxCount: 1 }, // photo_cover untuk foto cover anime pada kolom photo_cover
       ],
       {
         storage: diskStorage({
@@ -97,9 +95,9 @@ export class AnimeController {
             }
 
             cb(null, uploadPath);
-          }, // Adjust the path based on your needs
+          },
           filename: (req, file, cb) => {
-            cb(null, `${file.originalname}`);
+            cb(null, `${v4()}${extname(file.originalname)}`);
           },
         }),
       },
@@ -113,10 +111,9 @@ export class AnimeController {
     files: {
       photos?: Express.Multer.File[];
       photo_cover?: Express.Multer.File[];
-    }, // Menangani file foto yang diupload
+    },
   ) {
-    // Panggil service untuk mengupdate data
-    const updatedAnime = await this.animeService.updateAnimeDetails(
+    const updatedAnime = await this.animeService.updateAnime(
       animeId,
       updateAnimeDto,
       genreIds,
@@ -127,8 +124,23 @@ export class AnimeController {
     return updatedAnime;
   }
 
+  @Get('get')
+  async getAllAnime() {
+    return await this.animeService.getAllAnime();
+  }
+
   @Get('get/:id')
   async getAnime(@Param('id') animeId: number) {
-    return this.animeService.getAnime(animeId);
+    return await this.animeService.getAnimeById(animeId);
+  }
+
+  @Get('get/by-genre/:id')
+  async getAnimeByGenre(@Param('id') genreId: number) {
+    return await this.animeService.getAnimeByGenre(genreId);
+  }
+
+  @Delete('delete/:id')
+  async deleteAnime(@Param('id') animeId: number) {
+    return await this.animeService.deleteAnime(animeId);
   }
 }

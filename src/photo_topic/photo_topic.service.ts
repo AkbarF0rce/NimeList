@@ -1,26 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePhotoTopicDto } from './dto/create-photo_topic.dto';
 import { UpdatePhotoTopicDto } from './dto/update-photo_topic.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { PhotoTopic } from './entities/photo_topic.entity';
+import { Repository } from 'typeorm';
+import { join } from 'path';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class PhotoTopicService {
-  create(createPhotoTopicDto: CreatePhotoTopicDto) {
-    return 'This action adds a new photoTopic';
-  }
+  constructor(
+    @InjectRepository(PhotoTopic)
+    private photoTopicRepository: Repository<PhotoTopic>,
+  ) {}
 
-  findAll() {
-    return `This action returns all photoTopic`;
-  }
+  async updatePhoto(id: number, files: Express.Multer.File) {
+    // Cari foto berdasarkan id yang diberikan
+    const photos = await this.photoTopicRepository.findOne({
+      where: { id },
+    });
 
-  findOne(id: number) {
-    return `This action returns a #${id} photoTopic`;
-  }
+    if (!photos) {
+      throw new NotFoundException('Photo tidak ditemukan');
+    }
 
-  update(id: number, updatePhotoTopicDto: UpdatePhotoTopicDto) {
-    return `This action updates a #${id} photoTopic`;
-  }
+    const Path = join(process.cwd(), photos.file_path);
+    try {
+      await unlink(Path);
+    } catch (err) {
+      console.error('Error hapus data file foto: ', err);
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} photoTopic`;
+    // Update path file di database
+    photos.file_path = files[0].path;
+    await this.photoTopicRepository.save(photos);
+
+    return {
+      message: 'Foto berhasil diperbarui',
+      filePhoto: photos,
+    };
   }
 }

@@ -4,6 +4,8 @@ import { CreatePhotoAnimeDto } from './dto/create-photo_anime.dto';
 import { UpdatePhotoAnimeDto } from './dto/update-photo_anime.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { v4 } from 'uuid';
+import { extname } from 'path';
 
 @Controller('photo-anime')
 export class PhotoAnimeController {
@@ -18,13 +20,13 @@ export class PhotoAnimeController {
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        { name: 'photos', maxCount: 1 }, // You can limit the number of photos
+        { name: 'photos', maxCount: 1 }, // Limit file foto yang akan diupload sesuai keinginan
       ],
       {
         storage: diskStorage({
-          destination: 'src/photo_anime/photos/', // Adjust the path based on your needs
+          destination: 'src/photo_anime/photos/', // Sesuaikan destinasi storage sesuai keinginan
           filename: (req, file, cb) => {
-            cb(null, `${file.originalname}`);
+            cb(null, `${v4()}${extname(file.originalname)}`);
           },
         }),
       },
