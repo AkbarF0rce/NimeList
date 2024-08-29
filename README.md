@@ -11,7 +11,7 @@ A responsive anime website built with Next.js and Tailwind CSS, featuring dynami
 ### Reuqirements
 
 - [Node.js](https://nodejs.org/) (v14.x or higher)
-- [pnpm](https://pnpm.io/) (v7.x or higher) or [Yarn](https://yarnpkg.com/)
+- [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) or [Yarn](https://yarnpkg.com/)
 - [PostgreSQL](https://www.postgresql.org/) (v12 or higher)
 - [Git](https://git-scm.com/)
 
@@ -75,6 +75,14 @@ Here are some of the main temporary endpoints available in this application:
   - GET /topic/get/:id: Get a list of topic details by ID.
   - PUT /topic/update/:id: Update topic data.
   - DELETE /topic/delete/:id: Delete data topic.
+
+- Photo_topic:
+  - PUT /photo-topic/update/:id: Update topic photo data.
+
+- Like_topic:
+  - POST /like-topic/post: Add new data like topic.
+  - PUT /like-topic/restore/:id: Restore topic likes data.
+  - DELETE /like-topic/delete/:id: Delete topic likes data.
 
 ## Project Developer
 
