@@ -3,6 +3,7 @@ import { Genre } from 'src/genre/entities/genre.entity';
 import { PhotoAnime } from 'src/photo_anime/entities/photo_anime.entity';
 import { Review } from 'src/reviews/reviews.entity';
 import { Topic } from 'src/topic/entities/topic.entity';
+import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity';
 
 @Entity()
 export class Anime {
@@ -45,4 +46,7 @@ export class Anime {
 
   @OneToMany(() => Topic, (topic) => topic.anime, { onUpdate: 'CASCADE' })
   topic: Topic;
+
+  @OneToMany(() => FavoriteAnime , (favorite) => favorite.anime, { cascade: true })
+  favorite: FavoriteAnime[];
 }

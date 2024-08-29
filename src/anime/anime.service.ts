@@ -11,6 +11,7 @@ import { unlink } from 'fs/promises';
 import { Review } from 'src/reviews/reviews.entity';
 import { Topic } from 'src/topic/entities/topic.entity';
 import { v4 } from 'uuid';
+import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity';
 
 @Injectable()
 export class AnimeService {
@@ -25,6 +26,8 @@ export class AnimeService {
     private reviewRepository: Repository<Review>,
     @InjectRepository(Topic)
     private topicRepository: Repository<Topic>,
+    @InjectRepository(FavoriteAnime)
+    private favoriteAnimeRepository: Repository<FavoriteAnime>,
   ) {}
 
   async createAnime(
@@ -180,11 +183,17 @@ export class AnimeService {
       .where('topic.id_anime = :animeId', { animeId })
       .getCount();
 
+    const totalFav = await this.favoriteAnimeRepository
+      .createQueryBuilder('fav')
+      .where('fav.id_anime = :animeId', { animeId })
+      .getCount();
+
     return {
       anime,
       reviewCount,
-      averageRating: avgRating || 0, // Set 0 jika tidak ada rating
+      averageRating: parseFloat(avgRating) || 0, // Set 0 jika tidak ada rating
       topicCount,
+      totalFav
     };
   }
 

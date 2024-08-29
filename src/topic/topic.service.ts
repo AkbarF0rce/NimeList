@@ -8,6 +8,7 @@ import { PhotoTopic } from 'src/photo_topic/entities/photo_topic.entity';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { NotFoundError } from 'rxjs';
+import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
 
 @Injectable()
 export class TopicService {
@@ -15,6 +16,8 @@ export class TopicService {
     @InjectRepository(Topic) private topicRepository: Repository<Topic>,
     @InjectRepository(PhotoTopic)
     private photoTopicRepository: Repository<PhotoTopic>,
+    @InjectRepository(LikeTopic)
+    private likeTopicRepository: Repository<LikeTopic>,
   ) {}
 
   async createTopic(
@@ -109,14 +112,24 @@ export class TopicService {
   }
 
   async getTopicById(id: number) {
-    const get = await this.topicRepository
-      .createQueryBuilder('topic')
-      .leftJoin('topic.likes', 'like')
-      .where('topic.id = :id', { id })
-      .addSelect('COUNT(like.id)', 'totalLike')
-      .groupBy('topic.id')
-      .getRawMany();
+    const get = await this.topicRepository.findOne({
+      where: { id },
+      relations: ['anime', 'photos'],
+    });
 
-    return get;
+    if (!get) {
+      throw new NotFoundException('Topic tidak ditemukan');
+    }
+
+    // Hitung total likes dari id topic yang diberikan
+    const totalLikes = await this.likeTopicRepository
+      .createQueryBuilder('likes')
+      .where('likes.id_topic = :id', { id })
+      .getCount();
+
+    return {
+      topic: get,
+      totalLikes,
+    };
   }
 }

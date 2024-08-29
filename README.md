@@ -84,6 +84,11 @@ Here are some of the main temporary endpoints available in this application:
   - PUT /like-topic/restore/:id: Restore topic likes data.
   - DELETE /like-topic/delete/:id: Delete topic likes data.
 
+- Favorite_anime:
+  - POST /favorite-anime/post: Add new data favorite anime.
+  - PUT /favorite-anime/restore/:id: Restore anime favorite data.
+  - DELETE /favorite-anime/delete/:id: Delete anime favorite data.
+
 ## Project Developer
 
 - Backend - [Akbar Ridho Arrafi](https://github.com/AkbarF0rce)

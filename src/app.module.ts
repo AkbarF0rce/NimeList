@@ -11,6 +11,7 @@ import { PhotoAnimeModule } from './photo_anime/photo_anime.module';
 import { TopicModule } from './topic/topic.module';
 import { PhotoTopicModule } from './photo_topic/photo_topic.module';
 import { LikeTopicModule } from './like_topic/like_topic.module';
+import { FavoriteAnimeModule } from './favorite_anime/favorite_anime.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { LikeTopicModule } from './like_topic/like_topic.module';
     TopicModule,
     PhotoTopicModule,
     LikeTopicModule,
+    FavoriteAnimeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
