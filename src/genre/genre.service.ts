@@ -16,20 +16,11 @@ export class GenreService {
     return { message: 'data created', genreName: data.name };
   }
 
-  findAll() {
-    return `This action returns all genre`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} genre`;
-  }
-
-  update(id: number, updateGenreDto: UpdateGenreDto) {
-    return `This action updates a #${id} genre`;
-  }
-
   async deleteGenre(id: number) {
-    const deleted = await this.genreRepository.delete(id);
+    // Hapus data genre berdasarkan id yang diberikan
+    const deleted = await this.genreRepository.softDelete(id);
+
+    // Tampilkan pesan jika data berhasil di hapus
     if (deleted) {
       return `data deleted`;
     }
@@ -39,7 +30,7 @@ export class GenreService {
     // Update data genre berdasarkan id yang diberikan
     const updated = await this.genreRepository.update(id, updateGenreDto);
 
-    // Tampilkan pesan jika data di update
+    // Tampilkan pesan jika data berhasil di update
     if (updated) {
       return `data updated`;
     }

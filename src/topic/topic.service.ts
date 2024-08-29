@@ -109,11 +109,13 @@ export class TopicService {
   }
 
   async getTopicById(id: number) {
-    const get = await this.topicRepository.findOne({ where: { id } });
-
-    if (!get) {
-      throw new NotFoundException('Topic tidak ditemukan');
-    }
+    const get = await this.topicRepository
+      .createQueryBuilder('topic')
+      .leftJoin('topic.likes', 'like')
+      .where('topic.id = :id', { id })
+      .addSelect('COUNT(like.id)', 'totalLike')
+      .groupBy('topic.id')
+      .getRawMany();
 
     return get;
   }

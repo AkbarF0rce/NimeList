@@ -10,6 +10,7 @@ import { GenreModule } from './genre/genre.module';
 import { PhotoAnimeModule } from './photo_anime/photo_anime.module';
 import { TopicModule } from './topic/topic.module';
 import { PhotoTopicModule } from './photo_topic/photo_topic.module';
+import { LikeTopicModule } from './like_topic/like_topic.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PhotoTopicModule } from './photo_topic/photo_topic.module';
     PhotoAnimeModule,
     TopicModule,
     PhotoTopicModule,
+    LikeTopicModule,
   ],
   controllers: [AppController],
   providers: [AppService],

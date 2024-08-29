@@ -43,6 +43,6 @@ export class Anime {
   @OneToMany(() => Review, (review) => review.anime, { cascade: true })
   review: Review[];
 
-  @OneToMany(() => Topic, (topic) => topic.anime, { cascade: true })
+  @OneToMany(() => Topic, (topic) => topic.anime, { onUpdate: 'CASCADE' })
   topic: Topic;
 }

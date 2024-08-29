@@ -6,10 +6,11 @@ import { Genre } from 'src/genre/entities/genre.entity';
 import { PhotoAnime } from 'src/photo_anime/entities/photo_anime.entity';
 import { CreateAnimeDto } from './dto/create-anime.dto';
 import { In } from 'typeorm';
-import { join } from 'path';
+import path, { join } from 'path';
 import { unlink } from 'fs/promises';
 import { Review } from 'src/reviews/reviews.entity';
 import { Topic } from 'src/topic/entities/topic.entity';
+import { v4 } from 'uuid';
 
 @Injectable()
 export class AnimeService {
@@ -150,7 +151,7 @@ export class AnimeService {
     // Cari anime berdasarkan id
     const anime = await this.animeRepository.findOne({
       where: { id: animeId },
-      relations: ['genres', 'photos'],
+      relations: ['genres', 'photos', 'review', 'topic'],
     });
 
     if (!anime) {
@@ -166,12 +167,12 @@ export class AnimeService {
     // Hitung average rating dari id anime
     const getAvgRating = await this.reviewRepository
       .createQueryBuilder('review')
-      .where('review.id_anime = id_anime', { animeId })
+      .where('review.id_anime = :animeId', { animeId })
       .select('AVG(review.rating)', 'ratingAvg')
       .getRawOne();
 
     // Format rata-rata rating dengan dua angka di belakang koma
-    const avgRating = parseFloat(getAvgRating.ratingAvg).toFixed(2);
+    const avgRating = parseFloat(getAvgRating.ratingAvg).toFixed(1);
 
     // Hitung total topic dari id anime
     const topicCount = await this.topicRepository
@@ -182,7 +183,7 @@ export class AnimeService {
     return {
       anime,
       reviewCount,
-      averageRating: parseFloat(avgRating) || 0, // Set 0 jika tidak ada rating
+      averageRating: avgRating || 0, // Set 0 jika tidak ada rating
       topicCount,
     };
   }
@@ -203,34 +204,28 @@ export class AnimeService {
   async getAllAnime() {
     const animes = await this.animeRepository
       .createQueryBuilder('anime')
-      .leftJoinAndSelect('anime.genres', 'genres')
-      .leftJoinAndSelect('anime.photos', 'photos')
-      .leftJoinAndSelect('anime.review', 'review')
-      .leftJoinAndSelect('anime.topic', 'topic')
-      .select([
-        'anime.id as id',
-        'anime.title as title',
-        'anime.photo_cover as photo_cover',
-        'COUNT(DISTINCT review.id) as totalreview',
-        'COALESCE(AVG(review.rating), 0) as avgrating',
-      ])
+      .leftJoin('anime.review', 'review') // Join table review
+      .addSelect('COALESCE(AVG(review.rating), 0)', 'averageRating')
+      .addSelect('COUNT(review.id)', 'totalReview')
       .groupBy('anime.id')
       .getRawMany();
 
+    // Tampilkan semua anime yang ada
     return animes.map((anime) => ({
-      id: anime.id,
-      title: anime.title,
-      photo_cover: anime.photo_cover,
-      totalReview: anime.totalreview,
-      averageRating: parseFloat(anime.avgrating).toFixed(2),
+      ...anime,
+      averageRating: parseFloat(anime.averageRating).toFixed(1),
     }));
   }
 
   async getAnimeByGenre(genreId: number) {
-    // Cari anime berdasarkan id genre
-    const animes = await this.animeRepository.findBy({
-      genres: { id: genreId },
-    });
+    const animes = await this.animeRepository
+      .createQueryBuilder('anime')
+      .leftJoin('anime.review', 'review') // Join table review
+      .leftJoin('anime.genres', 'genre') // Join table genre
+      .addSelect('COALESCE(AVG(review.rating), 0)', 'averageRating')
+      .where('genre.id = :genreId', { genreId }) // Menyaring anime berdasarkan id genre
+      .groupBy('anime.id')
+      .getRawMany();
 
     // Jika tidak ada anime yang mengandung genre yang dipilih
     if (animes.length === 0) {
@@ -240,6 +235,9 @@ export class AnimeService {
     }
 
     // Tampilkan anime yang ada
-    return animes;
+    return animes.map((anime) => ({
+      ...anime,
+      averageRating: parseFloat(anime.averageRating).toFixed(1),
+    }));
   }
 }
