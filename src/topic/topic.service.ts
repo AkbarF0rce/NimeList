@@ -9,6 +9,7 @@ import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { NotFoundError } from 'rxjs';
 import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
+import { Comment } from 'src/comment/entities/comment.entity';
 
 @Injectable()
 export class TopicService {
@@ -18,6 +19,7 @@ export class TopicService {
     private photoTopicRepository: Repository<PhotoTopic>,
     @InjectRepository(LikeTopic)
     private likeTopicRepository: Repository<LikeTopic>,
+    @InjectRepository(Comment) private commentRepository: Repository<Comment>,
   ) {}
 
   async createTopic(
@@ -127,9 +129,15 @@ export class TopicService {
       .where('likes.id_topic = :id', { id })
       .getCount();
 
+    const totalComments = await this.commentRepository
+      .createQueryBuilder('comment')
+      .where('comment.id_topic = :id', { id })
+      .getCount();
+
     return {
       topic: get,
       totalLikes,
+      totalComments
     };
   }
 }

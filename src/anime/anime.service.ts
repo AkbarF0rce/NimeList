@@ -8,10 +8,13 @@ import { CreateAnimeDto } from './dto/create-anime.dto';
 import { In } from 'typeorm';
 import path, { join } from 'path';
 import { unlink } from 'fs/promises';
-import { Review } from 'src/reviews/reviews.entity';
 import { Topic } from 'src/topic/entities/topic.entity';
 import { v4 } from 'uuid';
 import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity';
+import { Review } from 'src/review/entities/review.entity';
+import { UpdateAnimeDto } from './dto/update-anime.dto';
+import * as fs from 'fs';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AnimeService {
@@ -72,9 +75,19 @@ export class AnimeService {
     };
   }
 
+  private calculateFileHash(filePath: string): string {
+    if (!fs.existsSync(filePath)) return '';
+
+    const fileBuffer = fs.readFileSync(filePath);
+    const hashSum = crypto.createHash('sha256');
+    hashSum.update(fileBuffer);
+
+    return hashSum.digest('hex');
+  }
+
   async updateAnime(
     animeId: number,
-    updateAnimeDto: CreateAnimeDto, // Data anime yang ingin diupdate
+    updateAnimeDto: UpdateAnimeDto, // Data anime yang ingin diupdate
     genreIds: number[], // ID genre baru yang ingin dihubungkan dengan anime ini
     photo_anime: Express.Multer.File[], // File foto baru yang di-upload
     photo_cover: Express.Multer.File, // File cover baru yang di-upload
@@ -89,18 +102,25 @@ export class AnimeService {
       throw new NotFoundException('Anime tidak ditemukan');
     }
 
-    // Identifikasi dan hapus foto cover lama yang tidak ada di file baru
-    for (const cover of anime.photo_cover) {
-      const Path = join(process.cwd(), cover);
-      try {
-        await unlink(Path); // Hapus file cover lama dari sistem
-      } catch (err) {
-        console.error('Error hapus data file foto: ', err);
+    if (photo_cover) {
+      const fileHash = this.calculateFileHash(photo_cover.path);
+      const existingHash = this.calculateFileHash(anime.photo_cover);
+
+      if (existingHash !== fileHash) {
+        // Hapus file cover lama di sistem
+        const Path = join(process.cwd(), anime.photo_cover);
+        try {
+          await unlink(Path); // Hapus file cover lama dari sistem
+        } catch (err) {
+          console.error('Error hapus data file foto: ', err);
+        }
+
+        // Ubah path cover dengan path yang baru
+        anime.photo_cover = photo_cover.path;
+      } else {
+        fs.unlinkSync(photo_cover.path);
       }
     }
-
-    // Ubah path cover dengan path yang baru
-    anime.photo_cover = photo_cover.path;
 
     // Update informasi dasar anime
     Object.assign(anime, updateAnimeDto);
@@ -114,39 +134,56 @@ export class AnimeService {
     anime.genres = genres;
     await this.animeRepository.save(anime);
 
-    // Buat set untuk menyimpan path file yang baru diupload
-    const newFilePaths = new Set(photo_anime.map((file) => file.path));
+    // Jika ada foto yang diupload
+    if (photo_anime && photo_anime.length > 0) {
+      // Hash file yang baru diupload
+      const newPhotoHashes = photo_anime.map((file) =>
+        this.calculateFileHash(file.path),
+      );
 
-    // Identifikasi dan hapus foto lama yang tidak ada di file baru
-    for (const photo of anime.photos) {
-      const oldFilePath = join(process.cwd(), photo.file_path);
-      // Jika file path lama tidak ada di file path yang baru, maka hapus
-      if (!newFilePaths.has(photo.file_path)) {
-        try {
-          await unlink(oldFilePath); // Hapus file lama dari sistem
-        } catch (err) {
-          console.error('Error deleting old photo file:', err);
+      // Identifikasi dan hapus foto lama yang tidak ada di file baru
+      for (const photo of anime.photos) {
+        const oldFilePath = join(process.cwd(), photo.file_path);
+        const oldFileHash = this.calculateFileHash(oldFilePath);
+
+        // Jika hash file lama tidak ditemukan dalam hash file baru, hapus file lama
+        if (!newPhotoHashes.includes(oldFileHash)) {
+          try {
+            await unlink(oldFilePath); // Hapus file lama dari sistem
+          } catch (err) {
+            console.error('Error deleting old photo file:', err);
+          }
+          await this.photoRepository.remove(photo); // Hapus data foto lama dari database
         }
-        await this.photoRepository.remove(photo); // Hapus data foto lama dari database
+      }
+
+      // Simpan foto baru
+      for (const file of photo_anime) {
+        const fileHash = this.calculateFileHash(file.path);
+
+        // Cek apakah file ini sudah ada di dalam sistem berdasarkan hash dengan mencocokkan hash file dengan file yang sudah ada
+        const isDuplicate = anime.photos.some((photo) => {
+          const existingFileHash = this.calculateFileHash(
+            join(process.cwd(), photo.file_path),
+          );
+          return existingFileHash === fileHash;
+        });
+
+        if (!isDuplicate) {
+          const photo = this.photoRepository.create({
+            file_path: file.path,
+            anime,
+          });
+          await this.photoRepository.save(photo); // Simpan data foto baru
+        } else {
+          fs.unlinkSync(file.path);
+        }
       }
     }
-
-    // Simpan path dan file foto baru yang belum ada di database
-    const existingFilePaths = anime.photos.map((photo) => photo.file_path);
-    const newPhotos = photo_anime
-      .filter((file) => !existingFilePaths.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
-      .map(async (file) => {
-        const photo = this.photoRepository.create({
-          file_path: file.path,
-          anime,
-        });
-        await this.photoRepository.save(photo);
-      });
 
     return {
       message: 'Anime, genre, dan foto berhasil diperbarui',
       updatedAnime: anime,
-      updatedPhotos: [...anime.photos, ...newPhotos],
     };
   }
 
@@ -193,7 +230,7 @@ export class AnimeService {
       reviewCount,
       averageRating: parseFloat(avgRating) || 0, // Set 0 jika tidak ada rating
       topicCount,
-      totalFav
+      totalFav,
     };
   }
 

@@ -1,5 +1,6 @@
 import { title } from "process";
 import { Anime } from "src/anime/entities/anime.entity";
+import { Comment } from "src/comment/entities/comment.entity";
 import { LikeTopic } from "src/like_topic/entities/like_topic.entity";
 import { PhotoTopic } from "src/photo_topic/entities/photo_topic.entity";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
@@ -37,4 +38,7 @@ export class Topic {
 
     @OneToMany(() => LikeTopic, (like) => like.topic, {cascade: true})
     likes: LikeTopic[];
+
+    @OneToMany(() => Comment, comment => comment.topic, {cascade: true})
+    comments: Comment[];
 }

@@ -60,10 +60,9 @@ Here are some of the main temporary endpoints available in this application:
 - Review:
 
   - POST /review/post: Adding new review.
-  - GET /review/get: Get all the review lists.
-  - GET /review/get/:id: Get a list of review details by ID.
   - PUT /review/update/:id: Update review data.
-  - DELETEE /review/delete/:id: Delete review data.
+  - PUT /review/restore/:id: Restore review data
+  - DELETE /review/delete/:id: Delete review data.
 
 - Photo_anime:
 
@@ -71,23 +70,33 @@ Here are some of the main temporary endpoints available in this application:
   - DELETE photo-anime/delete/:id: Delete data photo anime.
 
 - Topic:
+
   - POST /topic/post: Adding new data topic.
   - GET /topic/get/:id: Get a list of topic details by ID.
   - PUT /topic/update/:id: Update topic data.
   - DELETE /topic/delete/:id: Delete data topic.
 
 - Photo_topic:
+
   - PUT /photo-topic/update/:id: Update topic photo data.
 
 - Like_topic:
+
   - POST /like-topic/post: Add new data like topic.
   - PUT /like-topic/restore/:id: Restore topic likes data.
   - DELETE /like-topic/delete/:id: Delete topic likes data.
 
 - Favorite_anime:
+
   - POST /favorite-anime/post: Add new data favorite anime.
   - PUT /favorite-anime/restore/:id: Restore anime favorite data.
   - DELETE /favorite-anime/delete/:id: Delete anime favorite data.
+
+- Comment:
+  - POST /comment/post: Add new comment data.
+  - PUT /comment/update/:id: Update comment data.
+  - PUT /comment/restore/:id: Restore comment data.
+  - DELETE /comment/delete/:id: Delete comment data.
 
 ## Project Developer
 

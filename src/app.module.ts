@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';  
 import path, { join } from 'path';
-import { ReviewsModule } from './reviews/reviews.module';
 import { AnimeModule } from './anime/anime.module';
 import { GenreModule } from './genre/genre.module';
 import { PhotoAnimeModule } from './photo_anime/photo_anime.module';
@@ -12,6 +11,8 @@ import { TopicModule } from './topic/topic.module';
 import { PhotoTopicModule } from './photo_topic/photo_topic.module';
 import { LikeTopicModule } from './like_topic/like_topic.module';
 import { FavoriteAnimeModule } from './favorite_anime/favorite_anime.module';
+import { CommentModule } from './comment/comment.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { FavoriteAnimeModule } from './favorite_anime/favorite_anime.module';
       }),
       inject: [ConfigService],
     }),
-    ReviewsModule,
+    ReviewModule,
     AnimeModule,
     GenreModule,
     PhotoAnimeModule,
@@ -38,6 +39,8 @@ import { FavoriteAnimeModule } from './favorite_anime/favorite_anime.module';
     PhotoTopicModule,
     LikeTopicModule,
     FavoriteAnimeModule,
+    CommentModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],

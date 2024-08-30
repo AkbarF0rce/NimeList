@@ -21,6 +21,7 @@ import {
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { v4 } from 'uuid';
+import { UpdateAnimeDto } from './dto/update-anime.dto';
 
 @Controller('anime')
 export class AnimeController {
@@ -105,7 +106,7 @@ export class AnimeController {
   )
   async updateAnimeDetails(
     @Param('id') animeId: number,
-    @Body() updateAnimeDto: CreateAnimeDto, // DTO untuk data anime
+    @Body() updateAnimeDto: UpdateAnimeDto, // DTO untuk data anime
     @Body('genreIds') genreIds: number[], // Genre IDs yang ingin diupdate
     @UploadedFiles()
     files: {

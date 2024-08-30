@@ -1,9 +1,9 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable, OneToMany, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, JoinColumn } from 'typeorm';
 import { Genre } from 'src/genre/entities/genre.entity';
 import { PhotoAnime } from 'src/photo_anime/entities/photo_anime.entity';
-import { Review } from 'src/reviews/reviews.entity';
 import { Topic } from 'src/topic/entities/topic.entity';
 import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity';
+import { Review } from 'src/review/entities/review.entity';
 
 @Entity()
 export class Anime {
