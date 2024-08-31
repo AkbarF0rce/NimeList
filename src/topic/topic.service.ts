@@ -10,6 +10,8 @@ import { unlink } from 'fs/promises';
 import { NotFoundError } from 'rxjs';
 import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
+import * as fs from 'fs';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class TopicService {
@@ -47,10 +49,21 @@ export class TopicService {
     };
   }
 
+  // Fungsi untuk Menghitung hash SHA-256 dari isi file
+  private calculateFileHash(filePath: string): string {
+    if (!fs.existsSync(filePath)) return '';
+
+    const fileBuffer = fs.readFileSync(filePath);
+    const hashSum = crypto.createHash('sha256');
+    hashSum.update(fileBuffer);
+
+    return hashSum.digest('hex');
+  }
+
   async updateTopic(
     id: number,
     photos: Express.Multer.File[],
-    updateTopicDto: CreateTopicDto,
+    updateTopicDto: UpdateTopicDto,
   ) {
     // Cari topic berdasarkan id
     const topic = await this.topicRepository.findOne({
@@ -69,24 +82,48 @@ export class TopicService {
 
     // Jika ada foto yang diupload
     if (photos && photos.length > 0) {
+      // Hash file yang baru diupload
+      const newPhotoHashes = photos.map((file) =>
+        this.calculateFileHash(file.path),
+      );
+
       // Identifikasi dan hapus foto lama yang tidak ada di file baru
       for (const photo of topic.photos) {
         const oldFilePath = join(process.cwd(), photo.file_path);
-        try {
-          await unlink(oldFilePath); // Hapus file lama dari sistem
-        } catch (err) {
-          console.error('Error deleting old photo file:', err);
+        const oldFileHash = this.calculateFileHash(oldFilePath);
+
+        // Jika hash file lama tidak ditemukan dalam hash file baru, hapus file lama
+        if (!newPhotoHashes.includes(oldFileHash)) {
+          try {
+            await unlink(oldFilePath); // Hapus file lama dari sistem
+          } catch (err) {
+            console.error('Error deleting old photo file:', err);
+          }
+          await this.photoTopicRepository.remove(photo); // Hapus data foto lama dari database
         }
-        await this.photoTopicRepository.remove(photo); // Hapus data foto lama dari database
       }
 
       // Simpan foto baru
       for (const file of photos) {
-        const photo = this.photoTopicRepository.create({
-          file_path: file.path,
-          topic,
+        const fileHash = this.calculateFileHash(file.path);
+
+        // Cek apakah file ini sudah ada di dalam sistem berdasarkan hash dengan mencocokkan hash file dengan file yang sudah ada
+        const isDuplicate = topic.photos.some((photo) => {
+          const existingFileHash = this.calculateFileHash(
+            join(process.cwd(), photo.file_path),
+          );
+          return existingFileHash === fileHash;
         });
-        await this.photoTopicRepository.save(photo); // Simpan data foto baru
+
+        if (!isDuplicate) {
+          const photo = this.photoTopicRepository.create({
+            file_path: file.path,
+            topic,
+          });
+          await this.photoTopicRepository.save(photo); // Simpan data foto baru
+        } else {
+          fs.unlinkSync(file.path);
+        }
       }
     }
 
@@ -137,7 +174,7 @@ export class TopicService {
     return {
       topic: get,
       totalLikes,
-      totalComments
+      totalComments,
     };
   }
 }

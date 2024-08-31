@@ -75,6 +75,7 @@ export class AnimeService {
     };
   }
 
+  // Fungsi untuk Menghitung hash SHA-256 dari isi file
   private calculateFileHash(filePath: string): string {
     if (!fs.existsSync(filePath)) return '';
 
