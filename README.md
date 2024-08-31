@@ -102,5 +102,3 @@ Here are some of the main temporary endpoints available in this application:
 
 - Backend - [Akbar Ridho Arrafi](https://github.com/AkbarF0rce)
 - Frontend - [Fadlan Hamsyari Priyanto](https://github.com/Rcikaym)
-
-## License
