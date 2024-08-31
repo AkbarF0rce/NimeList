@@ -21,7 +21,7 @@ export class PhotoAnime {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Anime, (anime) => anime.photos, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @ManyToOne(() => Anime, (anime) => anime.photos, {onDelete: 'CASCADE'})
   @JoinColumn({ name: 'id_anime' })
   anime: Anime;
 }

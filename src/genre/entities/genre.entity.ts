@@ -1,4 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  JoinColumn,
+} from 'typeorm';
 import { Anime } from 'src/anime/entities/anime.entity';
 
 @Entity()
@@ -18,6 +27,6 @@ export class Genre {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToMany(() => Anime, (anime) => anime.genres, {onDelete: 'CASCADE', onUpdate: 'CASCADE'})
+  @ManyToMany(() => Anime, (anime) => anime.genres, {onDelete: 'CASCADE'})
   animes: Anime[];
 }

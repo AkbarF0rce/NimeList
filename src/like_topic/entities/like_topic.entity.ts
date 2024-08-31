@@ -1,5 +1,14 @@
 import { Topic } from 'src/topic/entities/topic.entity';
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class LikeTopic {
@@ -18,7 +27,7 @@ export class LikeTopic {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Topic, (topic) => topic.likes)
+  @ManyToOne(() => Topic, (topic) => topic.likes, {onDelete: 'CASCADE'})
   @JoinColumn({ name: 'id_topic' })
   topic: Topic;
 }

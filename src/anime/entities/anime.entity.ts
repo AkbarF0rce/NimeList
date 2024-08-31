@@ -1,4 +1,15 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToMany, JoinTable, OneToMany, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToMany,
+  JoinTable,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  JoinColumn,
+} from 'typeorm';
 import { Genre } from 'src/genre/entities/genre.entity';
 import { PhotoAnime } from 'src/photo_anime/entities/photo_anime.entity';
 import { Topic } from 'src/topic/entities/topic.entity';
@@ -10,13 +21,13 @@ export class Anime {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column("varchar", { length: 255 })
+  @Column('varchar', { length: 255 })
   title: string;
 
-  @Column("text")
+  @Column('text')
   synopsis: string;
 
-  @Column("varchar", { length: 10 })
+  @Column('varchar', { length: 10 })
   release_date: string;
 
   @Column('text')
@@ -34,19 +45,19 @@ export class Anime {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToMany(() => Genre, (genre) => genre.animes, { cascade: true })
+  @ManyToMany(() => Genre, (genre) => genre.animes, {onDelete: 'CASCADE'})
   @JoinTable({ name: 'anime_genre' })
   genres: Genre[];
 
-  @OneToMany(() => PhotoAnime, (photo) => photo.anime, { cascade: true })
+  @OneToMany(() => PhotoAnime, (photo) => photo.anime)
   photos: PhotoAnime[];
 
-  @OneToMany(() => Review, (review) => review.anime, { cascade: true })
+  @OneToMany(() => Review, (review) => review.anime)
   review: Review[];
 
-  @OneToMany(() => Topic, (topic) => topic.anime, { onUpdate: 'CASCADE' })
+  @OneToMany(() => Topic, (topic) => topic.anime)
   topic: Topic;
 
-  @OneToMany(() => FavoriteAnime , (favorite) => favorite.anime, { cascade: true })
+  @OneToMany(() => FavoriteAnime, (favorite) => favorite.anime)
   favorite: FavoriteAnime[];
 }
