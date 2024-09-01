@@ -16,6 +16,11 @@ import { Topic } from 'src/topic/entities/topic.entity';
 import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity';
 import { Review } from 'src/review/entities/review.entity';
 
+export enum Types {
+  MOVIES = 'movies',
+  SERIES = 'series',
+}
+
 @Entity()
 export class Anime {
   @PrimaryGeneratedColumn()
@@ -36,6 +41,9 @@ export class Anime {
   @Column('text')
   trailer_link: string;
 
+  @Column('enum', { enum: Types })
+  type: Types;
+
   @CreateDateColumn()
   created_at: Date;
 
@@ -45,7 +53,7 @@ export class Anime {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToMany(() => Genre, (genre) => genre.animes, {onDelete: 'CASCADE'})
+  @ManyToMany(() => Genre, (genre) => genre.animes, { onDelete: 'CASCADE' })
   @JoinTable({ name: 'anime_genre' })
   genres: Genre[];
 

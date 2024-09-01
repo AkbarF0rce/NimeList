@@ -38,7 +38,7 @@ export class AnimeService {
     files: Express.Multer.File[],
     photo_cover: Express.Multer.File,
   ) {
-    const { title, synopsis, release_date, genres, trailer_link } =
+    const { title, synopsis, release_date, genres, trailer_link, type } =
       createAnimeDto;
 
     // Fetch genre objects from the database
@@ -53,6 +53,7 @@ export class AnimeService {
       synopsis,
       release_date,
       trailer_link,
+      type,
       photo_cover: photo_cover.path,
       genres: genreEntities,
     });
