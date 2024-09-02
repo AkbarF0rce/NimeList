@@ -41,7 +41,7 @@ export class AnimeService {
     const { title, synopsis, release_date, genres, trailer_link, type } =
       createAnimeDto;
 
-    // Fetch genre objects from the database
+    // Cari genre berdasarkan ID
     const genreEntities = await this.genreRepository.find({
       where: {
         id: In(genres),
@@ -90,8 +90,8 @@ export class AnimeService {
   async updateAnime(
     animeId: string,
     updateAnimeDto: UpdateAnimeDto, // Data anime yang ingin diupdate
-    genreIds: number[], // ID genre baru yang ingin dihubungkan dengan anime ini
-    photo_anime: Express.Multer.File[], // File foto baru yang di-upload
+    genres: [], // ID genre baru yang ingin dihubungkan dengan anime ini
+    photos_anime: Express.Multer.File[], // File foto baru yang di-upload
     photo_cover: Express.Multer.File, // File cover baru yang di-upload
   ) {
     // Cari anime berdasarkan ID
@@ -126,20 +126,23 @@ export class AnimeService {
 
     // Update informasi dasar anime
     Object.assign(anime, updateAnimeDto);
-    await this.animeRepository.save(anime);
 
     // Update genre
-    const genres = await this.genreRepository.findByIds(genreIds);
-    if (genres.length !== genreIds.length) {
-      throw new NotFoundException('Beberapa genre tidak ditemukan');
+    const genreEntities = await this.genreRepository.find({
+      where: { id: In(genres) },
+    });
+
+    if (genreEntities.length !== genres.length) {
+      throw new NotFoundException('Satu atau lebih genre tidak ditemukan');
     }
-    anime.genres = genres;
+
+    anime.genres = genreEntities;
     await this.animeRepository.save(anime);
 
     // Jika ada foto yang diupload
-    if (photo_anime && photo_anime.length > 0) {
+    if (photos_anime && photos_anime.length > 0) {
       // Hash file yang baru diupload
-      const newPhotoHashes = photo_anime.map((file) =>
+      const newPhotoHashes = photos_anime.map((file) =>
         this.calculateFileHash(file.path),
       );
 
@@ -160,7 +163,7 @@ export class AnimeService {
       }
 
       // Simpan foto baru
-      for (const file of photo_anime) {
+      for (const file of photos_anime) {
         const fileHash = this.calculateFileHash(file.path);
 
         // Cek apakah file ini sudah ada di dalam sistem berdasarkan hash dengan mencocokkan hash file dengan file yang sudah ada

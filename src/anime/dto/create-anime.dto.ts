@@ -1,26 +1,31 @@
-import { IsString, IsInt, IsArray, ArrayMinSize, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsArray,
+  ArrayMinSize,
+  IsEnum,
+  IsNotEmpty,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { Types } from '../entities/anime.entity';
 
 export class CreateAnimeDto {
-  @IsString()
+  @IsNotEmpty()
   title: string;
 
-  @IsString()
+  @IsNotEmpty()
   synopsis: string;
 
-  @IsString()
+  @IsNotEmpty()
   release_date: string;
 
-  @IsArray()
-  @ArrayMinSize(1)
-  @Type(() => String)
-  genres: string[];
+  @IsNotEmpty()
+  genres: [];
 
-  @IsString()
+  @IsNotEmpty()
   trailer_link: string;
 
-  @IsEnum(Types)
+  @IsNotEmpty()
   type: Types;
 
   // File foto akan dikelola melalui file interceptor di controller

@@ -11,6 +11,8 @@ import {
   NotFoundException,
   Put,
   Get,
+  HttpStatus,
+  HttpException,
 } from '@nestjs/common';
 import { AnimeService } from './anime.service';
 import { CreateAnimeDto } from './dto/create-anime.dto';
@@ -31,7 +33,7 @@ export class AnimeController {
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        { name: 'photos', maxCount: 4 }, // You can limit the number of photos
+        { name: 'photos_anime', maxCount: 4 }, // You can limit the number of photos
         { name: 'photo_cover', maxCount: 1 },
       ],
       {
@@ -54,7 +56,7 @@ export class AnimeController {
               uploadPath = join('src/anime/covers');
             }
             // Jika field name adalah 'photos', lakukan ini
-            else if (file.fieldname === 'photos') {
+            else if (file.fieldname === 'photos_anime') {
               uploadPath = join('src/photo_anime/photos');
             }
 
@@ -71,13 +73,13 @@ export class AnimeController {
     @Body() createAnimeDto: CreateAnimeDto,
     @UploadedFiles()
     files: {
-      photos?: Express.Multer.File[];
+      photos_anime?: Express.Multer.File[];
       photo_cover?: Express.Multer.File[];
     },
   ) {
     return this.animeService.createAnime(
       createAnimeDto,
-      files.photos || [],
+      files.photos_anime || [],
       files.photo_cover?.[0],
     );
   }
@@ -86,14 +88,17 @@ export class AnimeController {
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        { name: 'photos', maxCount: 4 }, // photos untuk foto anime pada table photo_anime
+        { name: 'photos_anime', maxCount: 4 }, // photos untuk foto anime pada table photo_anime
         { name: 'photo_cover', maxCount: 1 }, // photo_cover untuk foto cover anime pada kolom photo_cover
       ],
       {
         fileFilter: (req, file, cb) => {
           if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
             return cb(
-              new Error('Hanya file gambar yang diperbolehkan!'),
+              new HttpException(
+                'Hanya file gambar yang diperbolehkan!',
+                HttpStatus.BAD_REQUEST,
+              ),
               false,
             );
           }
@@ -109,7 +114,7 @@ export class AnimeController {
               uploadPath = join('src/anime/covers');
             }
             // Jika field name adalah 'photos', lakukan ini
-            else if (file.fieldname === 'photos') {
+            else if (file.fieldname === 'photos_anime') {
               uploadPath = join('src/photo_anime/photos');
             }
 
@@ -125,18 +130,18 @@ export class AnimeController {
   async updateAnimeDetails(
     @Param('id') animeId: string,
     @Body() updateAnimeDto: UpdateAnimeDto, // DTO untuk data anime
-    @Body('genreIds') genreIds: number[], // Genre IDs yang ingin diupdate
+    @Body('genres') genres: [],
     @UploadedFiles()
     files: {
-      photos?: Express.Multer.File[];
+      photos_anime?: Express.Multer.File[];
       photo_cover?: Express.Multer.File[];
     },
   ) {
     const updatedAnime = await this.animeService.updateAnime(
       animeId,
       updateAnimeDto,
-      genreIds,
-      files.photos || [], // Mengirim file foto ke service (jika ada)
+      genres,
+      files.photos_anime || [], // Mengirim file foto ke service (jika ada)
       files?.photo_cover?.[0], // Mengirim file photo_cover ke service (jika ada)
     );
 
