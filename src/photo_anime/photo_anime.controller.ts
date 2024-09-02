@@ -12,7 +12,7 @@ export class PhotoAnimeController {
   constructor(private readonly photoAnimeService: PhotoAnimeService) {}
 
   @Delete('delete/:id')
-  async deletePhoto(@Param('id') id: number) {
+  async deletePhoto(@Param('id') id: string) {
     return this.photoAnimeService.deletePhoto(id);
   }
 
@@ -33,13 +33,13 @@ export class PhotoAnimeController {
     ),
   )
   async updatePhoto(
-    @Param('id') id: number,
-    @UploadedFiles() files: { photos?: Express.Multer.File[] },
+    @Param('id') id: string,
+    @UploadedFiles() files: { photos?: Express.Multer.File },
   ){
     // Check if file is defined
     if (!files) {
       throw new Error('File gagal diupload');
     }
-    return this.photoAnimeService.updatePhoto(id, files.photos || []);
+    return this.photoAnimeService.updatePhoto(id, files.photos);
   }
 }

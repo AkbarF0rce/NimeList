@@ -1,22 +1,21 @@
-import { Topic } from 'src/topic/entities/topic.entity';
+import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
-export class LikeTopic {
+export class Role {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
-  id_topic: string;
+  @Column('varchar', { length: 70 })
+  name: string;
 
   @CreateDateColumn()
   created_at: Date;
@@ -27,7 +26,6 @@ export class LikeTopic {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Topic, (topic) => topic.likes, {onDelete: 'CASCADE'})
-  @JoinColumn({ name: 'id_topic' })
-  topic: Topic;
+  @OneToMany(() => User, (user) => user.role)
+  users: User[];
 }

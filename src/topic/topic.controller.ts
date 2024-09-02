@@ -61,11 +61,17 @@ export class TopicController {
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
         }),
+        fileFilter: (req, file, cb) => {
+          if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(new Error('Hanya file gambar yang diperbolehkan!'), false);
+          }
+          cb(null, true);
+        }
       },
     ),
   )
   async update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateTopicDto: CreateTopicDto,
     @UploadedFiles()
     files: {
@@ -80,12 +86,12 @@ export class TopicController {
   }
 
   @Delete('delete/:id')
-  async delete(@Param('id') id: number) {
+  async delete(@Param('id') id: string) {
     return await this.topicService.deleteTopic(id);
   }
 
   @Get('get/:id')
-  async getTopicById(@Param('id') id: number) {
+  async getTopicById(@Param('id') id: string) {
     return await this.topicService.getTopicById(id);
   }
 }

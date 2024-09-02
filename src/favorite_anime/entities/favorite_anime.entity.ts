@@ -12,11 +12,11 @@ import {
 
 @Entity()
 export class FavoriteAnime {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column('integer')
-  id_anime: number;
+  @Column('text')
+  id_anime: string;
 
   @CreateDateColumn()
   created_at: Date;

@@ -1,8 +1,8 @@
 import { IsNumber, IsString } from "class-validator";
 
 export class CreateReviewDto {
-    @IsNumber()
-    id_anime: number;
+    @IsString()
+    id_anime: string;
 
     @IsString()
     review: string;

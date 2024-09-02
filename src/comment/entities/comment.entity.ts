@@ -12,11 +12,11 @@ import {
 
 @Entity()
 export class Comment {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column('integer')
-  id_topic: number;
+  @Column('text')
+  id_topic: string;
 
   @Column('text')
   comment: string;

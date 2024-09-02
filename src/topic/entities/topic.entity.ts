@@ -19,8 +19,8 @@ import { UUID } from 'typeorm/driver/mongodb/bson.typings';
 
 @Entity()
 export class Topic {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column('varchar', { length: 255 })
   title: string;
@@ -28,8 +28,8 @@ export class Topic {
   @Column('text')
   body: string;
 
-  @Column('integer')
-  id_anime: number;
+  @Column('text')
+  id_anime: string;
 
   @CreateDateColumn()
   created_at: Date;

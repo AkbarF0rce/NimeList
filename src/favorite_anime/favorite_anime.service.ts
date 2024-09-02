@@ -24,7 +24,7 @@ export class FavoriteAnimeService {
     }
   }
 
-  async deleteFav (id: number) {
+  async deleteFav (id: string) {
     // Hapus data like berdasarkan id
     await this.favoriteAnimeRepository.softDelete(id);
 
@@ -34,7 +34,7 @@ export class FavoriteAnimeService {
     };
   }
 
-  async restoreFav (id: number) {
+  async restoreFav (id: string) {
     // Restore data like berdasarkan id
     await this.favoriteAnimeRepository.restore(id);
 

@@ -14,8 +14,8 @@ export class CreateAnimeDto {
 
   @IsArray()
   @ArrayMinSize(1)
-  @Type(() => Number)
-  genres: number[];
+  @Type(() => String)
+  genres: string[];
 
   @IsString()
   trailer_link: string;

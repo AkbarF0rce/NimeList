@@ -22,17 +22,17 @@ export class CommentController {
   }
 
   @Put('update/:id')
-  async update(@Param('id') id: number, @Body() data: UpdateCommentDto) {
+  async update(@Param('id') id: string, @Body() data: UpdateCommentDto) {
     return await this.commentService.updateComment(id, data);
   }
 
   @Delete('delete/:id')
-  async delete(@Param('id') id: number) {
+  async delete(@Param('id') id: string) {
     return await this.commentService.deleteComment(id);
   }
 
   @Put('restore/:id')
-  async restore(@Param('id') id: number) {
+  async restore(@Param('id') id: string) {
     return await this.commentService.restoreComment(id);
   }
 }

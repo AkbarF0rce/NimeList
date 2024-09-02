@@ -25,7 +25,7 @@ export class CommentService {
     };
   }
 
-  async updateComment(id: number, data: UpdateCommentDto) {
+  async updateComment(id: string, data: UpdateCommentDto) {
     // Cari comment berdasarkan id yang diberikan
     const get = await this.commentRepository.findOne({
       where: { id },
@@ -42,7 +42,7 @@ export class CommentService {
     };
   }
 
-  async deleteComment(id: number) {
+  async deleteComment(id: string) {
     // Cari comment berdasarkan id yang diberikan
     const get = await this.commentRepository.findOne({
       where: { id },
@@ -61,7 +61,7 @@ export class CommentService {
     };
   }
 
-  async restoreComment(id: number) {
+  async restoreComment(id: string) {
     // Restore comment dari database berdasarkan id
     await this.commentRepository.restore(id);
 

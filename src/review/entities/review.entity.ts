@@ -13,8 +13,8 @@ import {
 
 @Entity({ name: 'review' })
 export class Review {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   rating: number;
@@ -22,8 +22,8 @@ export class Review {
   @Column('text')
   review: string;
 
-  @Column({ name: 'id_anime' })
-  id_anime: number;
+  @Column('text')
+  id_anime: string;
 
   @CreateDateColumn()
   created_at: Date;

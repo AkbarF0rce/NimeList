@@ -24,7 +24,7 @@ export class LikeTopicService {
     };
   }
 
-  async deleteLike (id: number) {
+  async deleteLike (id: string) {
     // Hapus data like berdasarkan id
     await this.likeTopicRepository.softDelete(id);
 
@@ -34,7 +34,7 @@ export class LikeTopicService {
     };
   }
 
-  async restoreLike (id: number) {
+  async restoreLike (id: string) {
     // Restore data like berdasarkan id
     await this.likeTopicRepository.restore(id);
 

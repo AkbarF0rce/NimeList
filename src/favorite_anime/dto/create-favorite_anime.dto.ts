@@ -1,6 +1,6 @@
-import { IsNumber } from "class-validator";
+import { IsNumber, IsString } from "class-validator";
 
 export class CreateFavoriteAnimeDto {
-    @IsNumber()
-    id_anime: number
+    @IsString()
+    id_anime: string
 }

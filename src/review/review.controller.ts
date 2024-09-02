@@ -13,17 +13,17 @@ export class ReviewController {
   }
 
   @Put('update/:id')
-  async update(@Param('id') id: number, @Body() updateReviewDto: UpdateReviewDto) {
+  async update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
     return await this.reviewService.updateReview(id, updateReviewDto);
   }
 
   @Put('restore/:id')
-  async restore(@Param('id') id: number) {
+  async restore(@Param('id') id: string) {
     return await this.reviewService.restoreReview(id);
   }
 
   @Delete('delete/:id')
-  async delete(@Param('id') id: number) {
+  async delete(@Param('id') id: string) {
     return await this.reviewService.deleteReview(id);
   }
 }

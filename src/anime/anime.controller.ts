@@ -35,6 +35,15 @@ export class AnimeController {
         { name: 'photo_cover', maxCount: 1 },
       ],
       {
+        fileFilter: (req, file, cb) => {
+          if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(
+              new Error('Hanya file gambar yang diperbolehkan!'),
+              false,
+            );
+          }
+          cb(null, true);
+        },
         storage: diskStorage({
           destination: (req, file, cb) => {
             // Tentukan destinasi berdasarkan field name
@@ -81,6 +90,15 @@ export class AnimeController {
         { name: 'photo_cover', maxCount: 1 }, // photo_cover untuk foto cover anime pada kolom photo_cover
       ],
       {
+        fileFilter: (req, file, cb) => {
+          if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(
+              new Error('Hanya file gambar yang diperbolehkan!'),
+              false,
+            );
+          }
+          cb(null, true);
+        },
         storage: diskStorage({
           destination: (req, file, cb) => {
             // Tentukan destinasi berdasarkan field name
@@ -105,7 +123,7 @@ export class AnimeController {
     ),
   )
   async updateAnimeDetails(
-    @Param('id') animeId: number,
+    @Param('id') animeId: string,
     @Body() updateAnimeDto: UpdateAnimeDto, // DTO untuk data anime
     @Body('genreIds') genreIds: number[], // Genre IDs yang ingin diupdate
     @UploadedFiles()
@@ -131,7 +149,7 @@ export class AnimeController {
   }
 
   @Get('get/:id')
-  async getAnime(@Param('id') animeId: number) {
+  async getAnime(@Param('id') animeId: string) {
     return await this.animeService.getAnimeById(animeId);
   }
 
@@ -141,7 +159,7 @@ export class AnimeController {
   }
 
   @Delete('delete/:id')
-  async deleteAnime(@Param('id') animeId: number) {
+  async deleteAnime(@Param('id') animeId: string) {
     return await this.animeService.deleteAnime(animeId);
   }
 }

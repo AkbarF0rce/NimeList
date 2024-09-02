@@ -13,12 +13,12 @@ export class GenreController {
   }
 
   @Delete('delete/:id')
-  async delete(@Param('id') id: number) {
-    return await this.genreService.deleteGenre(+id);
+  async delete(@Param('id') id: string) {
+    return await this.genreService.deleteGenre(id);
   }
 
   @Put('update/:id')
-  async update(@Param('id') id: number, @Body() updateGenreDto: CreateGenreDto) {
-    return await this.genreService.updateGenre(+id, updateGenreDto);
+  async update(@Param('id') id: string, @Body() updateGenreDto: CreateGenreDto) {
+    return await this.genreService.updateGenre(id, updateGenreDto);
   }
 }

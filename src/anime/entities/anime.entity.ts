@@ -23,8 +23,8 @@ export enum Types {
 
 @Entity()
 export class Anime {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column('varchar', { length: 255 })
   title: string;

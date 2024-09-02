@@ -61,7 +61,7 @@ export class TopicService {
   }
 
   async updateTopic(
-    id: number,
+    id: string,
     photos: Express.Multer.File[],
     updateTopicDto: UpdateTopicDto,
   ) {
@@ -133,7 +133,7 @@ export class TopicService {
     };
   }
 
-  async deleteTopic(id: number) {
+  async deleteTopic(id: string) {
     // Cari topic berdasarkan id
     const topic = await this.topicRepository.findOne({ where: { id } });
 
@@ -150,7 +150,7 @@ export class TopicService {
     };
   }
 
-  async getTopicById(id: number) {
+  async getTopicById(id: string) {
     const get = await this.topicRepository.findOne({
       where: { id },
       relations: ['anime', 'photos'],

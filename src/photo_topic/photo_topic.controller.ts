@@ -40,7 +40,7 @@ export class PhotoTopicController {
     ),
   )
   async updatePhoto(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @UploadedFiles() files: { photos?: Express.Multer.File },
   ) {
     return await this.photoTopicService.updatePhoto(id, files.photos);

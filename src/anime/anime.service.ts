@@ -88,7 +88,7 @@ export class AnimeService {
   }
 
   async updateAnime(
-    animeId: number,
+    animeId: string,
     updateAnimeDto: UpdateAnimeDto, // Data anime yang ingin diupdate
     genreIds: number[], // ID genre baru yang ingin dihubungkan dengan anime ini
     photo_anime: Express.Multer.File[], // File foto baru yang di-upload
@@ -189,7 +189,7 @@ export class AnimeService {
     };
   }
 
-  async getAnimeById(animeId: number) {
+  async getAnimeById(animeId: string) {
     // Cari anime berdasarkan id
     const anime = await this.animeRepository.findOne({
       where: { id: animeId },
@@ -236,7 +236,7 @@ export class AnimeService {
     };
   }
 
-  async deleteAnime(animeId: number) {
+  async deleteAnime(animeId: string) {
     // Hapus anime dari database berdasarkan id yang diberikan
     const deleted = await this.animeRepository.softDelete({ id: animeId });
 

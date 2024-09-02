@@ -13,6 +13,8 @@ import { LikeTopicModule } from './like_topic/like_topic.module';
 import { FavoriteAnimeModule } from './favorite_anime/favorite_anime.module';
 import { CommentModule } from './comment/comment.module';
 import { ReviewModule } from './review/review.module';
+import { UserModule } from './user/user.module';
+import { RoleModule } from './role/role.module';
 
 @Module({
   imports: [
@@ -41,6 +43,8 @@ import { ReviewModule } from './review/review.module';
     FavoriteAnimeModule,
     CommentModule,
     ReviewModule,
+    UserModule,
+    RoleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

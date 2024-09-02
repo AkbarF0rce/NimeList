@@ -12,8 +12,8 @@ import { Anime } from 'src/anime/entities/anime.entity';
 
 @Entity()
 export class Genre {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column('varchar', { length: 50 })
   name: string;

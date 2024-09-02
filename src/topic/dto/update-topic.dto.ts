@@ -9,6 +9,6 @@ export class UpdateTopicDto extends PartialType(CreateTopicDto) {
     @IsString()
     body?: string;
 
-    @IsNumber()
-    id_anime?: number;
+    @IsString()
+    id_anime?: string;
 }

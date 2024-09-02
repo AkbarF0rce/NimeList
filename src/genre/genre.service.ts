@@ -16,7 +16,7 @@ export class GenreService {
     return { message: 'data created', genreName: data.name };
   }
 
-  async deleteGenre(id: number) {
+  async deleteGenre(id: string) {
     // Hapus data genre berdasarkan id yang diberikan
     const deleted = await this.genreRepository.softDelete(id);
 
@@ -26,7 +26,7 @@ export class GenreService {
     }
   }
 
-  async updateGenre(id: number, updateGenreDto: CreateGenreDto) {
+  async updateGenre(id: string, updateGenreDto: CreateGenreDto) {
     // Update data genre berdasarkan id yang diberikan
     const updated = await this.genreRepository.update(id, updateGenreDto);
 

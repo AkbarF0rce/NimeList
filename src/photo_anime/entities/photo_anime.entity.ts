@@ -3,14 +3,14 @@ import { Anime } from 'src/anime/entities/anime.entity';
 
 @Entity()
 export class PhotoAnime {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column('text')
   file_path: string;
 
-  @Column("integer")
-  id_anime: number;
+  @Column("text")
+  id_anime: string;
 
   @CreateDateColumn()
   created_at: Date;

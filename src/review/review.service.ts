@@ -24,7 +24,7 @@ export class ReviewService {
     };
   }
 
-  async updateReview(id: number, data: UpdateReviewDto) {
+  async updateReview(id: string, data: UpdateReviewDto) {
     // Cari review berdasarkan id yang diberikan
     const get = await this.reviewRepository.findOne({
       where: { id },
@@ -41,7 +41,7 @@ export class ReviewService {
     };
   }
 
-  async deleteReview(id: number) {
+  async deleteReview(id: string) {
     // Cari review berdasarkan id yang diberikan
     const get = await this.reviewRepository.findOne({
       where: {id}
@@ -60,7 +60,7 @@ export class ReviewService {
     }
   }
 
-  async restoreReview(id: number) {
+  async restoreReview(id: string) {
     // Restore data berdasarkan id
     await this.reviewRepository.restore({ id });
 

@@ -12,14 +12,14 @@ import {
 
 @Entity()
 export class PhotoTopic {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column('text')
   file_path: string;
 
-  @Column('integer')
-  id_topic: number;
+  @Column('text')
+  id_topic: string;
 
   @CreateDateColumn()
   created_at: Date;

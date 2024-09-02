@@ -22,12 +22,12 @@ export class LikeTopicController {
   }
 
   @Delete('delete/:id')
-  async delete(@Param('id') id: number) {
+  async delete(@Param('id') id: string) {
     return await this.likeTopicService.deleteLike(id);
   }
 
   @Put('restore/:id')
-  async restore(@Param('id') id: number) {
+  async restore(@Param('id') id: string) {
     return await this.likeTopicService.restoreLike(id); 
   }
 }

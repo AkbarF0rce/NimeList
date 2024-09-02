@@ -7,6 +7,6 @@ export class CreateTopicDto {
     @IsString()
     body: string
 
-    @IsNumber()
-    id_anime: number
+    @IsString()
+    id_anime: string
 }
