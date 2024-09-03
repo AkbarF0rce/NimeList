@@ -21,7 +21,8 @@ import {
   FileInterceptor,
 } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import path, { extname, join } from 'path';
+import * as fs from 'fs';
 import { v4 } from 'uuid';
 import { UpdateAnimeDto } from './dto/update-anime.dto';
 
@@ -47,21 +48,7 @@ export class AnimeController {
           cb(null, true);
         },
         storage: diskStorage({
-          destination: (req, file, cb) => {
-            // Tentukan destinasi berdasarkan field name
-            let uploadPath = '';
-
-            // Jika field name adalah 'photo_cover', lakukan ini
-            if (file.fieldname === 'photo_cover') {
-              uploadPath = join('src/anime/covers');
-            }
-            // Jika field name adalah 'photos', lakukan ini
-            else if (file.fieldname === 'photos_anime') {
-              uploadPath = join('src/photo_anime/photos');
-            }
-
-            cb(null, uploadPath);
-          },
+          destination: './images/anime',
           filename: (req, file, cb) => {
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
@@ -105,21 +92,7 @@ export class AnimeController {
           cb(null, true);
         },
         storage: diskStorage({
-          destination: (req, file, cb) => {
-            // Tentukan destinasi berdasarkan field name
-            let uploadPath = '';
-
-            // Jika field name adalah 'photo_cover', lakukan ini
-            if (file.fieldname === 'photo_cover') {
-              uploadPath = join('src/anime/covers');
-            }
-            // Jika field name adalah 'photos', lakukan ini
-            else if (file.fieldname === 'photos_anime') {
-              uploadPath = join('src/photo_anime/photos');
-            }
-
-            cb(null, uploadPath);
-          },
+          destination: './images/anime',
           filename: (req, file, cb) => {
             cb(null, `${v4()}${extname(file.originalname)}`);
           },

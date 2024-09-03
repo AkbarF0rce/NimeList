@@ -1,5 +1,6 @@
 import { Role } from 'src/role/entities/role.entity';
 import {
+  BeforeInsert,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -10,6 +11,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 export enum status_premium {
   ACTIVE = 'active',
@@ -31,17 +33,20 @@ export class User {
   @Column('text')
   id_role: string;
 
-  @Column('uuid')
-  salt: string;
-
-  @Column('text')
-  bio: string;
-
   @Column('varchar', { length: 255, unique: true })
   username: string;
 
   @Column('varchar', { length: 255 })
   password: string;
+
+  @Column('varchar', { length: 255, unique: true })
+  email: string;
+
+  @Column('uuid')
+  salt: string;
+
+  @Column('text', { nullable: true, default: null })
+  bio: string;
 
   @Column('enum', { enum: status_premium, default: status_premium.INACTIVE })
   status_premium: status_premium;
@@ -67,4 +72,9 @@ export class User {
   @ManyToOne(() => Role, (role) => role.users)
   @JoinColumn({ name: 'id_role' })
   role: Role;
+
+  @BeforeInsert()
+  async hashPassword() {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
 }

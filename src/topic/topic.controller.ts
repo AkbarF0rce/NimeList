@@ -30,7 +30,7 @@ export class TopicController {
       ],
       {
         storage: diskStorage({
-          destination: 'src/photo_topic/photos/', // Sesuaikan destinasi storage sesuai keinginan
+          destination: './images/topic', // Sesuaikan destinasi storage sesuai keinginan
           filename: (req, file, cb) => {
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
@@ -56,7 +56,7 @@ export class TopicController {
       ],
       {
         storage: diskStorage({
-          destination: 'src/photo_topic/photos/', // Sesuaikan destinasi storage sesuai keinginan
+          destination: './images/topic', // Sesuaikan destinasi storage sesuai keinginan
           filename: (req, file, cb) => {
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
