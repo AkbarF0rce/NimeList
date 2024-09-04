@@ -79,11 +79,11 @@ Here are some of the main temporary endpoints available in this application:
 - Photo_topic:
 
   - PUT /photo-topic/update/:id: Update topic photo data.
+  - DELETE /photo-topic/delete/:id: Delete data photo topic
 
 - Like_topic:
 
   - POST /like-topic/post: Add new data like topic.
-  - PUT /like-topic/restore/:id: Restore topic likes data.
   - DELETE /like-topic/delete/:id: Delete topic likes data.
 
 - Favorite_anime:
@@ -97,6 +97,10 @@ Here are some of the main temporary endpoints available in this application:
   - PUT /comment/update/:id: Update comment data.
   - PUT /comment/restore/:id: Restore comment data.
   - DELETE /comment/delete/:id: Delete comment data.
+
+- Like_comment: 
+  - POST /like-comment/post: Add new data like comment.
+  - DELETE /like-comment/delete/:id: Delete comment likes data.
 
 ## Project Developer
 

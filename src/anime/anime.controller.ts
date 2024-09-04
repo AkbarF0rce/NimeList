@@ -140,4 +140,9 @@ export class AnimeController {
   async deleteAnime(@Param('id') animeId: string) {
     return await this.animeService.deleteAnime(animeId);
   }
+
+  @Get('popular')
+  async getRecommendedAnime() {
+    return await this.animeService.getAnimeRecommended();
+  }
 }

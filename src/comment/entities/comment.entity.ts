@@ -1,4 +1,6 @@
+import { LikeComment } from 'src/like_comment/entities/like_comment.entity';
 import { Topic } from 'src/topic/entities/topic.entity';
+import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -6,6 +8,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -17,6 +20,9 @@ export class Comment {
 
   @Column('text')
   id_topic: string;
+
+  @Column('text')
+  id_user: string;
 
   @Column('text')
   comment: string;
@@ -33,4 +39,11 @@ export class Comment {
   @ManyToOne(() => Topic, (topic) => topic.comments, {onDelete: 'CASCADE'})
   @JoinColumn({ name: 'id_topic' })
   topic: Topic;
+
+  @OneToMany(() => LikeComment, (likeComment) => likeComment.comment)
+  likes: LikeComment[];
+
+  @ManyToOne(() => User, (user) => user.comments, {onDelete: 'CASCADE'})
+  @JoinColumn({ name: 'id_user' })
+  user: User;
 }

@@ -291,4 +291,27 @@ export class AnimeService {
       averageRating: parseFloat(anime.averageRating).toFixed(1),
     }));
   }
+
+  async getAnimeRecommended() {
+    const animes = await this.animeRepository
+      .createQueryBuilder('anime')
+      .leftJoin('anime.review', 'review')
+      .addSelect('COALESCE(AVG(review.rating), 0)', 'avgRating')
+      .addSelect('COUNT(review.id)', 'reviewCount')
+      .groupBy('anime.id')
+      .having('AVG(review.rating) > :minRating', { minRating: 4 })
+      .andHaving('COUNT(review.id) > :minReviews', { minReviews: 1 })
+      .getRawMany();
+
+    if (animes.length === 0) {
+      throw new NotFoundException(
+        'Anime yang direkomendasikan tidak ditemukan',
+      );
+    }
+
+    return animes.map((anime) => ({
+      ...anime,
+      avgRating: parseFloat(anime.avgRating).toFixed(1),
+    }));
+  }
 }

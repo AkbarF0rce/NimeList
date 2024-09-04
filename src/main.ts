@@ -8,7 +8,6 @@ async function bootstrap() {
 
   // Menyajikan file statis dari folder 'images'
   app.useStaticAssets(join(__dirname, '..', 'images'));
-  console.log(join(__dirname, '..', 'images'));
 
   await app.listen(4321);
 }

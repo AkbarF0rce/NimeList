@@ -12,6 +12,12 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { LikeComment } from 'src/like_comment/entities/like_comment.entity';
+import { Topic } from 'src/topic/entities/topic.entity';
+import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
+import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity';
+import { Review } from 'src/review/entities/review.entity';
+import { Comment } from 'src/comment/entities/comment.entity';
 
 export enum status_premium {
   ACTIVE = 'active',
@@ -72,6 +78,24 @@ export class User {
   @ManyToOne(() => Role, (role) => role.users)
   @JoinColumn({ name: 'id_role' })
   role: Role;
+
+  @OneToMany(() => LikeComment, (like_comment) => like_comment.user)
+  likes_comment: LikeComment[];
+
+  @OneToMany(() => Topic, (topic) => topic.user)
+  topics: Topic[];
+
+  @OneToMany(() => LikeTopic, (like_topic) => like_topic.user)
+  likes_topic: LikeTopic[];
+
+  @OneToMany(() => FavoriteAnime, (favorite_anime) => favorite_anime.user)
+  favorite_anime: FavoriteAnime[];
+
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Review[];
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments: Comment[];
 
   @BeforeInsert()
   async hashPassword() {

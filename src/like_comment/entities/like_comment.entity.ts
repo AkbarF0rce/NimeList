@@ -1,4 +1,4 @@
-import { Anime } from 'src/anime/entities/anime.entity';
+import { Comment } from 'src/comment/entities/comment.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -6,27 +6,20 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity({ name: 'review' })
-@Unique(['id_anime', 'id_user'])
-export class Review {
+@Entity()
+@Unique(['id_comment', 'id_user'])
+export class LikeComment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  rating: number;
-
-  @Column('text')
-  review: string;
-
-  @Column('text')
-  id_anime: string;
+  id_comment: string;
 
   @Column()
   id_user: string;
@@ -40,11 +33,11 @@ export class Review {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Anime, (anime) => anime.review, {onDelete: 'CASCADE'})
-  @JoinColumn({ name: 'id_anime' })
-  anime: Anime;
+  @ManyToOne(() => Comment, (comment) => comment.likes, {onDelete: 'CASCADE'})
+  @JoinColumn({ name: 'id_comment' })
+  comment: Comment;
 
-  @ManyToOne(() => User, (user) => user.reviews, {onDelete: 'CASCADE'})
+  @ManyToOne(() => User, (user) => user.likes_comment, {onDelete: 'CASCADE'})
   @JoinColumn({ name: 'id_user' })
   user: User;
 }

@@ -3,6 +3,7 @@ import { Anime } from 'src/anime/entities/anime.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
 import { PhotoTopic } from 'src/photo_topic/entities/photo_topic.entity';
+import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -31,6 +32,9 @@ export class Topic {
   @Column('text')
   id_anime: string;
 
+  @Column('text')
+  id_user: string;
+
   @CreateDateColumn()
   created_at: Date;
 
@@ -43,6 +47,10 @@ export class Topic {
   @ManyToOne(() => Anime, (anime) => anime.topic, {onDelete: 'CASCADE'})
   @JoinColumn({ name: 'id_anime' })
   anime: Anime;
+
+  @ManyToOne(() => User, (user) => user.topics, {onDelete: 'CASCADE'})
+  @JoinColumn({ name: 'id_user' })
+  user: User;
 
   @OneToMany(() => PhotoTopic, (photo) => photo.topic)
   photos: PhotoTopic[];

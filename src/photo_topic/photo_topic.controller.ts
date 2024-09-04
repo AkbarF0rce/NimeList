@@ -45,4 +45,9 @@ export class PhotoTopicController {
   ) {
     return await this.photoTopicService.updatePhoto(id, files.photos);
   }
+
+  @Delete('delete/:id')
+  async deletePhoto(@Param('id') id: string) {
+    return await this.photoTopicService.deletePhoto(id);
+  }
 }

@@ -1,4 +1,5 @@
 import { Anime } from 'src/anime/entities/anime.entity';
+import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -7,16 +8,21 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
+@Unique(['id_anime', 'id_user'])
 export class FavoriteAnime {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column('text')
   id_anime: string;
+
+  @Column('text')
+  id_user: string;
 
   @CreateDateColumn()
   created_at: Date;
@@ -30,4 +36,8 @@ export class FavoriteAnime {
   @ManyToOne(() => Anime, (anime) => anime.favorite, {onDelete: 'CASCADE'})
   @JoinColumn({ name: 'id_anime' })
   anime: Anime;
+
+  @ManyToOne(() => User, (user) => user.favorite_anime, {onDelete: 'CASCADE'})
+  @JoinColumn({ name: 'id_user' })
+  user: User;
 }

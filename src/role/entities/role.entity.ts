@@ -14,7 +14,7 @@ export class Role {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('varchar', { length: 70 })
+  @Column('varchar', { length: 70, unique: true })
   name: string;
 
   @CreateDateColumn()

@@ -1,12 +1,15 @@
-import { IsNumber, IsString } from "class-validator";
+import { IsNotEmpty } from "class-validator";
 
 export class CreateReviewDto {
-    @IsString()
+    @IsNotEmpty()
     id_anime: string;
 
-    @IsString()
+    @IsNotEmpty()
+    id_user: string;
+
+    @IsNotEmpty()
     review: string;
 
-    @IsNumber()
+    @IsNotEmpty()
     rating: number;
 }

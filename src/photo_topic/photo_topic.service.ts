@@ -68,4 +68,20 @@ export class PhotoTopicService {
       }
     }
   }
+
+  async deletePhoto(id: string) {
+    // Cari foto berdasarkan id yang diberikan
+    const findPhoto = await this.photoTopicRepository.findOne({ where: { id } });
+
+    // Jika foto tidak ada tampilkan pesan error
+    if (!findPhoto) {
+      throw new NotFoundException('Photo tidak ditemukan');
+    }
+
+    // Tampilkan pesan foto berhasil dihapus
+    return {
+      message: 'data deleted',
+      photo: await this.photoTopicRepository.softDelete({ id }),
+    }
+  }
 }
