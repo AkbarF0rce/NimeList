@@ -14,7 +14,22 @@ export class UserService {
   ) {}
   async create(createUserDto: CreateUserDto) {
     const post = await this.userRepository.create(createUserDto);
-    post.salt = v4()
+    post.salt = v4();
     return await this.userRepository.save(post);
+  }
+
+  async countUserPremium() {
+    const count = await this.userRepository
+      .createQueryBuilder('user')
+      .innerJoinAndSelect('user.role', 'role')
+      .where('role.name = :roleName', { roleName: 'user' })
+      .andWhere('user.status_premium = :premiumStatus', {
+        premiumStatus: 'active',
+      })
+      .getCount();
+
+    return {
+      totalUserPremium: count,
+    };
   }
 }

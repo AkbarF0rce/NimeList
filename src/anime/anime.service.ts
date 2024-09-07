@@ -314,4 +314,23 @@ export class AnimeService {
       avgRating: parseFloat(anime.avgRating).toFixed(1),
     }));
   }
+
+  async getAnimeTopAllTime() {
+    const get = await this.animeRepository
+      .createQueryBuilder('anime')
+      .leftJoin('anime.review', 'reviews')
+      .addSelect('COUNT (reviews.id)', 'reviewcount')
+      .addSelect('COALESCE(AVG(reviews.rating), 0)', 'avgrating')
+      .groupBy('anime.id')
+      .orderBy('avgrating', 'DESC')
+      .addOrderBy('reviewcount', 'DESC')
+      .limit(10)
+      .getRawMany();
+
+    return get.map((anime) => ({
+      title: anime.anime_title,
+      rating: parseFloat(anime.avgrating).toFixed(1),
+      totalReview: anime.reviewcount,
+    }));
+  }
 }

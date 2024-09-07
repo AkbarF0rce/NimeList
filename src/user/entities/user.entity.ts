@@ -42,7 +42,7 @@ export class User {
   @Column('varchar', { length: 255, unique: true })
   username: string;
 
-  @Column('varchar', { length: 255 })
+  @Column('text', { unique: true })
   password: string;
 
   @Column('varchar', { length: 255, unique: true })

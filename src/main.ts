@@ -9,6 +9,7 @@ async function bootstrap() {
   // Menyajikan file statis dari folder 'images'
   app.useStaticAssets(join(__dirname, '..', 'images'));
 
+  app.enableCors();
   await app.listen(4321);
 }
 bootstrap();

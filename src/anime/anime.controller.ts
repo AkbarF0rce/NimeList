@@ -136,13 +136,18 @@ export class AnimeController {
     return await this.animeService.getAnimeByGenre(genreId);
   }
 
-  @Delete('delete/:id')
+  @Delete('delete/:id') 
   async deleteAnime(@Param('id') animeId: string) {
     return await this.animeService.deleteAnime(animeId);
   }
 
-  @Get('popular')
+  @Get('recommended')
   async getRecommendedAnime() {
     return await this.animeService.getAnimeRecommended();
+  }
+
+  @Get('top-all-time')
+  async getTopAllTime() {
+    return await this.animeService.getAnimeTopAllTime();
   }
 }

@@ -50,6 +50,8 @@ Here are some of the main temporary endpoints available in this application:
   - GET /anime/get/by-genre/:id: Get a list of anime by genre ID.
   - PUT /anime/update/:id: Update anime data.
   - DELETE /anime/delete/:id: Soft delete anime by ID.
+  - GET /anime/popular: Display recommended anime data.
+  - GET /anime/top-all-time: Display top anime data all time.
 
 - Genre:
 
@@ -75,6 +77,7 @@ Here are some of the main temporary endpoints available in this application:
   - GET /topic/get/:id: Get a list of topic details by ID.
   - PUT /topic/update/:id: Update topic data.
   - DELETE /topic/delete/:id: Delete data topic.
+  - GET /topic/total: Display the number of topic data.
 
 - Photo_topic:
 
@@ -93,14 +96,18 @@ Here are some of the main temporary endpoints available in this application:
   - DELETE /favorite-anime/delete/:id: Delete anime favorite data.
 
 - Comment:
+
   - POST /comment/post: Add new comment data.
   - PUT /comment/update/:id: Update comment data.
   - PUT /comment/restore/:id: Restore comment data.
   - DELETE /comment/delete/:id: Delete comment data.
 
-- Like_comment: 
+- Like_comment:
   - POST /like-comment/post: Add new data like comment.
   - DELETE /like-comment/delete/:id: Delete comment likes data.
+
+- User:
+  - GET /user/premium: Display the number of user premium with user roles.
 
 ## Project Developer
 

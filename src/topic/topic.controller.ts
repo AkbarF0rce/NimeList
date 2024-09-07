@@ -63,10 +63,13 @@ export class TopicController {
         }),
         fileFilter: (req, file, cb) => {
           if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-            return cb(new Error('Hanya file gambar yang diperbolehkan!'), false);
+            return cb(
+              new Error('Hanya file gambar yang diperbolehkan!'),
+              false,
+            );
           }
           cb(null, true);
-        }
+        },
       },
     ),
   )
@@ -93,5 +96,10 @@ export class TopicController {
   @Get('get/:id')
   async getTopicById(@Param('id') id: string) {
     return await this.topicService.getTopicById(id);
+  }
+
+  @Get('total')
+  async getTotal() {
+    return await this.topicService.getTotalTopic();
   }
 }
