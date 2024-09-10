@@ -18,18 +18,21 @@ export class UserService {
     return await this.userRepository.save(post);
   }
 
-  async countUserPremium() {
-    const count = await this.userRepository
+  async getUsers() {
+    const user = await this.userRepository
       .createQueryBuilder('user')
-      .innerJoinAndSelect('user.role', 'role')
+      .leftJoinAndSelect('user.role', 'role')
       .where('role.name = :roleName', { roleName: 'user' })
-      .andWhere('user.status_premium = :premiumStatus', {
-        premiumStatus: 'active',
-      })
-      .getCount();
+      .getMany();
 
-    return {
-      totalUserPremium: count,
-    };
+    return user.map((user) => ({
+      salt: user.salt,
+      username: user.username,
+      status_premium: user.status_premium,
+      badge: user.badge,
+      start_premium: user.start_premium,
+      end_premium: user.end_premium,
+      email: user.email,
+    }));
   }
 }

@@ -136,7 +136,7 @@ export class AnimeController {
     return await this.animeService.getAnimeByGenre(genreId);
   }
 
-  @Delete('delete/:id') 
+  @Delete('delete/:id')
   async deleteAnime(@Param('id') animeId: string) {
     return await this.animeService.deleteAnime(animeId);
   }
@@ -146,8 +146,8 @@ export class AnimeController {
     return await this.animeService.getAnimeRecommended();
   }
 
-  @Get('top-all-time')
-  async getTopAllTime() {
-    return await this.animeService.getAnimeTopAllTime();
+  @Get('get-all-genre')
+  async getAllGenre() {
+    return await this.animeService.getAllGenre();
   }
 }

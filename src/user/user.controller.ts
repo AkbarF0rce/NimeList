@@ -20,8 +20,8 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
-  @Get('premium')
-  async countUserPremium() {
-    return this.userService.countUserPremium();
+  @Get()
+  async getUsers() {
+    return this.userService.getUsers();
   }
 }

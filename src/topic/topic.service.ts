@@ -177,8 +177,4 @@ export class TopicService {
       totalComments,
     };
   }
-
-  async getTotalTopic() {
-    return { totalTopic: await this.topicRepository.count() };
-  }
 }
