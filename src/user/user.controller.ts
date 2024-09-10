@@ -20,7 +20,7 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
-  @Get()
+  @Get('get-all')
   async getUsers() {
     return this.userService.getUsers();
   }
