@@ -1,7 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Put,
+} from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
+import { get } from 'http';
 
 @Controller('review')
 export class ReviewController {
@@ -13,7 +23,10 @@ export class ReviewController {
   }
 
   @Put('update/:id')
-  async update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateReviewDto: UpdateReviewDto,
+  ) {
     return await this.reviewService.updateReview(id, updateReviewDto);
   }
 
@@ -25,5 +38,25 @@ export class ReviewController {
   @Delete('delete/:id')
   async delete(@Param('id') id: string) {
     return await this.reviewService.deleteReview(id);
+  }
+
+  @Get('get-all')
+  async getAll() {
+    return await this.reviewService.getAllReview();
+  }
+
+  @Get('get-all-anime')
+  async getAllAnime() {
+    return await this.reviewService.getAllAnime();
+  }
+
+  @Get('get-all-user')
+  async getAllUser() {
+    return await this.reviewService.getAllUser();
+  }
+
+  @Get('anime-reviewed/:id')
+  async getAnimeReviewed(@Param('id') id: string) {
+    return await this.reviewService.getAnimeReviewed(id);
   }
 }

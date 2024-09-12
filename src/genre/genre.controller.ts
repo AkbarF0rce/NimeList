@@ -21,4 +21,9 @@ export class GenreController {
   async update(@Param('id') id: string, @Body() updateGenreDto: CreateGenreDto) {
     return await this.genreService.updateGenre(id, updateGenreDto);
   }
+
+  @Get('get-all')
+  async getAllGenre() {
+    return await this.genreService.getAllGenre();
+  }
 }

@@ -28,11 +28,10 @@ export class GenreService {
 
   async updateGenre(id: string, updateGenreDto: CreateGenreDto) {
     // Update data genre berdasarkan id yang diberikan
-    const updated = await this.genreRepository.update(id, updateGenreDto);
+    await this.genreRepository.update(id, updateGenreDto);
+  }
 
-    // Tampilkan pesan jika data berhasil di update
-    if (updated) {
-      return `data updated`;
-    }
+  async getAllGenre() {
+    return await this.genreRepository.find();
   }
 }

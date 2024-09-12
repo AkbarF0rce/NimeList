@@ -57,6 +57,7 @@ Here are some of the main temporary endpoints available in this application:
   - POST /genre/post: Adding new genre.
   - PUT /genre/update/:id: Update genre data.
   - DELETE /genre/delete/:id: Delete genre data.
+  - GET /genre/get-all: Get all existing genre data.
 
 - Review:
 
@@ -64,6 +65,7 @@ Here are some of the main temporary endpoints available in this application:
   - PUT /review/update/:id: Update review data.
   - PUT /review/restore/:id: Restore review data
   - DELETE /review/delete/:id: Delete review data.
+  - GET /review/get-all: Get all existing review data.
 
 - Photo_anime:
 
@@ -101,10 +103,12 @@ Here are some of the main temporary endpoints available in this application:
   - DELETE /comment/delete/:id: Delete comment data.
 
 - Like_comment:
+
   - POST /like-comment/post: Add new data like comment.
   - DELETE /like-comment/delete/:id: Delete comment likes data.
 
 - User:
+
   - GET /user/get-all: Get a list of all user data with the role user
 
 - Dashboard
