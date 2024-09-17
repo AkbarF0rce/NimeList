@@ -72,7 +72,7 @@ export class PhotoAnimeService {
 
         // Simpan file path foto yang baru
         await this.photoRepository.save(photos);
-        
+
         return {
           message: 'Foto berhasil diperbarui',
           filePhoto: photos,
@@ -84,5 +84,27 @@ export class PhotoAnimeService {
         };
       }
     }
+  }
+
+  async getAllPhoto() {
+    const photos = await this.photoRepository
+      .createQueryBuilder('photo')
+      .leftJoin('photo.anime', 'anime')
+      .select([
+        'photo.id',
+        'photo.file_path',
+        'anime.title',
+        'photo.created_at',
+        'photo.updated_at',
+      ])
+      .getMany();
+
+    return photos.map((photo) => ({
+      id: photo.id,
+      file_path: photo.file_path,
+      anime: photo.anime.title,
+      created_at: photo.created_at,
+      updated_at: photo.updated_at,
+    }));
   }
 }

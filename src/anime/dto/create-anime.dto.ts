@@ -1,12 +1,5 @@
-import {
-  IsString,
-  IsInt,
-  IsArray,
-  ArrayMinSize,
-  IsEnum,
-  IsNotEmpty,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsNotEmpty } from 'class-validator';
+
 import { Types } from '../entities/anime.entity';
 
 export class CreateAnimeDto {
@@ -21,6 +14,9 @@ export class CreateAnimeDto {
 
   @IsNotEmpty()
   genres: [];
+
+  @IsNotEmpty()
+  episodes: number;
 
   @IsNotEmpty()
   trailer_link: string;

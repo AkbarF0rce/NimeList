@@ -38,8 +38,15 @@ export class AnimeService {
     files: Express.Multer.File[],
     photo_cover: Express.Multer.File,
   ) {
-    const { title, synopsis, release_date, genres, trailer_link, type } =
-      createAnimeDto;
+    const {
+      title,
+      synopsis,
+      release_date,
+      genres,
+      trailer_link,
+      type,
+      episodes,
+    } = createAnimeDto;
 
     // Cari genre berdasarkan ID
     const genreEntities = await this.genreRepository.find({
@@ -53,6 +60,7 @@ export class AnimeService {
       synopsis,
       release_date,
       trailer_link,
+      episodes,
       type,
       photo_cover: photo_cover.path,
       genres: genreEntities,
@@ -84,7 +92,7 @@ export class AnimeService {
     const hashSum = crypto.createHash('sha256');
     hashSum.update(fileBuffer);
 
-    return hashSum.digest('hex');
+    return hashSum.digest('hex'); 
   }
 
   async updateAnime(

@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Put,
+  UseInterceptors,
+  UploadedFiles,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { PhotoAnimeService } from './photo_anime.service';
 import { CreatePhotoAnimeDto } from './dto/create-photo_anime.dto';
 import { UpdatePhotoAnimeDto } from './dto/update-photo_anime.dto';
@@ -19,12 +32,24 @@ export class PhotoAnimeController {
   @Put('update/:id')
   @UseInterceptors(
     FileFieldsInterceptor(
-      [
-        { name: 'photos', maxCount: 1 }, // Limit file foto yang akan diupload sesuai keinginan
+      [ 
+        { name: 'photos', maxCount: 1 }, // photo_cover untuk foto cover anime pada kolom photo_cover
       ],
       {
+        fileFilter: (req, file, cb) => {
+          if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(
+              new HttpException(
+                'Hanya file gambar yang diperbolehkan!',
+                HttpStatus.BAD_REQUEST,
+              ),
+              false,
+            );
+          }
+          cb(null, true);
+        },
         storage: diskStorage({
-          destination: 'src/photo_anime/photos/', // Sesuaikan destinasi storage sesuai keinginan
+          destination: './images/anime',
           filename: (req, file, cb) => {
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
@@ -34,12 +59,17 @@ export class PhotoAnimeController {
   )
   async updatePhoto(
     @Param('id') id: string,
-    @UploadedFiles() files: { photos?: Express.Multer.File },
-  ){
+    @UploadedFiles() files: { photos?: Express.Multer.File[] },
+  ) {
     // Check if file is defined
     if (!files) {
       throw new Error('File gagal diupload');
     }
-    return this.photoAnimeService.updatePhoto(id, files.photos);
+    return this.photoAnimeService.updatePhoto(id, files?.photos?.[0]);
+  }
+
+  @Get('get-all')
+  async getAllPhoto() {
+    return this.photoAnimeService.getAllPhoto();
   }
 }

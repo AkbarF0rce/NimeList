@@ -177,4 +177,27 @@ export class TopicService {
       totalComments,
     };
   }
+
+  async getAllTopic() {
+    const topics = await this.topicRepository
+      .createQueryBuilder('topic')
+      .leftJoinAndSelect('topic.user', 'user') // Join table user yang berelasi dengan topic
+      .leftJoinAndSelect('topic.anime', 'anime') // Join table photos yang berelasi dengan topic
+      .select([
+        'topic.id',
+        'topic.title',
+        'topic.created_at',
+        'topic.updated_at',
+        'user.username', // Ambil username dari tabel user
+        'anime.title', // Ambil title dari tabel anime
+      ])
+      .getMany();
+
+    // Tampilkan semua topik dengan username user yang terkait
+    return topics.map((topic) => ({
+      ...topic,
+      user: topic.user.username,
+      anime: topic.anime.title,
+    }));
+  }
 }

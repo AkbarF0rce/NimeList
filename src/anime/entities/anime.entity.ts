@@ -17,7 +17,7 @@ import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity
 import { Review } from 'src/review/entities/review.entity';
 
 export enum Types {
-  MOVIES = 'movies',
+  MOVIE = 'movie',
   SERIES = 'series',
 }
 
@@ -34,6 +34,9 @@ export class Anime {
 
   @Column('varchar', { length: 10 })
   release_date: string;
+
+  @Column('integer')
+  episodes: number;
 
   @Column('text')
   photo_cover: string;

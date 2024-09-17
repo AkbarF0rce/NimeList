@@ -38,7 +38,7 @@ export class Topic {
   @CreateDateColumn()
   created_at: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn() 
   updated_at: Date;
 
   @DeleteDateColumn()

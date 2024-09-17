@@ -55,6 +55,11 @@ export class ReviewController {
     return await this.reviewService.getAllUser();
   }
 
+  @Get('get/:id')
+  async get(@Param('id') id: string) {
+    return await this.reviewService.getReviewById(id);
+  }
+
   @Get('anime-reviewed/:id')
   async getAnimeReviewed(@Param('id') id: string) {
     return await this.reviewService.getAnimeReviewed(id);

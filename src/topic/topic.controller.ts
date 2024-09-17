@@ -97,4 +97,9 @@ export class TopicController {
   async getTopicById(@Param('id') id: string) {
     return await this.topicService.getTopicById(id);
   }
+
+  @Get('get-all')
+  async getAllTopic() {
+    return await this.topicService.getAllTopic(); 
+  }
 }

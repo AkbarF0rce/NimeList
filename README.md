@@ -45,7 +45,7 @@ Here are some of the main temporary endpoints available in this application:
 - Anime:
 
   - POST /anime/post: Adding new anime.
-  - GET /anime/get/id: Get a list of anime details by ID.
+  - GET /anime/get/:id: Get a list of anime details by ID.
   - GET /anime/get: Get all anime.
   - GET /anime/get/by-genre/:id: Get a list of anime by genre ID.
   - PUT /anime/update/:id: Update anime data.
@@ -61,16 +61,18 @@ Here are some of the main temporary endpoints available in this application:
 
 - Review:
 
+  - GET /review/get-all: Get all existing review data.
+  - GET /review/get/:id: Get a list of review details by ID
   - POST /review/post: Adding new review.
   - PUT /review/update/:id: Update review data.
   - PUT /review/restore/:id: Restore review data
   - DELETE /review/delete/:id: Delete review data.
-  - GET /review/get-all: Get all existing review data.
 
 - Photo_anime:
 
-  - PUT photo-anime/update/:id: Update data photo anime.
-  - DELETE photo-anime/delete/:id: Delete data photo anime.
+  - GET /photo-anime/get-all: Get all photo anime.
+  - PUT /photo-anime/update/:id: Update data photo anime.
+  - DELETE /photo-anime/delete/:id: Delete data photo anime.
 
 - Topic:
 

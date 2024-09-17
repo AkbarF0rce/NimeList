@@ -99,6 +99,32 @@ export class ReviewService {
     }));
   }
 
+  async getReviewById(id: string) {
+    const review = await this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoin('review.user', 'user')
+      .leftJoin('review.anime', 'anime')
+      .select([
+        'review.rating',
+        'review.review',
+        'user.username',
+        'anime.title',
+        'review.created_at',
+        'review.updated_at',
+      ])
+      .where('review.id = :id', { id })
+      .getOne();
+
+    return {
+      username: review.user.username,
+      review: review.review,
+      title_anime: review.anime.title,
+      rating: review.rating,
+      created_at: review.created_at,
+      updated_at: review.updated_at,
+    };
+  }
+
   async getAllAnime() {
     const animes = await this.animeRepository
       .createQueryBuilder('anime')
