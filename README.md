@@ -11,14 +11,14 @@ A responsive anime website built with Next.js and Tailwind CSS, featuring dynami
 ### Reuqirements
 
 - [Node.js](https://nodejs.org/) (v14.x or higher)
-- [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+- [yarn](https://yarnpkg.com/)
 - [PostgreSQL](https://www.postgresql.org/) (v12 or higher)
 - [Git](https://git-scm.com/)
 
 ### Step 1 -- Instalation Dependecies
 
 ```bash
-npm install
+yarn install
 ```
 
 ### Step 2 -- Configuration
