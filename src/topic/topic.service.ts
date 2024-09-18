@@ -12,6 +12,8 @@ import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
+import { Anime } from 'src/anime/entities/anime.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class TopicService {
@@ -22,6 +24,8 @@ export class TopicService {
     @InjectRepository(LikeTopic)
     private likeTopicRepository: Repository<LikeTopic>,
     @InjectRepository(Comment) private commentRepository: Repository<Comment>,
+    @InjectRepository(Anime) private animeRepository: Repository<Anime>,
+    @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
   async createTopic(
@@ -198,6 +202,32 @@ export class TopicService {
       ...topic,
       user: topic.user.username,
       anime: topic.anime.title,
+    }));
+  }
+
+  async getAllAnime() {
+    const animes = await this.animeRepository
+      .createQueryBuilder('anime')
+      .select(['anime.id', 'anime.title'])
+      .getMany();
+
+    return animes.map((anime) => ({
+      id: anime.id,
+      title: anime.title,
+    }));
+  }
+
+  async getAllUser() {
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .innerJoinAndSelect('user.role', 'role')
+      .select(['user.id', 'user.username'])
+      .where('role.name = :roleName', { roleName: 'user' })
+      .getMany();
+
+    return users.map((user) => ({
+      id: user.id,
+      username: user.username,
     }));
   }
 }

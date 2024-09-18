@@ -102,4 +102,14 @@ export class TopicController {
   async getAllTopic() {
     return await this.topicService.getAllTopic(); 
   }
+
+  @Get('get-all-anime')
+  async getAllAnime() {
+    return await this.topicService.getAllAnime();
+  }
+
+  @Get('get-all-user')
+  async getAllUser() {
+    return await this.topicService.getAllUser();
+  }
 }

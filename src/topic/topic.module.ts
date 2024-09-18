@@ -6,10 +6,12 @@ import { Topic } from './entities/topic.entity';
 import { PhotoTopic } from 'src/photo_topic/entities/photo_topic.entity';
 import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
+import { Anime } from 'src/anime/entities/anime.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Module({
   controllers: [TopicController],
   providers: [TopicService],
-  imports: [TypeOrmModule.forFeature([Topic, PhotoTopic, LikeTopic, Comment])],
+  imports: [TypeOrmModule.forFeature([Topic, PhotoTopic, LikeTopic, Comment, Anime, User])],
 })
 export class TopicModule {}
