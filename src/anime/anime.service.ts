@@ -46,6 +46,7 @@ export class AnimeService {
       trailer_link,
       type,
       episodes,
+      watch_link
     } = createAnimeDto;
 
     // Cari genre berdasarkan ID
@@ -62,6 +63,7 @@ export class AnimeService {
       trailer_link,
       episodes,
       type,
+      watch_link,
       photo_cover: photo_cover.path,
       genres: genreEntities,
     });

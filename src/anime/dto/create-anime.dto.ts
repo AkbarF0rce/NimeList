@@ -13,6 +13,9 @@ export class CreateAnimeDto {
   release_date: string;
 
   @IsNotEmpty()
+  watch_link: string;
+
+  @IsNotEmpty()
   genres: [];
 
   @IsNotEmpty()

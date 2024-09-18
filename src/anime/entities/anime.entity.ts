@@ -44,6 +44,9 @@ export class Anime {
   @Column('text')
   trailer_link: string;
 
+  @Column('text')
+  watch_link: string;
+
   @Column('enum', { enum: Types })
   type: Types;
 
