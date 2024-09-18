@@ -19,7 +19,7 @@ export class Review {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column('decimal')
   rating: number;
 
   @Column('text')
@@ -40,11 +40,11 @@ export class Review {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Anime, (anime) => anime.review, {onDelete: 'CASCADE'})
+  @ManyToOne(() => Anime, (anime) => anime.review, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_anime' })
   anime: Anime;
 
-  @ManyToOne(() => User, (user) => user.reviews, {onDelete: 'CASCADE'})
+  @ManyToOne(() => User, (user) => user.reviews, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_user' })
   user: User;
 }
