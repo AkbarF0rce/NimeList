@@ -243,7 +243,7 @@ export class AnimeService {
     return {
       anime,
       reviewCount,
-      avg_Rating: parseFloat(avgRating) || 0, // Set 0 jika tidak ada rating
+      averageRating: parseFloat(avgRating) || 0, // Set 0 jika tidak ada rating
       topicCount,
       totalFav,
     };
@@ -265,34 +265,23 @@ export class AnimeService {
   async getAllAnime() {
     const animes = await this.animeRepository
       .createQueryBuilder('anime')
-      .leftJoinAndSelect('anime.genres', 'genre')
       .leftJoin('anime.review', 'review')
       .select([
         'anime.id',
         'anime.title',
+        'anime.type',
+        'anime.photo_cover',
         'anime.created_at',
         'anime.updated_at',
-        'genre.name',
       ])
       .addSelect('COALESCE(AVG(review.rating), 0)', 'avg_rating')
-      .addSelect('COUNT(review.id)', 'total_review')
-      .groupBy('anime.id, genre.id')
-      .getRawAndEntities();
+      .groupBy('anime.id')
+      .getRawMany();
 
-    const transformedAnimes = animes.entities.map((anime) => ({
+    return animes.map((anime) => ({
       ...anime,
-      genres: anime.genres.map((g) => g.name),
-      avg_rating: Number(
-        parseFloat(
-          animes.raw.find((r) => r.anime_id === anime.id)?.avg_rating || '0',
-        ).toFixed(1),
-      ),
-      total_review: parseInt(
-        animes.raw.find((r) => r.anime_id === anime.id)?.total_review || '0',
-      ),
+      avg_rating: Number(parseFloat(anime.avg_rating).toFixed(1)),
     }));
-
-    return transformedAnimes;
   }
 
   async getAnimeByGenre(genreId: number) {
