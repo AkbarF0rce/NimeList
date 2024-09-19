@@ -72,4 +72,9 @@ export class PhotoAnimeController {
   async getAllPhoto() {
     return this.photoAnimeService.getAllPhoto();
   }
+
+  @Get('get/:id')
+  async getPhotoById(@Param('id') id: string) {
+    return this.photoAnimeService.getPhotoById(id);
+  }
 }

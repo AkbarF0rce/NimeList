@@ -107,4 +107,27 @@ export class PhotoAnimeService {
       updated_at: photo.updated_at,
     }));
   }
+
+  async getPhotoById(id: string) {
+    const photo = await this.photoRepository
+      .createQueryBuilder('photo')
+      .leftJoin('photo.anime', 'anime')
+      .select([
+        'photo.id',
+        'photo.file_path',
+        'anime.title',
+        'photo.created_at',
+        'photo.updated_at',
+      ])
+      .where('photo.id = :id', { id })
+      .getOne();
+
+    return {
+      id: photo.id,
+      file_path: photo.file_path,
+      anime: photo.anime.title,
+      created_at: photo.created_at,
+      updated_at: photo.updated_at,
+    }
+  }
 }

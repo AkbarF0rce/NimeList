@@ -46,7 +46,7 @@ export class AnimeService {
       trailer_link,
       type,
       episodes,
-      watch_link
+      watch_link,
     } = createAnimeDto;
 
     // Cari genre berdasarkan ID
@@ -94,7 +94,7 @@ export class AnimeService {
     const hashSum = crypto.createHash('sha256');
     hashSum.update(fileBuffer);
 
-    return hashSum.digest('hex'); 
+    return hashSum.digest('hex');
   }
 
   async updateAnime(
@@ -243,7 +243,7 @@ export class AnimeService {
     return {
       anime,
       reviewCount,
-      averageRating: parseFloat(avgRating) || 0, // Set 0 jika tidak ada rating
+      avg_Rating: parseFloat(avgRating) || 0, // Set 0 jika tidak ada rating
       topicCount,
       totalFav,
     };
@@ -265,17 +265,34 @@ export class AnimeService {
   async getAllAnime() {
     const animes = await this.animeRepository
       .createQueryBuilder('anime')
-      .leftJoin('anime.review', 'review') // Join table review
-      .addSelect('COALESCE(AVG(review.rating), 0)', 'averageRating')
-      .addSelect('COUNT(review.id)', 'totalReview')
-      .groupBy('anime.id')
-      .getRawMany();
+      .leftJoinAndSelect('anime.genres', 'genre')
+      .leftJoin('anime.review', 'review')
+      .select([
+        'anime.id',
+        'anime.title',
+        'anime.created_at',
+        'anime.updated_at',
+        'genre.name',
+      ])
+      .addSelect('COALESCE(AVG(review.rating), 0)', 'avg_rating')
+      .addSelect('COUNT(review.id)', 'total_review')
+      .groupBy('anime.id, genre.id')
+      .getRawAndEntities();
 
-    // Tampilkan semua anime yang ada
-    return animes.map((anime) => ({
+    const transformedAnimes = animes.entities.map((anime) => ({
       ...anime,
-      avg_rating: parseFloat(anime.averageRating).toFixed(1),
+      genres: anime.genres.map((g) => g.name),
+      avg_rating: Number(
+        parseFloat(
+          animes.raw.find((r) => r.anime_id === anime.id)?.avg_rating || '0',
+        ).toFixed(1),
+      ),
+      total_review: parseInt(
+        animes.raw.find((r) => r.anime_id === anime.id)?.total_review || '0',
+      ),
     }));
+
+    return transformedAnimes;
   }
 
   async getAnimeByGenre(genreId: number) {

@@ -155,30 +155,40 @@ export class TopicService {
   }
 
   async getTopicById(id: string) {
-    const get = await this.topicRepository.findOne({
-      where: { id },
-      relations: ['anime', 'photos'],
-    });
+    const get = await this.topicRepository
+      .createQueryBuilder('topic')
+      .leftJoin('topic.user', 'user')
+      .leftJoin('topic.anime', 'anime')
+      .leftJoin('topic.photos', 'photos')
+      .select([
+        'topic.id',
+        'topic.title',
+        'topic.created_at',
+        'topic.updated_at',
+        'user.username',
+        'anime.title',
+        'topic.body',
+        'photos.file_path',
+      ])
+      .where('topic.id = :id', { id })
+      .getOne();
 
-    if (!get) {
-      throw new NotFoundException('Topic tidak ditemukan');
-    }
-
-    // Hitung total likes dari id topic yang diberikan
-    const totalLikes = await this.likeTopicRepository
-      .createQueryBuilder('likes')
-      .where('likes.id_topic = :id', { id })
+    const likes = await this.likeTopicRepository
+      .createQueryBuilder('like')
+      .where('like.id_topic = :id', { id })
       .getCount();
 
-    const totalComments = await this.commentRepository
+    const comments = await this.commentRepository
       .createQueryBuilder('comment')
       .where('comment.id_topic = :id', { id })
       .getCount();
 
     return {
-      topic: get,
-      totalLikes,
-      totalComments,
+      ...get,
+      user: get.user.username,
+      anime: get.anime.title,
+      totalLikes: likes,
+      totalComments: comments,
     };
   }
 
