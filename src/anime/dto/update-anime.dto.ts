@@ -13,5 +13,4 @@ export class UpdateAnimeDto extends PartialType(CreateAnimeDto) {
   type?: Types;
   watch_link?: string;
   episodes?: number;
-  existing_photos?: string;
 }

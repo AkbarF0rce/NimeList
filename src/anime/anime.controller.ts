@@ -104,19 +104,21 @@ export class AnimeController {
     @Param('id') animeId: string,
     @Body() updateAnimeDto: UpdateAnimeDto, // DTO untuk data anime
     @Body('genres') genres: [],
+    @Body('existing_photos') existingPhotosString: string[],
     @UploadedFiles()
     files: {
       new_photos?: Express.Multer.File[];
       photo_cover?: Express.Multer.File[];
     },
   ) {
+
     const updatedAnime = await this.animeService.updateAnime(
       animeId,
       updateAnimeDto,
       genres,
       files.new_photos || [],
-      files.photo_cover?.[0],
-      updateAnimeDto.existing_photos,
+      files?.photo_cover?.[0],
+      existingPhotosString ,
     );
 
     return updatedAnime;

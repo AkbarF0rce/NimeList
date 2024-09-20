@@ -103,7 +103,7 @@ export class AnimeService {
     genres: [], // ID genre baru yang ingin dihubungkan dengan anime ini
     new_photos: Express.Multer.File[],
     photo_cover: Express.Multer.File, // File cover baru yang di-upload
-    existing_photos: string,
+    existing_photos: string[],
   ) {
     // Cari anime berdasarkan ID
     const anime = await this.animeRepository.findOne({
@@ -130,6 +130,7 @@ export class AnimeService {
 
         // Ubah path cover dengan path yang baru
         anime.photo_cover = photo_cover.path;
+        console.log(photo_cover.path);
       } else {
         fs.unlinkSync(photo_cover.path);
       }
@@ -137,27 +138,25 @@ export class AnimeService {
 
     // Update informasi dasar anime
     Object.assign(anime, updateAnimeDto);
-
-    // Update genre
+    
     const genreEntities = await this.genreRepository.find({
       where: { id: In(genres) },
     });
-
+    
     if (genreEntities.length !== genres.length) {
       throw new NotFoundException('Satu atau lebih genre tidak ditemukan');
     }
-
+    
+    // Update genre
     anime.genres = genreEntities;
+    // Save anime
     await this.animeRepository.save(anime);
-
-    const existingPhotos = existing_photos;
-    console.log(existingPhotos);
 
     // Identifikasi dan hapus foto lama yang tidak ada di file baru
     for (const photo of anime.photos) {
       const oldFilePath = join(process.cwd(), photo.file_path);
       // Jika file path lama tidak ada di file path yang baru, maka hapus
-      if (!existingPhotos) {
+      if (!existing_photos.includes(photo.file_path)) {
         try {
           await unlink(oldFilePath); // Hapus file lama dari sistem
         } catch (err) {
@@ -169,7 +168,7 @@ export class AnimeService {
 
     // Simpan path dan file foto baru yang belum ada di database
     const newPhotos = new_photos
-      .filter((file) => !existingPhotos.has(file.path)) // Hanya simpan file dan path baru yang belum ada di database
+      .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
       .map(async (file) => {
         const photo = this.photoRepository.create({
           file_path: file.path,
@@ -177,11 +176,6 @@ export class AnimeService {
         });
         await this.photoRepository.save(photo);
       });
-
-    return {
-      message: 'Anime, genre, dan foto berhasil diperbarui',
-      updatedAnime: anime,
-    };
   }
 
   async getAnimeById(animeId: string) {
