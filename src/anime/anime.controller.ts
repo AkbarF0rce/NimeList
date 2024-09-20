@@ -75,7 +75,7 @@ export class AnimeController {
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        { name: 'photos_anime', maxCount: 4 }, // photos untuk foto anime pada table photo_anime
+        { name: 'new_photos', maxCount: 4 }, // photos untuk foto anime pada table photo_anime
         { name: 'photo_cover', maxCount: 1 }, // photo_cover untuk foto cover anime pada kolom photo_cover
       ],
       {
@@ -106,7 +106,7 @@ export class AnimeController {
     @Body('genres') genres: [],
     @UploadedFiles()
     files: {
-      photos_anime?: Express.Multer.File[];
+      new_photos?: Express.Multer.File[];
       photo_cover?: Express.Multer.File[];
     },
   ) {
@@ -114,8 +114,9 @@ export class AnimeController {
       animeId,
       updateAnimeDto,
       genres,
-      files.photos_anime || [], // Mengirim file foto ke service (jika ada)
-      files?.photo_cover?.[0], // Mengirim file photo_cover ke service (jika ada)
+      files.new_photos || [],
+      files.photo_cover?.[0],
+      updateAnimeDto.existing_photos,
     );
 
     return updatedAnime;
