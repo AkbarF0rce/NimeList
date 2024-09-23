@@ -31,7 +31,7 @@ export class PhotoTopicController {
       ],
       {
         storage: diskStorage({
-          destination: 'src/photo_topic/photos/', // Sesuaikan destinasi storage sesuai keinginan
+          destination: './images/topic', // Sesuaikan destinasi storage sesuai keinginan
           filename: (req, file, cb) => {
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
@@ -49,5 +49,15 @@ export class PhotoTopicController {
   @Delete('delete/:id')
   async deletePhoto(@Param('id') id: string) {
     return await this.photoTopicService.deletePhoto(id);
+  }
+
+  @Get('get-all')
+  async getAllPhotos() {
+    return await this.photoTopicService.getAllPhotos();
+  }
+
+  @Get('get/:id')
+  async getPhotoById(@Param('id') id: string) {
+    return await this.photoTopicService.getPhotoById(id);
   }
 }

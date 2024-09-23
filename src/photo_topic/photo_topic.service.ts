@@ -16,8 +16,8 @@ export class PhotoTopicService {
     private photoTopicRepository: Repository<PhotoTopic>,
   ) {}
 
-   // Fungsi untuk Menghitung hash SHA-256 dari isi file
-   private calculateFileHash(filePath: string): string {
+  // Fungsi untuk Menghitung hash SHA-256 dari isi file
+  private calculateFileHash(filePath: string): string {
     if (!fs.existsSync(filePath)) return '';
 
     const fileBuffer = fs.readFileSync(filePath);
@@ -55,23 +55,17 @@ export class PhotoTopicService {
 
         // Simpan file path foto yang baru
         await this.photoTopicRepository.save(photos);
-        
-        return {
-          message: 'Foto berhasil diperbarui',
-          filePhoto: photos,
-        };
       } else {
         fs.unlinkSync(files.path);
-        return {
-          message: 'foto tidak ada yang baru',
-        };
       }
     }
   }
 
   async deletePhoto(id: string) {
     // Cari foto berdasarkan id yang diberikan
-    const findPhoto = await this.photoTopicRepository.findOne({ where: { id } });
+    const findPhoto = await this.photoTopicRepository.findOne({
+      where: { id },
+    });
 
     // Jika foto tidak ada tampilkan pesan error
     if (!findPhoto) {
@@ -82,6 +76,49 @@ export class PhotoTopicService {
     return {
       message: 'data deleted',
       photo: await this.photoTopicRepository.softDelete({ id }),
+    };
+  }
+
+  async getAllPhotos() {
+    const photo = await this.photoTopicRepository
+      .createQueryBuilder('photo')
+      .leftJoin('photo.topic', 'topic')
+      .select([
+        'photo.id',
+        'photo.file_path',
+        'topic.title',
+        'photo.created_at',
+        'photo.updated_at',
+      ])
+      .getMany();
+
+    return photo.map((photo) => ({
+      id: photo.id,
+      file_path: photo.file_path,
+      topic: photo.topic.title,
+      created_at: photo.created_at,
+      updated_at: photo.updated_at,
+    }));
+  }
+
+  async getPhotoById(id: string) {
+    const photo = await this.photoTopicRepository
+      .createQueryBuilder('photo')
+      .leftJoin('photo.topic', 'topic')
+      .select([
+        'photo.file_path',
+        'topic.title',
+        'photo.created_at',
+        'photo.updated_at',
+      ])
+      .where('photo.id = :id', { id })
+      .getOne();
+
+    return {
+      file_path: photo.file_path,
+      topic: photo.topic.title,
+      created_at: photo.created_at,
+      updated_at: photo.updated_at,
     }
   }
 }
