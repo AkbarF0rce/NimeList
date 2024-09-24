@@ -48,8 +48,16 @@ export class AnimeController {
           cb(null, true);
         },
         storage: diskStorage({
-          destination: './images/anime',
+          destination: (req, file, cb) => {
+            // Menentukan folder penyimpanan berdasarkan fieldname (photo_cover atau photo_content)
+            if (file.fieldname === 'photo_cover') {
+              cb(null, './images/anime/cover');
+            } else if (file.fieldname === 'photo_anime') {
+              cb(null, './images/anime/content');
+            }
+          },
           filename: (req, file, cb) => {
+            // Generate UUID untuk nama file
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
         }),
@@ -92,8 +100,16 @@ export class AnimeController {
           cb(null, true);
         },
         storage: diskStorage({
-          destination: './images/anime',
+          destination: (req, file, cb) => {
+            // Menentukan folder penyimpanan berdasarkan fieldname (photo_cover atau photo_content)
+            if (file.fieldname === 'photo_cover') {
+              cb(null, './images/anime/cover');
+            } else if (file.fieldname === 'new_photos') {
+              cb(null, './images/anime/content');
+            }
+          },
           filename: (req, file, cb) => {
+            // Generate UUID untuk nama file
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
         }),
@@ -111,14 +127,13 @@ export class AnimeController {
       photo_cover?: Express.Multer.File[];
     },
   ) {
-
     const updatedAnime = await this.animeService.updateAnime(
       animeId,
       updateAnimeDto,
       genres,
       files.new_photos || [],
       files?.photo_cover?.[0],
-      existingPhotosString ,
+      existingPhotosString,
     );
 
     return updatedAnime;

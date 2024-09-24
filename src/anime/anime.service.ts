@@ -138,15 +138,15 @@ export class AnimeService {
 
     // Update informasi dasar anime
     Object.assign(anime, updateAnimeDto);
-    
+
     const genreEntities = await this.genreRepository.find({
       where: { id: In(genres) },
     });
-    
+
     if (genreEntities.length !== genres.length) {
       throw new NotFoundException('Satu atau lebih genre tidak ditemukan');
     }
-    
+
     // Update genre
     anime.genres = genreEntities;
     // Save anime
@@ -155,7 +155,8 @@ export class AnimeService {
     // Identifikasi dan hapus foto lama yang tidak ada di file baru
     for (const photo of anime.photos) {
       const oldFilePath = join(process.cwd(), photo.file_path);
-      // Jika file path lama tidak ada di file path yang baru, maka hapus
+
+      // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
       if (!existing_photos.includes(photo.file_path)) {
         try {
           await unlink(oldFilePath); // Hapus file lama dari sistem
@@ -166,16 +167,18 @@ export class AnimeService {
       }
     }
 
-    // Simpan path dan file foto baru yang belum ada di database
-    const newPhotos = new_photos
-      .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
-      .map(async (file) => {
-        const photo = this.photoRepository.create({
-          file_path: file.path,
-          anime,
+    if (new_photos && new_photos.length > 0) {
+      // Simpan path dan file foto baru yang belum ada di database
+      const newPhotos = new_photos
+        .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
+        .map(async (file) => {
+          const photo = this.photoRepository.create({
+            file_path: file.path,
+            anime,
+          });
+          await this.photoRepository.save(photo);
         });
-        await this.photoRepository.save(photo);
-      });
+    }
   }
 
   async getAnimeById(animeId: string) {
