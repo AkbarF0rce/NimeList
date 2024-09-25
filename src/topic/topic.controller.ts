@@ -28,7 +28,7 @@ export class TopicController {
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        { name: 'photos', maxCount: 1 }, // Limit file foto yang akan diupload sesuai keinginan
+        { name: 'photos', maxCount: 4 }, // Limit file foto yang akan diupload sesuai keinginan
       ],
       {
         storage: diskStorage({
@@ -48,10 +48,13 @@ export class TopicController {
 
     const updatedBody = this.filterHtmlContent(cleanBody);
 
-    return this.topicService.createTopic({
-      ...createTopicDto,
-      body: updatedBody,
-    }, files.photos);
+    return this.topicService.createTopic(
+      {
+        ...createTopicDto,
+        body: updatedBody,
+      },
+      files.photos,
+    );
   }
 
   @Put('update/:id')
@@ -62,7 +65,7 @@ export class TopicController {
       ],
       {
         storage: diskStorage({
-          destination: './images/topic', // Sesuaikan destinasi storage sesuai keinginan
+          destination: './images/topic/cover', // Sesuaikan destinasi storage sesuai keinginan
           filename: (req, file, cb) => {
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
@@ -88,10 +91,14 @@ export class TopicController {
       new_photos?: Express.Multer.File[];
     },
   ) {
+    const cleanBody = this.processImagesInContent(updateTopicDto.body);
+
+    const updatedBody = this.filterHtmlContent(cleanBody);
+
     return await this.topicService.updateTopic(
       id,
       files.new_photos || [],
-      updateTopicDto,
+      { ...updateTopicDto, body: updatedBody },
       existingPhotosString,
     );
   }
@@ -165,7 +172,13 @@ export class TopicController {
 
         // Generate file name and save image to folder
         const fileName = `${v4()}.jpg`; // Use timestamp for unique file names
-        const filePath = path.join(process.cwd(), 'images', 'topic', 'body', fileName);
+        const filePath = path.join(
+          process.cwd(),
+          'images',
+          'topic',
+          'body',
+          fileName,
+        );
 
         // Save the image to the folder
         fs.writeFileSync(filePath, imageBuffer);

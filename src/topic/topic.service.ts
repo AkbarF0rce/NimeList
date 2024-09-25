@@ -10,7 +10,9 @@ import { unlink } from 'fs/promises';
 import { NotFoundError } from 'rxjs';
 import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
+import * as cheerio from 'cheerio';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as crypto from 'crypto';
 import { Anime } from 'src/anime/entities/anime.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -81,14 +83,23 @@ export class TopicService {
       throw new NotFoundException('Topic tidak ditemukan');
     }
 
+    const oldImage = this.extractImageSources(topic.body);
+    const newImage = this.extractImageSources(updateTopicDto.body);
+
     // Update informasi dasar topic
     Object.assign(topic, updateTopicDto);
+
+    // Cek apakah ada file baru dalam body yang di-upload
+    const deletedImages = oldImage.filter((img) => !newImage.includes(img));
+
+    if (deletedImages.length > 0) {
+      this.deleteOldImages(deletedImages);
+    }
+
     await this.topicRepository.save(topic);
 
-    // Identifikasi dan hapus foto lama yang tidak ada di file baru
     for (const photo of topic.photos) {
       const oldFilePath = join(process.cwd(), photo.file_path);
-
       // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
       if (!existing_photos.includes(photo.file_path)) {
         try {
@@ -111,6 +122,36 @@ export class TopicService {
           });
           await this.photoTopicRepository.save(photo);
         });
+    }
+  }
+
+  // Helper function to extract image sources from HTML content
+  private extractImageSources(content: string): string[] {
+    const $ = cheerio.load(content);
+    const imageSources: string[] = [];
+    $('img').each((_, img) => {
+      const src = $(img).attr('src');
+      const srcReplace = src.replace('http://localhost:4321', '');
+
+      if (src) {
+        imageSources.push(srcReplace);
+      }
+    });
+    return imageSources;
+  }
+
+  // Helper function to delete old images
+  private async deleteOldImages(images: string[]) {
+    if (images.length > 0) {
+      for (const img of images) {
+        const oldFilePath = join(process.cwd(), img);
+        // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
+        try {
+          await unlink(oldFilePath); // Hapus file lama dari sistem
+        } catch (err) {
+          console.error('Error deleting old photo file:', err);
+        }
+      }
     }
   }
 
