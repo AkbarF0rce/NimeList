@@ -6,10 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('user')
 export class UserController {
@@ -20,8 +24,28 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
-  @Get('get-all')
-  async getUsers() {
-    return this.userService.getUsers();
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('admin')
+  getAdminData() {
+    return 'Admin Access Only';
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  @Get('user')
+  getUserData() {
+    return 'User Access Only';
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('all')
+  getAllUsersData() {
+    return 'Public Access';
+
+  // @Get('get-all')
+  // async getUsers() {
+  //   return this.userService.getUsers();
+  // }
+ }
 }

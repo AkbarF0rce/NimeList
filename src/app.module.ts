@@ -17,6 +17,7 @@ import { UserModule } from './user/user.module';
 import { RoleModule } from './role/role.module';
 import { LikeCommentModule } from './like_comment/like_comment.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     RoleModule,
     LikeCommentModule,
     DashboardModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
