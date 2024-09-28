@@ -36,7 +36,7 @@ export class CommentService {
 
     return {
       message: 'data updated',
-      commentUpdate: await this.commentRepository.save({ ...get, ...data }),
+      data: await this.commentRepository.save({ ...get, ...data }),
     };
   }
 

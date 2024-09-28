@@ -31,7 +31,7 @@ export class PhotoTopicController {
       ],
       {
         storage: diskStorage({
-          destination: './images/topic', // Sesuaikan destinasi storage sesuai keinginan
+          destination: './images/topic/cover', // Sesuaikan destinasi storage sesuai keinginan
           filename: (req, file, cb) => {
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
@@ -41,9 +41,9 @@ export class PhotoTopicController {
   )
   async updatePhoto(
     @Param('id') id: string,
-    @UploadedFiles() files: { photos?: Express.Multer.File },
+    @UploadedFiles() file: { photos?: Express.Multer.File[] },
   ) {
-    return await this.photoTopicService.updatePhoto(id, files.photos);
+    return await this.photoTopicService.updatePhoto(id, file?.photos?.[0]);
   }
 
   @Delete('delete/:id')

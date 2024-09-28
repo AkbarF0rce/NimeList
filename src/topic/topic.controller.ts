@@ -9,11 +9,15 @@ import {
   UseInterceptors,
   UploadedFiles,
   Put,
+  UploadedFile,
 } from '@nestjs/common';
 import { TopicService } from './topic.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { diskStorage } from 'multer';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import { v4 } from 'uuid';
 import { extname } from 'path';
 import * as sanitize from 'sanitize-html';
@@ -192,5 +196,29 @@ export class TopicController {
     }
 
     return updatedContent;
+  }
+
+  @Post('upload-image')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './images/topic/body', // Folder penyimpanan lokal
+        filename: (req, file, callback) => {
+          // Membuat nama file baru berdasarkan tanggal dan ekstensi asli
+          const fileExtName = extname(file.originalname);
+          const fileName = `${v4()}${fileExtName}`;
+          callback(null, fileName);
+        },
+      }),
+    }),
+  )
+  async uploadImage(
+    @UploadedFile()
+    files: Express.Multer.File,
+  ) {
+    const response = {
+      imageUrl: `http://localhost:4321/images/topic/body/${files.filename}`,
+    };
+    return response;
   }
 }

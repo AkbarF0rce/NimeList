@@ -37,6 +37,8 @@ export class PhotoTopicService {
       throw new NotFoundException('Photo tidak ditemukan');
     }
 
+    console.log(files.path);
+
     if (files) {
       const fileHash = this.calculateFileHash(files.path);
       const existingHash = this.calculateFileHash(photos.file_path);
@@ -48,6 +50,7 @@ export class PhotoTopicService {
           await unlink(Path); // Hapus file cover lama dari sistem
         } catch (err) {
           console.error('Error hapus data file foto: ', err);
+          ``;
         }
 
         // Ubah path cover dengan path yang baru
@@ -119,6 +122,6 @@ export class PhotoTopicService {
       topic: photo.topic.title,
       created_at: photo.created_at,
       updated_at: photo.updated_at,
-    }
+    };
   }
 }
