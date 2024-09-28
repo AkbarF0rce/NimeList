@@ -101,8 +101,9 @@ export class AnimeService {
     animeId: string,
     updateAnimeDto: UpdateAnimeDto, // Data anime yang ingin diupdate
     genres: [], // ID genre baru yang ingin dihubungkan dengan anime ini
-    photos_anime: Express.Multer.File[], // File foto baru yang di-upload
+    new_photos: Express.Multer.File[],
     photo_cover: Express.Multer.File, // File cover baru yang di-upload
+    existing_photos: string[],
   ) {
     // Cari anime berdasarkan ID
     const anime = await this.animeRepository.findOne({
@@ -129,6 +130,7 @@ export class AnimeService {
 
         // Ubah path cover dengan path yang baru
         anime.photo_cover = photo_cover.path;
+        console.log(photo_cover.path);
       } else {
         fs.unlinkSync(photo_cover.path);
       }
@@ -137,7 +139,6 @@ export class AnimeService {
     // Update informasi dasar anime
     Object.assign(anime, updateAnimeDto);
 
-    // Update genre
     const genreEntities = await this.genreRepository.find({
       where: { id: In(genres) },
     });
@@ -146,60 +147,38 @@ export class AnimeService {
       throw new NotFoundException('Satu atau lebih genre tidak ditemukan');
     }
 
+    // Update genre
     anime.genres = genreEntities;
+    // Save anime
     await this.animeRepository.save(anime);
 
-    // Jika ada foto yang diupload
-    if (photos_anime && photos_anime.length > 0) {
-      // Hash file yang baru diupload
-      const newPhotoHashes = photos_anime.map((file) =>
-        this.calculateFileHash(file.path),
-      );
+    // Identifikasi dan hapus foto lama yang tidak ada di file baru
+    for (const photo of anime.photos) {
+      const oldFilePath = join(process.cwd(), photo.file_path);
 
-      // Identifikasi dan hapus foto lama yang tidak ada di file baru
-      for (const photo of anime.photos) {
-        const oldFilePath = join(process.cwd(), photo.file_path);
-        const oldFileHash = this.calculateFileHash(oldFilePath);
-
-        // Jika hash file lama tidak ditemukan dalam hash file baru, hapus file lama
-        if (!newPhotoHashes.includes(oldFileHash)) {
-          try {
-            await unlink(oldFilePath); // Hapus file lama dari sistem
-          } catch (err) {
-            console.error('Error deleting old photo file:', err);
-          }
-          await this.photoRepository.remove(photo); // Hapus data foto lama dari database
+      // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
+      if (!existing_photos.includes(photo.file_path)) {
+        try {
+          await unlink(oldFilePath); // Hapus file lama dari sistem
+        } catch (err) {
+          console.error('Error deleting old photo file:', err);
         }
+        await this.photoRepository.remove(photo); // Hapus data foto lama dari database
       }
+    }
 
-      // Simpan foto baru
-      for (const file of photos_anime) {
-        const fileHash = this.calculateFileHash(file.path);
-
-        // Cek apakah file ini sudah ada di dalam sistem berdasarkan hash dengan mencocokkan hash file dengan file yang sudah ada
-        const isDuplicate = anime.photos.some((photo) => {
-          const existingFileHash = this.calculateFileHash(
-            join(process.cwd(), photo.file_path),
-          );
-          return existingFileHash === fileHash;
-        });
-
-        if (!isDuplicate) {
+    if (new_photos && new_photos.length > 0) {
+      // Simpan path dan file foto baru yang belum ada di database
+      const newPhotos = new_photos
+        .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
+        .map(async (file) => {
           const photo = this.photoRepository.create({
             file_path: file.path,
             anime,
           });
-          await this.photoRepository.save(photo); // Simpan data foto baru
-        } else {
-          fs.unlinkSync(file.path);
-        }
-      }
+          await this.photoRepository.save(photo);
+        });
     }
-
-    return {
-      message: 'Anime, genre, dan foto berhasil diperbarui',
-      updatedAnime: anime,
-    };
   }
 
   async getAnimeById(animeId: string) {

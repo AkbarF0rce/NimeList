@@ -48,8 +48,16 @@ export class AnimeController {
           cb(null, true);
         },
         storage: diskStorage({
-          destination: './images/anime',
+          destination: (req, file, cb) => {
+            // Menentukan folder penyimpanan berdasarkan fieldname (photo_cover atau photo_content)
+            if (file.fieldname === 'photo_cover') {
+              cb(null, './images/anime/cover');
+            } else if (file.fieldname === 'photo_anime') {
+              cb(null, './images/anime/content');
+            }
+          },
           filename: (req, file, cb) => {
+            // Generate UUID untuk nama file
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
         }),
@@ -75,7 +83,7 @@ export class AnimeController {
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        { name: 'photos_anime', maxCount: 4 }, // photos untuk foto anime pada table photo_anime
+        { name: 'new_photos', maxCount: 4 }, // photos untuk foto anime pada table photo_anime
         { name: 'photo_cover', maxCount: 1 }, // photo_cover untuk foto cover anime pada kolom photo_cover
       ],
       {
@@ -92,8 +100,16 @@ export class AnimeController {
           cb(null, true);
         },
         storage: diskStorage({
-          destination: './images/anime',
+          destination: (req, file, cb) => {
+            // Menentukan folder penyimpanan berdasarkan fieldname (photo_cover atau photo_content)
+            if (file.fieldname === 'photo_cover') {
+              cb(null, './images/anime/cover');
+            } else if (file.fieldname === 'new_photos') {
+              cb(null, './images/anime/content');
+            }
+          },
           filename: (req, file, cb) => {
+            // Generate UUID untuk nama file
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
         }),
@@ -104,9 +120,10 @@ export class AnimeController {
     @Param('id') animeId: string,
     @Body() updateAnimeDto: UpdateAnimeDto, // DTO untuk data anime
     @Body('genres') genres: [],
+    @Body('existing_photos') existingPhotosString: string[],
     @UploadedFiles()
     files: {
-      photos_anime?: Express.Multer.File[];
+      new_photos?: Express.Multer.File[];
       photo_cover?: Express.Multer.File[];
     },
   ) {
@@ -114,8 +131,9 @@ export class AnimeController {
       animeId,
       updateAnimeDto,
       genres,
-      files.photos_anime || [], // Mengirim file foto ke service (jika ada)
-      files?.photo_cover?.[0], // Mengirim file photo_cover ke service (jika ada)
+      files.new_photos || [],
+      files?.photo_cover?.[0],
+      existingPhotosString,
     );
 
     return updatedAnime;

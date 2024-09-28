@@ -49,7 +49,7 @@ export class PhotoAnimeController {
           cb(null, true);
         },
         storage: diskStorage({
-          destination: './images/anime',
+          destination: './images/anime/content',
           filename: (req, file, cb) => {
             cb(null, `${v4()}${extname(file.originalname)}`);
           },

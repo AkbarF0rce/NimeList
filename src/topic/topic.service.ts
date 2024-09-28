@@ -10,7 +10,9 @@ import { unlink } from 'fs/promises';
 import { NotFoundError } from 'rxjs';
 import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
+import * as cheerio from 'cheerio';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as crypto from 'crypto';
 import { Anime } from 'src/anime/entities/anime.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -68,6 +70,7 @@ export class TopicService {
     id: string,
     photos: Express.Multer.File[],
     updateTopicDto: UpdateTopicDto,
+    existing_photos: string[],
   ) {
     // Cari topic berdasarkan id
     const topic = await this.topicRepository.findOne({
@@ -80,61 +83,76 @@ export class TopicService {
       throw new NotFoundException('Topic tidak ditemukan');
     }
 
+    const oldImage = this.extractImageSources(topic.body);
+    const newImage = this.extractImageSources(updateTopicDto.body);
+
     // Update informasi dasar topic
     Object.assign(topic, updateTopicDto);
+
+    // Cek apakah ada file baru dalam body yang di-upload
+    const deletedImages = oldImage.filter((img) => !newImage.includes(img));
+
+    if (deletedImages.length > 0) {
+      this.deleteOldImages(deletedImages);
+    }
+
     await this.topicRepository.save(topic);
 
-    // Jika ada foto yang diupload
-    if (photos && photos.length > 0) {
-      // Hash file yang baru diupload
-      const newPhotoHashes = photos.map((file) =>
-        this.calculateFileHash(file.path),
-      );
-
-      // Identifikasi dan hapus foto lama yang tidak ada di file baru
-      for (const photo of topic.photos) {
-        const oldFilePath = join(process.cwd(), photo.file_path);
-        const oldFileHash = this.calculateFileHash(oldFilePath);
-
-        // Jika hash file lama tidak ditemukan dalam hash file baru, hapus file lama
-        if (!newPhotoHashes.includes(oldFileHash)) {
-          try {
-            await unlink(oldFilePath); // Hapus file lama dari sistem
-          } catch (err) {
-            console.error('Error deleting old photo file:', err);
-          }
-          await this.photoTopicRepository.remove(photo); // Hapus data foto lama dari database
+    for (const photo of topic.photos) {
+      const oldFilePath = join(process.cwd(), photo.file_path);
+      // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
+      if (!existing_photos.includes(photo.file_path)) {
+        try {
+          await unlink(oldFilePath); // Hapus file lama dari sistem
+        } catch (err) {
+          console.error('Error deleting old photo file:', err);
         }
+        await this.photoTopicRepository.remove(photo); // Hapus data foto lama dari database
       }
+    }
 
+    if (photos && photos.length > 0) {
       // Simpan foto baru
-      for (const file of photos) {
-        const fileHash = this.calculateFileHash(file.path);
-
-        // Cek apakah file ini sudah ada di dalam sistem berdasarkan hash dengan mencocokkan hash file dengan file yang sudah ada
-        const isDuplicate = topic.photos.some((photo) => {
-          const existingFileHash = this.calculateFileHash(
-            join(process.cwd(), photo.file_path),
-          );
-          return existingFileHash === fileHash;
-        });
-
-        if (!isDuplicate) {
+      const newPhotos = photos
+        .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
+        .map(async (file) => {
           const photo = this.photoTopicRepository.create({
             file_path: file.path,
             topic,
           });
-          await this.photoTopicRepository.save(photo); // Simpan data foto baru
-        } else {
-          fs.unlinkSync(file.path);
+          await this.photoTopicRepository.save(photo);
+        });
+    }
+  }
+
+  // Helper function to extract image sources from HTML content
+  private extractImageSources(content: string): string[] {
+    const $ = cheerio.load(content);
+    const imageSources: string[] = [];
+    $('img').each((_, img) => {
+      const src = $(img).attr('src');
+      const srcReplace = src.replace('http://localhost:4321', '');
+
+      if (src) {
+        imageSources.push(srcReplace);
+      }
+    });
+    return imageSources;
+  }
+
+  // Helper function to delete old images
+  private async deleteOldImages(images: string[]) {
+    if (images.length > 0) {
+      for (const img of images) {
+        const oldFilePath = join(process.cwd(), img);
+        // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
+        try {
+          await unlink(oldFilePath); // Hapus file lama dari sistem
+        } catch (err) {
+          console.error('Error deleting old photo file:', err);
         }
       }
     }
-
-    return {
-      message: 'Topic dan foto berhasil diperbarui',
-      topicUpdate: topic,
-    };
   }
 
   async deleteTopic(id: string) {
@@ -165,8 +183,8 @@ export class TopicService {
         'topic.title',
         'topic.created_at',
         'topic.updated_at',
-        'user.username',
-        'anime.title',
+        'user',
+        'anime',
         'topic.body',
         'photos.file_path',
       ])
@@ -187,6 +205,7 @@ export class TopicService {
       ...get,
       user: get.user.username,
       anime: get.anime.title,
+      id_anime: get.anime.id,
       totalLikes: likes,
       totalComments: comments,
     };

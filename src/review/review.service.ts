@@ -41,7 +41,7 @@ export class ReviewService {
 
     return {
       message: 'data updated',
-      data: await this.reviewRepository.save({ ...get, ...data }),
+      data: await this.reviewRepository.save({ ...get, ...data }), 
     };
   }
 

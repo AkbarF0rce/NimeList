@@ -35,4 +35,24 @@ export class CommentController {
   async restore(@Param('id') id: string) {
     return await this.commentService.restoreComment(id);
   }
+
+  @Get('get-all')
+  async getAllComment() {
+    return await this.commentService.getAllComment();
+  }
+
+  @Get('get/:id')
+  async getCommentById(@Param('id') id: string) {
+    return await this.commentService.getCommentById(id);
+  }
+
+  @Get('get-all-user')
+  async getAllUser() {
+    return await this.commentService.getAllUser();
+  }
+
+  @Get('get-all-topic')
+  async getAllTopic() {
+    return await this.commentService.getAllTopic();
+  }
 }
