@@ -20,9 +20,6 @@ import {
 } from '@nestjs/platform-express';
 import { v4 } from 'uuid';
 import { extname } from 'path';
-import * as sanitize from 'sanitize-html';
-import * as path from 'path';
-import * as fs from 'fs';
 
 @Controller('topic')
 export class TopicController {
@@ -48,17 +45,7 @@ export class TopicController {
     @Body() createTopicDto: CreateTopicDto,
     @UploadedFiles() files: { photos?: Express.Multer.File[] },
   ) {
-    const cleanBody = this.processImagesInContent(createTopicDto.body);
-
-    const updatedBody = this.filterHtmlContent(cleanBody);
-
-    return this.topicService.createTopic(
-      {
-        ...createTopicDto,
-        body: updatedBody,
-      },
-      files.photos,
-    );
+    return this.topicService.createTopic(createTopicDto, files.photos);
   }
 
   @Put('update/:id')
@@ -95,14 +82,10 @@ export class TopicController {
       new_photos?: Express.Multer.File[];
     },
   ) {
-    const cleanBody = this.processImagesInContent(updateTopicDto.body);
-
-    const updatedBody = this.filterHtmlContent(cleanBody);
-
     return await this.topicService.updateTopic(
       id,
       files.new_photos || [],
-      { ...updateTopicDto, body: updatedBody },
+      updateTopicDto,
       existingPhotosString,
     );
   }
@@ -130,72 +113,6 @@ export class TopicController {
   @Get('get-all-user')
   async getAllUser() {
     return await this.topicService.getAllUser();
-  }
-
-  // Fungsi untuk memfilter dan sanitasi HTML content
-  private filterHtmlContent(html: string): string {
-    const allowedTags = [
-      'p',
-      'b',
-      'i',
-      'strong',
-      'em',
-      'h1',
-      'h2',
-      'h3',
-      'a',
-      'img',
-      'ul',
-      'li',
-      'ol',
-      'blockquote',
-    ];
-    return sanitize(html, {
-      allowedTags,
-      allowedAttributes: {
-        a: ['href', 'name', 'target'],
-        img: ['src', 'alt', 'title', 'width', 'height'],
-      },
-      allowedSchemes: ['http', 'https', 'mailto'],
-    });
-  }
-
-  // Function to process images and save them to the folder
-  private processImagesInContent(content: string): string {
-    const imageTagRegex = /<img[^>]+src="([^">]+)"/g;
-    let match;
-    let updatedContent = content;
-
-    while ((match = imageTagRegex.exec(content)) !== null) {
-      const imgSrc = match[1];
-
-      // Check if the image is base64 encoded
-      if (imgSrc.startsWith('data:image/')) {
-        const base64Data = imgSrc.split(',')[1];
-        const imageBuffer = Buffer.from(base64Data, 'base64');
-
-        // Generate file name and save image to folder
-        const fileName = `${v4()}.jpg`; // Use timestamp for unique file names
-        const filePath = path.join(
-          process.cwd(),
-          'images',
-          'topic',
-          'body',
-          fileName,
-        );
-
-        // Save the image to the folder
-        fs.writeFileSync(filePath, imageBuffer);
-
-        // Update the image source in the content
-        updatedContent = updatedContent.replace(
-          imgSrc,
-          `/images/topic/body/${fileName}`,
-        );
-      }
-    }
-
-    return updatedContent;
   }
 
   @Post('upload-image')

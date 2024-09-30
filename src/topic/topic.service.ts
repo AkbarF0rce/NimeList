@@ -7,13 +7,9 @@ import { Repository } from 'typeorm';
 import { PhotoTopic } from 'src/photo_topic/entities/photo_topic.entity';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
-import { NotFoundError } from 'rxjs';
 import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
-import * as cheerio from 'cheerio';
 import * as fs from 'fs';
-import * as path from 'path';
-import * as crypto from 'crypto';
 import { Anime } from 'src/anime/entities/anime.entity';
 import { User } from 'src/user/entities/user.entity';
 
@@ -30,13 +26,69 @@ export class TopicService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
+  // Helper function to extract image sources from HTML content
+  private extractImageSources(content: string): string[] {
+    const imageSources: string[] = [];
+    const regex = /<img[^>]+src\s*=\s*["']([^"']+)["'][^>]*>/gi;
+    let match;
+
+    while ((match = regex.exec(content)) !== null) {
+      let src = match[1];
+      src = src.replace('http://localhost:4321', '');
+      imageSources.push(src);
+    }
+
+    return imageSources;
+  }
+
+  // Helper function to delete old images
+  private async deleteOldImages(images: string[]) {
+    if (images.length > 0) {
+      for (const img of images) {
+        const oldFilePath = join(process.cwd(), img);
+        // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
+        try {
+          await unlink(oldFilePath); // Hapus file lama dari sistem
+        } catch (err) {
+          console.error('Error deleting old photo file:', err);
+        }
+      }
+    }
+  }
+
   async createTopic(
     createTopicDto: CreateTopicDto,
     photos: Express.Multer.File[],
   ) {
-    // Create topic
+    // Create data baru untuk topic
     const topic = this.topicRepository.create(createTopicDto);
     await this.topicRepository.save(topic);
+
+    // Mengambil semua data topic
+    const existingTopic = await this.topicRepository.find();
+
+    if (existingTopic.length > 0) {
+      const images = []; // Array untuk menyimpan path gambar yang ada dalam database
+      for (const exist of existingTopic) {
+        const existImg = this.extractImageSources(exist.body);
+        if (existImg.length > 0) {
+          images.push(existImg); // Menyimpan path gambar yang ada ke dalam array
+        }
+      }
+
+      const filesInFolder = await fs.promises.readdir('./images/topic/body'); // Mengambil semua path file yang ada di dalam folder
+      const existFolderFileUrl = filesInFolder.map((file) => {
+        return `/images/topic/body/${file}`; // Menyimpan path gambar yang ada dalam folder ke dalam array
+      });
+
+      const deletedImages = existFolderFileUrl.filter(
+        (file) => !images.includes(file),
+      ); // Melakukan penghapusan jika ada path gambar dalam folder yang tidak sesuai dengan path yang ada
+
+      if (deletedImages.length > 0) {
+        this.deleteOldImages(deletedImages);
+      }
+    }
 
     // Simpan photo jika ada
     if (photos && photos.length > 0) {
@@ -53,17 +105,6 @@ export class TopicService {
       topic: topic,
       photos,
     };
-  }
-
-  // Fungsi untuk Menghitung hash SHA-256 dari isi file
-  private calculateFileHash(filePath: string): string {
-    if (!fs.existsSync(filePath)) return '';
-
-    const fileBuffer = fs.readFileSync(filePath);
-    const hashSum = crypto.createHash('sha256');
-    hashSum.update(fileBuffer);
-
-    return hashSum.digest('hex');
   }
 
   async updateTopic(
@@ -83,35 +124,53 @@ export class TopicService {
       throw new NotFoundException('Topic tidak ditemukan');
     }
 
-    const oldImage = this.extractImageSources(topic.body);
-    const newImage = this.extractImageSources(updateTopicDto.body);
-
     // Update informasi dasar topic
     Object.assign(topic, updateTopicDto);
-
-    // Cek apakah ada file baru dalam body yang di-upload
-    const deletedImages = oldImage.filter((img) => !newImage.includes(img));
-
-    if (deletedImages.length > 0) {
-      this.deleteOldImages(deletedImages);
-    }
-
     await this.topicRepository.save(topic);
 
-    for (const photo of topic.photos) {
-      const oldFilePath = join(process.cwd(), photo.file_path);
-      // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
-      if (!existing_photos.includes(photo.file_path)) {
-        try {
-          await unlink(oldFilePath); // Hapus file lama dari sistem
-        } catch (err) {
-          console.error('Error deleting old photo file:', err);
+    // Mengambil semua data topic
+    const existTopic = await this.topicRepository.find();
+
+    if (existTopic.length > 0) {
+      const images = []; // Array untuk menyimpan path gambar yang ada dalam database
+      for (const exist of existTopic) {
+        const existImg = this.extractImageSources(exist.body);
+        if (existImg.length > 0) {
+          images.push(existImg); // Menyimpan path gambar ke dalam array
         }
-        await this.photoTopicRepository.remove(photo); // Hapus data foto lama dari database
+      }
+      const filesInFolder = await fs.promises.readdir('./images/topic/body'); // Mengambil semua path file yang ada di dalam folder
+      const existFolderFileUrl = filesInFolder.map((file) => {
+        return `/images/topic/body/${file}`; // Menyimpan path gambar yang ada dalam folder ke dalam array
+      });
+      console.log(existFolderFileUrl);
+
+      const deletedImages = existFolderFileUrl.filter(
+        (img) => !images.includes(img),
+      ); // Melakukan penghapusan jika ada path gambar dalam folder yang tidak sesuai dengan path yang ada
+
+      console.log(deletedImages);
+
+      if (deletedImages.length > 0) {
+        this.deleteOldImages(deletedImages);
       }
     }
 
     if (photos && photos.length > 0) {
+      // Hapus data foto lama
+      for (const photo of topic.photos) {
+        const oldFilePath = join(process.cwd(), photo.file_path);
+        // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
+        if (!existing_photos.includes(photo.file_path)) {
+          try {
+            await unlink(oldFilePath); // Hapus file lama dari sistem
+          } catch (err) {
+            console.error('Error deleting old photo file:', err);
+          }
+          await this.photoTopicRepository.remove(photo); // Hapus data foto lama dari database
+        }
+      }
+
       // Simpan foto baru
       const newPhotos = photos
         .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
@@ -122,36 +181,6 @@ export class TopicService {
           });
           await this.photoTopicRepository.save(photo);
         });
-    }
-  }
-
-  // Helper function to extract image sources from HTML content
-  private extractImageSources(content: string): string[] {
-    const $ = cheerio.load(content);
-    const imageSources: string[] = [];
-    $('img').each((_, img) => {
-      const src = $(img).attr('src');
-      const srcReplace = src.replace('http://localhost:4321', '');
-
-      if (src) {
-        imageSources.push(srcReplace);
-      }
-    });
-    return imageSources;
-  }
-
-  // Helper function to delete old images
-  private async deleteOldImages(images: string[]) {
-    if (images.length > 0) {
-      for (const img of images) {
-        const oldFilePath = join(process.cwd(), img);
-        // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
-        try {
-          await unlink(oldFilePath); // Hapus file lama dari sistem
-        } catch (err) {
-          console.error('Error deleting old photo file:', err);
-        }
-      }
     }
   }
 

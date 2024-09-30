@@ -42,10 +42,10 @@ export class UserController {
   @Get('all')
   getAllUsersData() {
     return 'Public Access';
+  }
 
-  // @Get('get-all')
-  // async getUsers() {
-  //   return this.userService.getUsers();
-  // }
- }
+  @Get('get-all')
+  async getAllUsers() {
+    return await this.userService.getUsers();
+  }
 }
