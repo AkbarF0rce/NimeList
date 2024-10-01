@@ -19,6 +19,7 @@ import {
   FileInterceptor,
 } from '@nestjs/platform-express';
 import { v4 } from 'uuid';
+import * as sanitize from 'sanitize-html';
 import { extname } from 'path';
 
 @Controller('topic')
@@ -45,7 +46,12 @@ export class TopicController {
     @Body() createTopicDto: CreateTopicDto,
     @UploadedFiles() files: { photos?: Express.Multer.File[] },
   ) {
-    return this.topicService.createTopic(createTopicDto, files.photos);
+    const sanitizedHtml = this.filterHtmlContent(createTopicDto.body);
+
+    return this.topicService.createTopic(
+      { ...createTopicDto, body: sanitizedHtml },
+      files.photos,
+    );
   }
 
   @Put('update/:id')
@@ -82,10 +88,12 @@ export class TopicController {
       new_photos?: Express.Multer.File[];
     },
   ) {
+    const sanitizedHtml = this.filterHtmlContent(updateTopicDto.body);
+
     return await this.topicService.updateTopic(
       id,
       files.new_photos || [],
-      updateTopicDto,
+      { ...updateTopicDto, body: sanitizedHtml },
       existingPhotosString,
     );
   }
@@ -137,5 +145,33 @@ export class TopicController {
       imageUrl: `http://localhost:4321/images/topic/body/${files.filename}`,
     };
     return response;
+  }
+
+  // Fungsi untuk memfilter dan sanitasi HTML content
+  private filterHtmlContent(html: string): string {
+    const allowedTags = [
+      'p',
+      'b',
+      'i',
+      'strong',
+      'em',
+      'h1',
+      'h2',
+      'h3',
+      'a',
+      'img',
+      'ul',
+      'li',
+      'ol',
+      'blockquote',
+    ];
+    return sanitize(html, {
+      allowedTags,
+      allowedAttributes: {
+        a: ['href', 'name', 'target'],
+        img: ['src', 'alt', 'title', 'width', 'height'],
+      },
+      allowedSchemes: ['http', 'https', 'mailto'],
+    });
   }
 }

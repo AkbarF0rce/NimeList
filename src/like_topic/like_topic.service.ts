@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CreateLikeTopicDto } from './dto/create-like_topic.dto';
-import { UpdateLikeTopicDto } from './dto/update-like_topic.dto';
 import { LikeTopic } from './entities/like_topic.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -26,21 +25,11 @@ export class LikeTopicService {
 
   async deleteLike (id: string) {
     // Hapus data like berdasarkan id
-    await this.likeTopicRepository.softDelete(id);
+    await this.likeTopicRepository.delete(id);
 
     // Tampilkan pesan data berhasil di hapus
     return {
       message: 'data deleted',
-    };
-  }
-
-  async restoreLike (id: string) {
-    // Restore data like berdasarkan id
-    await this.likeTopicRepository.restore(id);
-
-    // Tampilkan pesan data berhasil di restore
-    return {
-      message: 'data restored',
     };
   }
 }
