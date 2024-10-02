@@ -30,7 +30,7 @@ export class PhotoTopic {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Topic, (topic) => topic.photos, {onDelete: 'CASCADE'})
+  @ManyToOne(() => Topic, (topic) => topic.photos, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_topic' })
   topic: Topic;
 }

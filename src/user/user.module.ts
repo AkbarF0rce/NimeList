@@ -13,6 +13,15 @@ import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity
 @Module({
   controllers: [UserController],
   providers: [UserService],
-  imports: [TypeOrmModule.forFeature([User, LikeComment, LikeTopic, Topic, Review, FavoriteAnime])],
+  imports: [
+    TypeOrmModule.forFeature([
+      User,
+      LikeComment,
+      LikeTopic,
+      Topic,
+      Review,
+      FavoriteAnime,
+    ]),
+  ],
 })
 export class UserModule {}

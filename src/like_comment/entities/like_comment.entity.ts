@@ -33,11 +33,11 @@ export class LikeComment {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Comment, (comment) => comment.likes, {onDelete: 'CASCADE'})
+  @ManyToOne(() => Comment, (comment) => comment.likes, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_comment' })
   comment: Comment;
 
-  @ManyToOne(() => User, (user) => user.likes_comment, {onDelete: 'CASCADE'})
+  @ManyToOne(() => User, (user) => user.likes_comment, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_user' })
   user: User;
 }

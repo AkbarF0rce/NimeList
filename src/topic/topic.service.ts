@@ -12,6 +12,7 @@ import { Comment } from 'src/comment/entities/comment.entity';
 import * as fs from 'fs';
 import { Anime } from 'src/anime/entities/anime.entity';
 import { User } from 'src/user/entities/user.entity';
+import { DislikeTopic } from 'src/dislike_topic/entities/dislike_topic.entity';
 
 @Injectable()
 export class TopicService {
@@ -21,6 +22,8 @@ export class TopicService {
     private photoTopicRepository: Repository<PhotoTopic>,
     @InjectRepository(LikeTopic)
     private likeTopicRepository: Repository<LikeTopic>,
+    @InjectRepository(DislikeTopic)
+    private dislikeTopicRepository: Repository<DislikeTopic>,
     @InjectRepository(Comment) private commentRepository: Repository<Comment>,
     @InjectRepository(Anime) private animeRepository: Repository<Anime>,
     @InjectRepository(User) private userRepository: Repository<User>,
@@ -225,6 +228,11 @@ export class TopicService {
       .where('like.id_topic = :id', { id })
       .getCount();
 
+    const dislikes = await this.dislikeTopicRepository
+      .createQueryBuilder('dislike')
+      .where('dislike.id_topic = :id', { id })
+      .getCount();
+
     const comments = await this.commentRepository
       .createQueryBuilder('comment')
       .where('comment.id_topic = :id', { id })
@@ -237,6 +245,7 @@ export class TopicService {
       id_anime: get.anime.id,
       totalLikes: likes,
       totalComments: comments,
+      totalDislikes: dislikes,
     };
   }
 
