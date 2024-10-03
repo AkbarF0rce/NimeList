@@ -6,6 +6,8 @@ import { SeederService } from './seeder.service';
 import { Role } from 'src/role/entities/role.entity';
 import { RoleModule } from 'src/role/role.module';
 import { User } from 'src/user/entities/user.entity';
+import { UserModule } from 'src/user/user.module';
+import { UserSeeder } from './user.seeder';
 
 @Module({
   imports: [
@@ -17,12 +19,13 @@ import { User } from 'src/user/entities/user.entity';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME || 'nimelist',
       entities: [__dirname + '/../**/*.entity.{js,ts}'],
-    }), // Menggunakan konfigurasi terpusat
+    }),
     TypeOrmModule.forFeature([Role, User]),
     RoleModule,
+    UserModule,
     // Impor modul lain yang diperlukan oleh seeder
   ],
-  providers: [RoleSeeder, SeederService],
+  providers: [RoleSeeder, SeederService, UserSeeder],
   exports: [SeederService],
 })
 export class SeederModule {}
