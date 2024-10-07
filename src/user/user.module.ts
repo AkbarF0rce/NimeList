@@ -21,7 +21,9 @@ import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity
       Topic,
       Review,
       FavoriteAnime,
+      Role
     ]),
   ],
+  exports: [UserService],
 })
 export class UserModule {}

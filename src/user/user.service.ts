@@ -1,21 +1,55 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { v4 } from 'uuid';
+import { Role } from 'src/role/entities/role.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Role)
+    private roleRepository: Repository<Role>,
   ) {}
   async create(createUserDto: CreateUserDto) {
-    const post = await this.userRepository.create(createUserDto);
-    post.salt = v4();
-    return await this.userRepository.save(post);
+    // Mencari role user
+    const role = await this.roleRepository.findOneBy({ name: 'user' });
+
+    // Membuat data user
+    const user = this.userRepository.create({
+      ...createUserDto,
+      id_role: role.id,
+      salt: v4(),
+    });
+
+    // Cek apakah username sudah ada
+    const existingUsername = await this.userRepository.findOneBy({
+      username: user.username,
+    });
+    if (existingUsername) {
+      throw new ConflictException('Username already exists');
+    }
+
+    // Cek apakah email sudah ada
+    const existingEmail = await this.userRepository.findOneBy({
+      email: user.email,
+    });
+    if (existingEmail) {
+      throw new ConflictException('Email already exists');
+    }
+
+    // Simpan data user
+    await this.userRepository.save(user);
+
+    return {
+      role: role.name,
+      username: user.username,
+      email: user.email,
+      salt: user.salt,
+    };
   }
 
   async getUsers() {
@@ -34,5 +68,21 @@ export class UserService {
       end_premium: user.end_premium,
       email: user.email,
     }));
+  }
+
+  async findOneByUsername(username: string) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .where('user.username = :username', { username: username })
+      .getOne();
+
+    return {
+      salt: user.salt,
+      username: user.username,
+      password: user.password,
+      email: user.email,
+      role: user.role.name,
+    };
   }
 }

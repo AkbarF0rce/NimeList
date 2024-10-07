@@ -3,7 +3,6 @@ import { Injectable } from '@nestjs/common';
 import { Seeder } from './seeder.interface';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { status_premium, User } from 'src/user/entities/user.entity';
 import { Role } from 'src/role/entities/role.entity';
 import { v4 } from 'uuid';
@@ -39,12 +38,10 @@ export class UserSeeder implements Seeder {
       return;
     }
 
-    const hashedPassword = await bcrypt.hash('admin#1234', 10); // Ganti password sesuai kebutuhan
-
     const adminUser = this.userRepository.create({
       username: 'Barr77',
       email: adminEmail,
-      password: hashedPassword,
+      password: 'admin#1234',
       role: adminRole,
       status_premium: status_premium.ACTIVE,
       salt: v4(),

@@ -22,7 +22,10 @@ import { DislikeTopicModule } from './dislike_topic/dislike_topic.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true, // Membuat ConfigModule global
+      envFilePath: '.env', // Lokasi file .env
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
