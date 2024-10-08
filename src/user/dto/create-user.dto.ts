@@ -1,4 +1,4 @@
-import { IsEmpty, IsNotEmpty } from "class-validator";
+import { IsEmpty, IsNotEmpty} from "class-validator";
 import { badges, status_premium } from "../entities/user.entity";
 
 export class CreateUserDto {

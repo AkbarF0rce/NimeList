@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,10 +9,16 @@ import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
 import { Topic } from 'src/topic/entities/topic.entity';
 import { Review } from 'src/review/entities/review.entity';
 import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [UserController],
   providers: [UserService],
-  imports: [TypeOrmModule.forFeature([User, LikeComment, LikeTopic, Topic, Review, FavoriteAnime])],
+  exports: [UserService],
+  imports: 
+  [TypeOrmModule.forFeature([User, LikeComment, LikeTopic, Topic, Review, FavoriteAnime])
+  , forwardRef(() => AuthModule) 
+],
+  
 })
 export class UserModule {}

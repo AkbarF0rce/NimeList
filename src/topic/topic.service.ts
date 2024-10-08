@@ -10,7 +10,6 @@ import { unlink } from 'fs/promises';
 import { NotFoundError } from 'rxjs';
 import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
-import * as cheerio from 'cheerio';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
@@ -127,16 +126,16 @@ export class TopicService {
 
   // Helper function to extract image sources from HTML content
   private extractImageSources(content: string): string[] {
-    const $ = cheerio.load(content);
     const imageSources: string[] = [];
-    $('img').each((_, img) => {
-      const src = $(img).attr('src');
-      const srcReplace = src.replace('http://localhost:4321', '');
+    const regex = /<img[^>]+src\s*=\s*["']([^"']+)["'][^>]*>/gi;
+    let match;
 
-      if (src) {
-        imageSources.push(srcReplace);
-      }
-    });
+    while ((match = regex.exec(content)) !== null) {
+      let src = match[1];
+      src = src.replace('http://localhost:4321', '');
+      imageSources.push(src);
+    }
+
     return imageSources;
   }
 

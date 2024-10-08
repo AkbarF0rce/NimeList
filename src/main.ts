@@ -10,7 +10,17 @@ async function bootstrap() {
   // Middleware untuk menyajikan file statis
   app.use('/images', express.static(join(__dirname, '..', 'images')));
 
-  app.enableCors({ origin: 'http://localhost:3000' });
+    // Logging middleware
+    app.use((req, res, next) => {
+      console.log(`Incoming request: ${req.method} ${req.url}`);
+      next();
+    });
+
+  app.enableCors({
+    origin: 'http://localhost:3000', // Specify the frontend URL
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
   await app.listen(4321);
 }
 bootstrap();

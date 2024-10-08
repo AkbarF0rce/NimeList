@@ -13,9 +13,27 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
   async create(createUserDto: CreateUserDto) {
-    const post = await this.userRepository.create(createUserDto);
-    post.salt = v4();
-    return await this.userRepository.save(post);
+    const user = this.userRepository.create(createUserDto);
+    user.salt = v4(); // Set UUID sebagai salt
+    const savedUser = await this.userRepository.save(user);
+    return savedUser;
+  }
+
+  async findByUsername(username: string): Promise<User | undefined> {
+    return this.userRepository.findOne({ where: { username } });
+  }
+
+  async findByEmail(email: string): Promise<User | undefined> {
+    return this.userRepository.findOne({ where: { email } });
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const updatedUser = this.userRepository.merge(user, updateUserDto);
+    return this.userRepository.save(updatedUser);
   }
 
   async getUsers() {
