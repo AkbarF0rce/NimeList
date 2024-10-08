@@ -11,6 +11,12 @@ async function bootstrap() {
   // Middleware untuk menyajikan file statis
   app.use('/images', express.static(join(__dirname, '..', 'images')));
 
+  // Logging middleware
+  app.use((req, res, next) => {
+    console.log(`Incoming request: ${req.method} ${req.url}`);
+    next();
+  });
+
   // Menggunakan global ValidationPipe untuk validasi DTO
   app.useGlobalPipes(
     new ValidationPipe({
@@ -26,7 +32,11 @@ async function bootstrap() {
     }),
   );
 
-  app.enableCors({ origin: 'http://localhost:3000' });
+  app.enableCors({
+    origin: 'http://localhost:3000', // Specify the frontend URL
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
   await app.listen(4321);
 }
 bootstrap();
