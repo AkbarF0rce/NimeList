@@ -18,18 +18,18 @@ import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
+  constructor(private readonly userService: UserService) {}
 
   @Post('post')
   async create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
-  @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
-    const { username, password, email } = createUserDto;
-    return this.authService.register(username, password, email);
-  }
+  // @Post('register')
+  // async register(@Body() createUserDto: CreateUserDto) {
+  //   const { username, password, email } = createUserDto;
+  //   return this.authService.register(username, password, email);
+  // }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -49,9 +49,8 @@ export class UserController {
   @Get('all')
   getAllUsersData() {
     return 'Public Access';
-   
   }
-  
+
   @Get('get-all')
   async getAllUsers() {
     return await this.userService.getUsers();

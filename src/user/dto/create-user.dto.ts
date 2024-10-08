@@ -1,34 +1,19 @@
-import { IsEmpty, IsNotEmpty} from "class-validator";
-import { badges, status_premium } from "../entities/user.entity";
+import { IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class CreateUserDto {
-    @IsNotEmpty()
-    id_role: string;
+  @IsNotEmpty()
+  @MinLength(3)
+  @MaxLength(20)
+  username: string;
 
-    @IsNotEmpty()
-    username: string;
+  @MinLength(6)
+  @MaxLength(20)
+  @Matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$/, {
+    message:
+      'Password harus minimal 6 karakter, mengandung setidaknya satu huruf besar, satu huruf kecil, dan satu angka',
+  })
+  password: string;
 
-    @IsNotEmpty()
-    password: string;
-
-    @IsNotEmpty()
-    email: string;
-
-    @IsNotEmpty()
-    salt: string
-
-    @IsEmpty()
-    bio: string;
-
-    @IsEmpty()
-    status_premium: status_premium;
-
-    @IsEmpty()
-    badge: badges;
-
-    @IsEmpty()
-    start_premium: Date;
-
-    @IsEmpty()
-    end_premium: Date;
+  @IsNotEmpty()
+  email: string;
 }
