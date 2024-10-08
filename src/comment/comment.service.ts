@@ -20,7 +20,7 @@ export class CommentService {
 
     if (!post) {
       throw new Error('data not created');
-    }    
+    }
   }
 
   async updateComment(id: string, data: UpdateCommentDto) {

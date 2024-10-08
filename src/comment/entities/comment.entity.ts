@@ -36,14 +36,14 @@ export class Comment {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Topic, (topic) => topic.comments, {onDelete: 'CASCADE'})
+  @ManyToOne(() => Topic, (topic) => topic.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_topic' })
   topic: Topic;
 
   @OneToMany(() => LikeComment, (likeComment) => likeComment.comment)
   likes: LikeComment[];
 
-  @ManyToOne(() => User, (user) => user.comments, {onDelete: 'CASCADE'})
+  @ManyToOne(() => User, (user) => user.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_user' })
   user: User;
 }

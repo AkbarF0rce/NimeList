@@ -1,4 +1,4 @@
-import { Comment } from 'src/comment/entities/comment.entity';
+import { Topic } from 'src/topic/entities/topic.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -13,13 +13,13 @@ import {
 } from 'typeorm';
 
 @Entity()
-@Unique(['id_comment', 'id_user'])
-export class LikeComment {
+@Unique(['id_topic', 'id_user'])
+export class DislikeTopic {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  id_comment: string;
+  @Column('text')
+  id_topic: string;
 
   @Column()
   id_user: string;
@@ -33,11 +33,11 @@ export class LikeComment {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Comment, (comment) => comment.likes, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'id_comment' })
-  comment: Comment;
+  @ManyToOne(() => Topic, (topic) => topic.likes, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'id_topic' })
+  topic: Topic;
 
-  @ManyToOne(() => User, (user) => user.likes_comment, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.likes_topic, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_user' })
   user: User;
 }

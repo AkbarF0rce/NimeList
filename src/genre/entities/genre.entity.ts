@@ -27,6 +27,6 @@ export class Genre {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToMany(() => Anime, (anime) => anime.genres, {onDelete: 'CASCADE'})
+  @ManyToMany(() => Anime, (anime) => anime.genres, { onDelete: 'CASCADE' })
   animes: Anime[];
 }

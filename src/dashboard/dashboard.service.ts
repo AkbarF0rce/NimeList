@@ -15,7 +15,7 @@ export class DashboardService {
     private userRepository: Repository<User>,
     @InjectRepository(Anime)
     private animeRepository: Repository<Anime>,
-  ){}
+  ) {}
   async getTotalTopic() {
     return { totalTopic: await this.topicRepository.count() };
   }

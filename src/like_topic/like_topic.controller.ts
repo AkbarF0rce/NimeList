@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { LikeTopicService } from './like_topic.service';
 import { CreateLikeTopicDto } from './dto/create-like_topic.dto';
-import { UpdateLikeTopicDto } from './dto/update-like_topic.dto';
 
 @Controller('like-topic')
 export class LikeTopicController {
@@ -24,10 +23,5 @@ export class LikeTopicController {
   @Delete('delete/:id')
   async delete(@Param('id') id: string) {
     return await this.likeTopicService.deleteLike(id);
-  }
-
-  @Put('restore/:id')
-  async restore(@Param('id') id: string) {
-    return await this.likeTopicService.restoreLike(id); 
   }
 }

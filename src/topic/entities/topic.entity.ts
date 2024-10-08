@@ -38,17 +38,17 @@ export class Topic {
   @CreateDateColumn()
   created_at: Date;
 
-  @UpdateDateColumn() 
+  @UpdateDateColumn()
   updated_at: Date;
 
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Anime, (anime) => anime.topic, {onDelete: 'CASCADE'})
+  @ManyToOne(() => Anime, (anime) => anime.topic, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_anime' })
   anime: Anime;
 
-  @ManyToOne(() => User, (user) => user.topics, {onDelete: 'CASCADE'})
+  @ManyToOne(() => User, (user) => user.topics, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_user' })
   user: User;
 

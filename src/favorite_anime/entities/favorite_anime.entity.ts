@@ -33,11 +33,11 @@ export class FavoriteAnime {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Anime, (anime) => anime.favorite, {onDelete: 'CASCADE'})
+  @ManyToOne(() => Anime, (anime) => anime.favorite, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_anime' })
   anime: Anime;
 
-  @ManyToOne(() => User, (user) => user.favorite_anime, {onDelete: 'CASCADE'})
+  @ManyToOne(() => User, (user) => user.favorite_anime, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_user' })
   user: User;
 }

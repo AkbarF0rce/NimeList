@@ -1,6 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 
-export class CreateLikeTopicDto {
+export class CreateDislikeTopicDto {
   @IsNotEmpty()
   id_topic: string;
 

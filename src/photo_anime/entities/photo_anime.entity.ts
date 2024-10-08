@@ -1,4 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  JoinColumn,
+} from 'typeorm';
 import { Anime } from 'src/anime/entities/anime.entity';
 
 @Entity()
@@ -9,7 +18,7 @@ export class PhotoAnime {
   @Column('text')
   file_path: string;
 
-  @Column("text")
+  @Column('text')
   id_anime: string;
 
   @CreateDateColumn()
@@ -21,7 +30,7 @@ export class PhotoAnime {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Anime, (anime) => anime.photos, {onDelete: 'CASCADE'})
+  @ManyToOne(() => Anime, (anime) => anime.photos, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_anime' })
   anime: Anime;
 }

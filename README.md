@@ -110,8 +110,11 @@ Here are some of the main temporary endpoints available in this application:
   - DELETE /like-comment/delete/:id: Delete comment likes data.
 
 - User:
+  - GET /user/get-all: Get a list of all user data with the role user.
 
-  - GET /user/get-all: Get a list of all user data with the role user
+- Auth:
+  - POST /auth/login: Validates the user's credentials and generates a JWT (JSON Web Token) as an authentication token.
+  - POST /auth/register: Register new users into the database system.
 
 - Dashboard
   - GET /dashboard/total-topic: Display the number of topic data.
