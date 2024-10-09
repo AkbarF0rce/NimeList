@@ -5,6 +5,8 @@ import {
   Post,
   Request,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -20,6 +22,7 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
+  @UsePipes(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true}))
   @Post('register')
   async signup(@Body() user: CreateUserDto) {
     return this.authService.register(user);
