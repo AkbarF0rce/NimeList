@@ -16,7 +16,7 @@ export class ReviewService {
   ) {}
 
   async createReview(data: CreateReviewDto) {
-    const post = await this.reviewRepository.create(data);
+    const post = this.reviewRepository.create(data);
 
     if (!post) {
       throw new Error('data not created');

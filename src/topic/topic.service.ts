@@ -85,7 +85,7 @@ export class TopicService {
       });
 
       const deletedImages = existFolderFileUrl.filter(
-        (file) => !images.includes(file),
+        (img) => !images.flat(Infinity).includes(img),
       ); // Melakukan penghapusan jika ada path gambar dalam folder yang tidak sesuai dengan path yang ada
 
       if (deletedImages.length > 0) {
@@ -142,17 +142,15 @@ export class TopicService {
           images.push(existImg); // Menyimpan path gambar ke dalam array
         }
       }
+
       const filesInFolder = await fs.promises.readdir('./images/topic/body'); // Mengambil semua path file yang ada di dalam folder
       const existFolderFileUrl = filesInFolder.map((file) => {
         return `/images/topic/body/${file}`; // Menyimpan path gambar yang ada dalam folder ke dalam array
       });
-      console.log(existFolderFileUrl);
 
       const deletedImages = existFolderFileUrl.filter(
-        (img) => !images.includes(img),
+        (img) => !images.flat(Infinity).includes(img),
       ); // Melakukan penghapusan jika ada path gambar dalam folder yang tidak sesuai dengan path yang ada
-
-      console.log(deletedImages);
 
       if (deletedImages.length > 0) {
         this.deleteOldImages(deletedImages);

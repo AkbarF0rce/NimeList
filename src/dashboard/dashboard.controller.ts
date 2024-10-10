@@ -20,14 +20,23 @@ export class DashboardController {
     return await this.dashboardService.getAnimeTopAllTime();
   }
 
-  @Get('bar-chart')
-  getSalesData(@Query('year') year: number) {
+  @Get('income-data')
+  getIncomeData(@Query('year') year: number) {
     // Data penjualan berdasarkan tahun yang dipilih
-    const salesData = {
+    const incomeData = {
       2020: [
         { month: 'January', income: 500000 },
         { month: 'February', income: 700000 },
         { month: 'March', income: 780000 },
+        { month: 'April', income: 500000 },
+        { month: 'May', income: 700000 },
+        { month: 'June', income: 180000 },
+        { month: 'July', income: 900000 },
+        { month: 'August', income: 600000 },
+        { month: 'September', income: 280000 },
+        { month: 'October', income: 680000 },
+        { month: 'November', income: 580000 },
+        { month: 'December', income: 880000 },
       ],
       2021: [
         { month: 'January', income: 600000 },
@@ -47,6 +56,6 @@ export class DashboardController {
       ],
     };
 
-    return salesData[year] || [];
+    return incomeData[year] || [];
   }
 }
