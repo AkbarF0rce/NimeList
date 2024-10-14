@@ -67,6 +67,7 @@ export class UserService {
       start_premium: user.start_premium,
       end_premium: user.end_premium,
       email: user.email,
+      id: user.id,
     }));
   }
 
@@ -83,6 +84,18 @@ export class UserService {
       password: user.password,
       email: user.email,
       role: user.role.name,
+    };
+  }
+
+  async findById(id: string) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .where('user.id = :id', { id: id })
+      .getOne();
+    return {
+      username: user.username,
+      email: user.email,
     };
   }
 }

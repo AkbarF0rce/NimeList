@@ -18,6 +18,7 @@ import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
 import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity';
 import { Review } from 'src/review/entities/review.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
+import { Transaction } from 'src/transaction/entities/transaction.entity';
 
 export enum status_premium {
   ACTIVE = 'active',
@@ -96,6 +97,9 @@ export class User {
 
   @OneToMany(() => Comment, (comment) => comment.user)
   comments: Comment[];
+
+  @OneToMany(() => Transaction, (transaction) => transaction.user)
+  transactions: Transaction[];
 
   @BeforeInsert()
   async hashPassword() {

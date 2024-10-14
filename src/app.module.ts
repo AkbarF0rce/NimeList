@@ -19,6 +19,8 @@ import { LikeCommentModule } from './like_comment/like_comment.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AuthModule } from './auth/auth.module';
 import { DislikeTopicModule } from './dislike_topic/dislike_topic.module';
+import { PremiumModule } from './premium/premium.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -56,6 +58,8 @@ import { DislikeTopicModule } from './dislike_topic/dislike_topic.module';
     DashboardModule,
     AuthModule,
     DislikeTopicModule,
+    TransactionModule,
+    PremiumModule,
   ],
   controllers: [AppController],
   providers: [AppService],
