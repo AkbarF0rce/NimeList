@@ -4,6 +4,8 @@ import {
   Post,
   Body,
   UseGuards,
+  Param,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthService } from '../auth/auth.service';
@@ -48,7 +50,17 @@ export class UserController {
   }
 
   @Get('get-all')
-  async getAllUsers() {
-    return await this.userService.getUsers();
+  async getAllUsers(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search: string,
+    @Query('order') order?: 'ASC' | 'DESC',
+  ) {
+    return await this.userService.getUsers(page, limit, search, order);
+  }
+
+  @Get('get-user-for-pay')
+  async getUserPay() {
+    return await this.userService.getUserPay();
   }
 }

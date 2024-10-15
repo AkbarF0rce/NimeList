@@ -2,7 +2,7 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { v4 } from 'uuid';
 import { Role } from 'src/role/entities/role.entity';
 
@@ -52,23 +52,32 @@ export class UserService {
     };
   }
 
-  async getUsers() {
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.role', 'role')
-      .where('role.name = :roleName', { roleName: 'user' })
-      .getMany();
+  async getUsers(
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    order: 'ASC' | 'DESC' = 'ASC',
+  ) {
+    const [data, total] = await this.userRepository.findAndCount({
+      where: { username: ILike(`%${search}%`), role: { name: 'user' } },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { username: order },
+    });
 
-    return user.map((user) => ({
-      salt: user.salt,
-      username: user.username,
-      status_premium: user.status_premium,
-      badge: user.badge,
-      start_premium: user.start_premium,
-      end_premium: user.end_premium,
-      email: user.email,
-      id: user.id,
-    }));
+    return {
+      data,
+      total,
+    };
+  }
+
+  async getUserPay() {
+    const users = await this.userRepository.find({
+      select: ['id', 'username'],
+      where: { role: { name: 'user' } },
+    });
+
+    return users;
   }
 
   async findOneByUsername(username: string) {
