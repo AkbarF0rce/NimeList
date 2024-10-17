@@ -15,8 +15,8 @@ import { Premium } from 'src/premium/entities/premium.entity';
 
 @Injectable()
 export class TransactionService {
-  private snap: midtransClient.Snap;
   private serverKey: string;
+  private snapInstance: any;
 
   constructor(
     private configService: ConfigService,
@@ -28,13 +28,18 @@ export class TransactionService {
     private premiumRepository: Repository<Premium>,
     private usersService: UserService,
     private premiumService: PremiumService,
-  ) {
-    this.serverKey = this.configService.get<string>('MIDTRANS_SERVER_KEY');
-    this.snap = new midtransClient.Snap({
-      isProduction: false, // Ubah menjadi true di produksi
-      serverKey: this.configService.get<string>('MIDTRANS_SERVER_KEY'),
-      clientKey: this.configService.get<string>('MIDTRANS_CLIENT_KEY'),
-    });
+  ) {}
+
+  // Getter untuk menginisialisasi Snap saat diperlukan
+  private get snap() {
+    if (!this.snapInstance) {
+      this.snapInstance = new midtransClient.Snap({
+        isProduction: false, // Ubah menjadi true di lingkungan produksi
+        serverKey: this.configService.get<string>('MIDTRANS_SERVER_KEY'),
+        clientKey: this.configService.get<string>('MIDTRANS_CLIENT_KEY'),
+      });
+    }
+    return this.snapInstance;
   }
 
   async handleTransaction(orderData: any): Promise<string> {
