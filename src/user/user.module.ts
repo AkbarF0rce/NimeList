@@ -9,6 +9,7 @@ import { LikeTopic } from 'src/like_topic/entities/like_topic.entity';
 import { Topic } from 'src/topic/entities/topic.entity';
 import { Review } from 'src/review/entities/review.entity';
 import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity';
+import { Transaction } from 'src/transaction/entities/transaction.entity';
 
 @Module({
   controllers: [UserController],
@@ -22,6 +23,7 @@ import { FavoriteAnime } from 'src/favorite_anime/entities/favorite_anime.entity
       Review,
       FavoriteAnime,
       Role,
+      Transaction
     ]),
   ],
   exports: [UserService],

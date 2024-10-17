@@ -13,6 +13,7 @@ import {
   Get,
   HttpStatus,
   HttpException,
+  Query,
 } from '@nestjs/common';
 import { AnimeService } from './anime.service';
 import { CreateAnimeDto } from './dto/create-anime.dto';
@@ -83,7 +84,7 @@ export class AnimeController {
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        { name: 'new_photos', maxCount: 4 }, // photos untuk foto anime pada table photo_anime
+        { name: 'photo_anime', maxCount: 4 }, // photos untuk foto anime pada table photo_anime
         { name: 'photo_cover', maxCount: 1 }, // photo_cover untuk foto cover anime pada kolom photo_cover
       ],
       {
@@ -104,7 +105,7 @@ export class AnimeController {
             // Menentukan folder penyimpanan berdasarkan fieldname (photo_cover atau photo_content)
             if (file.fieldname === 'photo_cover') {
               cb(null, './images/anime/cover');
-            } else if (file.fieldname === 'new_photos') {
+            } else if (file.fieldname === 'photo_anime') {
               cb(null, './images/anime/content');
             }
           },
@@ -123,7 +124,7 @@ export class AnimeController {
     @Body('existing_photos') existingPhotosString: string[],
     @UploadedFiles()
     files: {
-      new_photos?: Express.Multer.File[];
+      photo_anime?: Express.Multer.File[];
       photo_cover?: Express.Multer.File[];
     },
   ) {
@@ -131,7 +132,7 @@ export class AnimeController {
       animeId,
       updateAnimeDto,
       genres,
-      files.new_photos || [],
+      files.photo_anime || [],
       files?.photo_cover?.[0],
       existingPhotosString,
     );
@@ -139,9 +140,19 @@ export class AnimeController {
     return updatedAnime;
   }
 
-  @Get('get')
-  async getAllAnime() {
-    return await this.animeService.getAllAnime();
+  @Get('get-admin')
+  async getAllAnimeAdmin(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search: string,
+    @Query('order') order?: 'ASC' | 'DESC',
+  ) {
+    return await this.animeService.getAllAnimeAdmin(page, limit, search, order);
+  }
+
+  @Get('get-newest')
+  async getAnimeNewest() {
+    return await this.animeService.getAnimeNewest();
   }
 
   @Get('get/:id')

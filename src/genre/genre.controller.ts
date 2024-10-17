@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { GenreService } from './genre.service';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
@@ -18,12 +28,20 @@ export class GenreController {
   }
 
   @Put('update/:id')
-  async update(@Param('id') id: string, @Body() updateGenreDto: CreateGenreDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateGenreDto: CreateGenreDto,
+  ) {
     return await this.genreService.updateGenre(id, updateGenreDto);
   }
 
   @Get('get-all')
-  async getAllGenre() {
-    return await this.genreService.getAllGenre();
+  async getAllGenre(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search: string,
+    @Query('order') order?: 'ASC' | 'DESC',
+  ) {
+    return await this.genreService.getAllGenre(page, limit, search, order);
   }
 }

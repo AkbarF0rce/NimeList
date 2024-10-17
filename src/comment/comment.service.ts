@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Comment } from './entities/comment.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Topic } from 'src/topic/entities/topic.entity';
+import { LikeComment } from 'src/like_comment/entities/like_comment.entity';
 
 @Injectable()
 export class CommentService {
@@ -13,6 +14,8 @@ export class CommentService {
     @InjectRepository(Comment) private commentRepository: Repository<Comment>,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Topic) private topicRepository: Repository<Topic>,
+    @InjectRepository(LikeComment)
+    private likeCommentRepository: Repository<LikeComment>,
   ) {}
 
   async createComment(data: CreateCommentDto) {
@@ -91,12 +94,18 @@ export class CommentService {
       .where('comment.id = :id', { id })
       .getOne();
 
+    const likes = await this.likeCommentRepository
+      .createQueryBuilder('like')
+      .where('like.id_comment = :id', { id })
+      .getCount();
+
     return {
       comment: get.comment,
       created_at: get.created_at,
       updated_at: get.updated_at,
       user: get.user.username,
       topic: get.topic.title,
+      likes: likes,
     };
   }
 
