@@ -11,6 +11,7 @@ import {
   UploadedFiles,
   HttpException,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { PhotoAnimeService } from './photo_anime.service';
 import { CreatePhotoAnimeDto } from './dto/create-photo_anime.dto';
@@ -32,7 +33,7 @@ export class PhotoAnimeController {
   @Put('update/:id')
   @UseInterceptors(
     FileFieldsInterceptor(
-      [ 
+      [
         { name: 'photos', maxCount: 1 }, // photo_cover untuk foto cover anime pada kolom photo_cover
       ],
       {
@@ -69,8 +70,13 @@ export class PhotoAnimeController {
   }
 
   @Get('get-all')
-  async getAllPhoto() {
-    return this.photoAnimeService.getAllPhoto();
+  async getAllPhoto(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search: string,
+    @Query('order') order?: 'ASC' | 'DESC',
+  ) {
+    return this.photoAnimeService.getAllPhoto(page, limit, search, order);
   }
 
   @Get('get/:id')

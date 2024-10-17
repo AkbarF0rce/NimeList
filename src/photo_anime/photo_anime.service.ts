@@ -4,7 +4,7 @@ import { UpdatePhotoAnimeDto } from './dto/update-photo_anime.dto';
 import { join } from 'path';
 import { PhotoAnime } from './entities/photo_anime.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { unlink } from 'fs/promises';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
@@ -86,26 +86,40 @@ export class PhotoAnimeService {
     }
   }
 
-  async getAllPhoto() {
-    const photos = await this.photoRepository
-      .createQueryBuilder('photo')
-      .leftJoin('photo.anime', 'anime')
-      .select([
-        'photo.id',
-        'photo.file_path',
-        'anime.title',
-        'photo.created_at',
-        'photo.updated_at',
-      ])
-      .getMany();
+  async getAllPhoto(
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    order: 'ASC' | 'DESC' = 'ASC',
+  ) {
+    const [data, total] = await Promise.all([
+      await this.photoRepository.find({
+        relations: ['anime'],
+        skip: (page - 1) * limit,
+        take: limit,
+        where: {
+          anime: { title: ILike(`%${search}%`) },
+        },
+        order: {
+          anime: { title: order },
+        },
+      }),
+      await this.photoRepository.count(),
+    ]);
 
-    return photos.map((photo) => ({
+    // Membentuk array baru dengan tambahan title dari relasi anime
+    const result = data.map((photo) => ({
       id: photo.id,
       file_path: photo.file_path,
-      anime: photo.anime.title,
       created_at: photo.created_at,
       updated_at: photo.updated_at,
+      anime: photo.anime?.title, // Menambahkan title dari relasi anime
     }));
+
+    return {
+      data: result,
+      total,
+    };
   }
 
   async getPhotoById(id: string) {
@@ -128,6 +142,6 @@ export class PhotoAnimeService {
       anime: photo.anime.title,
       created_at: photo.created_at,
       updated_at: photo.updated_at,
-    }
+    };
   }
 }

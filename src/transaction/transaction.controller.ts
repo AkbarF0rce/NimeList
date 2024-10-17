@@ -26,8 +26,11 @@ export class TransactionController {
       );
     }
 
-    return await this.transactionService.createTransaction(id_user, id_premium);
-    // return { redirectUrl };
+    const token = await this.transactionService.createTransaction(
+      id_user,
+      id_premium,
+    );
+    return { token };
   }
 
   @Post('success')

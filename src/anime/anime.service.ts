@@ -67,7 +67,6 @@ export class AnimeService {
       photo_cover: photo_cover.path,
       genres: genreEntities,
     });
-
     await this.animeRepository.save(anime);
 
     // Save photos if available
@@ -82,7 +81,8 @@ export class AnimeService {
     }
 
     return {
-      anime: anime,
+      status: 201,
+      message: 'data created',
     };
   }
 
@@ -101,7 +101,7 @@ export class AnimeService {
     animeId: string,
     updateAnimeDto: UpdateAnimeDto, // Data anime yang ingin diupdate
     genres: [], // ID genre baru yang ingin dihubungkan dengan anime ini
-    new_photos: Express.Multer.File[],
+    photo_anime: Express.Multer.File[],
     photo_cover: Express.Multer.File, // File cover baru yang di-upload
     existing_photos: string[],
   ) {
@@ -150,34 +150,36 @@ export class AnimeService {
     // Update genre
     anime.genres = genreEntities;
     // Save anime
-    await this.animeRepository.save(anime);
+    const save = await this.animeRepository.save(anime);
 
-    // Identifikasi dan hapus foto lama yang tidak ada di file baru
-    for (const photo of anime.photos) {
-      const oldFilePath = join(process.cwd(), photo.file_path);
+    if (save) {
+      // Identifikasi dan hapus foto lama yang tidak ada di file baru
+      for (const photo of anime.photos) {
+        const oldFilePath = join(process.cwd(), photo.file_path);
 
-      // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
-      if (!existing_photos.includes(photo.file_path)) {
-        try {
-          await unlink(oldFilePath); // Hapus file lama dari sistem
-        } catch (err) {
-          console.error('Error deleting old photo file:', err);
+        // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
+        if (!existing_photos.includes(photo.file_path)) {
+          try {
+            await unlink(oldFilePath); // Hapus file lama dari sistem
+          } catch (err) {
+            console.error('Error deleting old photo file:', err);
+          }
+          await this.photoRepository.remove(photo); // Hapus data foto lama dari database
         }
-        await this.photoRepository.remove(photo); // Hapus data foto lama dari database
       }
-    }
 
-    if (new_photos && new_photos.length > 0) {
-      // Simpan path dan file foto baru yang belum ada di database
-      const newPhotos = new_photos
-        .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
-        .map(async (file) => {
-          const photo = this.photoRepository.create({
-            file_path: file.path,
-            anime,
+      if (photo_anime && photo_anime.length > 0) {
+        // Simpan path dan file foto baru yang belum ada di database
+        const newPhotos = photo_anime
+          .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
+          .map(async (file) => {
+            const photo = this.photoRepository.create({
+              file_path: file.path,
+              anime,
+            });
+            await this.photoRepository.save(photo);
           });
-          await this.photoRepository.save(photo);
-        });
+      }
     }
   }
 
@@ -241,7 +243,13 @@ export class AnimeService {
     }
   }
 
-  async getAllAnime() {
+  async getAllAnimeAdmin(
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    order: 'ASC' | 'DESC' = 'ASC',
+  ) {
+    const total = await this.animeRepository.count();
     const animes = await this.animeRepository
       .createQueryBuilder('anime')
       .leftJoin('anime.review', 'review')
@@ -255,12 +263,39 @@ export class AnimeService {
       ])
       .addSelect('COALESCE(AVG(review.rating), 0)', 'avg_rating')
       .groupBy('anime.id')
+      .orderBy('anime.title', order)
+      .skip((page - 1) * limit)
+      .take(limit)
+      .where('anime.title ILIKE :search', { search: `%${search}%` })
       .getRawMany();
 
-    return animes.map((anime) => ({
+    const data = animes.map((anime) => ({
       ...anime,
-      avg_rating: Number(parseFloat(anime.avg_rating).toFixed(1)),
+      avg_rating: parseFloat(anime.avg_rating).toFixed(1),
     }));
+
+    return {
+      data,
+      total,
+    };
+  }
+
+  async getAnimeNewest() {
+    const animes = await this.animeRepository.find({
+      order: { release_date: 'DESC' },
+      relations: ['genres'],
+      select: [
+        'id',
+        'title',
+        'type',
+        'photo_cover',
+        'release_date',
+        'synopsis',
+        'trailer_link',
+      ],
+    });
+
+    return { data: animes };
   }
 
   async getAnimeByGenre(genreId: number) {

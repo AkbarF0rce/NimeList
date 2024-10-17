@@ -1,4 +1,5 @@
 import { IsNotEmpty, isNotEmpty } from 'class-validator';
+import { badges } from 'src/user/entities/user.entity';
 
 export class CreatePremiumDto {
   @IsNotEmpty()
@@ -9,4 +10,7 @@ export class CreatePremiumDto {
 
   @IsNotEmpty()
   duration: number;
+
+  @IsNotEmpty()
+  badge: badges;
 }

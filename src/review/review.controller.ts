@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Put,
+  Query,
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -40,9 +41,14 @@ export class ReviewController {
     return await this.reviewService.deleteReview(id);
   }
 
-  @Get('get-all')
-  async getAll() {
-    return await this.reviewService.getAllReview();
+  @Get('get-all-admin')
+  async getAll(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search: string,
+    @Query('order') order?: 'ASC' | 'DESC',
+  ) {
+    return await this.reviewService.getAllReview(page, limit, search, order);
   }
 
   @Get('get-all-anime')
