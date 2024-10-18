@@ -7,6 +7,9 @@ import {
   HttpException,
   HttpStatus,
   Headers,
+  Res,
+  Request,
+  Req,
 } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
@@ -25,16 +28,13 @@ export class TransactionController {
         HttpStatus.BAD_REQUEST,
       );
     }
-
-    const token = await this.transactionService.createTransaction(
-      id_user,
-      id_premium,
-    );
-    return { token };
+    const { token, redirect_url } =
+      await this.transactionService.createTransactionToken(id_user, id_premium);
+    return { token, redirect_url };
   }
 
-  @Post('success')
-  async createAfterSuccessPayment(@Body() body: CreateTransactionDto) {
-    return await this.transactionService.createAfterSuccessPayment(body);
+  @Post('handle-notification-midtrans')
+  async handleTransaction(@Req() req: Request) {
+    return await this.transactionService.handleNotification(req.body);
   }
 }
