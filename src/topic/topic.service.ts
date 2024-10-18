@@ -288,6 +288,9 @@ export class TopicService {
       .innerJoinAndSelect('user.role', 'role')
       .select(['user.id', 'user.username'])
       .where('role.name = :roleName', { roleName: 'user' })
+      .andWhere('user.status_premium = :premiumStatus', {
+        premiumStatus: 'active',
+      })
       .getMany();
 
     return users.map((user) => ({

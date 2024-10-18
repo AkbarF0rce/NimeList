@@ -70,7 +70,6 @@ export class TransactionService {
       customer_details: {
         first_name: user.username,
         email: user.email,
-        phone: '',
       },
       metadata: {
         user_id: userId,
@@ -112,6 +111,7 @@ export class TransactionService {
 
       // Update status transaksi menjadi sukses
       transaction.status = status.SUCCESS;
+      transaction.payment_platform = notification.issuer;
       await this.transactionsRepository.save(transaction);
 
       // Setelah transaksi sukses, lakukan update pada user
@@ -180,7 +180,6 @@ export class TransactionService {
         data.payment_platform = notification.va_numbers[0].bank;
       }
       await this.createPayment(data);
-      return { message: 'Transaction is pending' };
     } else if (
       transaction_status === 'expire' ||
       transaction_status === 'cancel'
