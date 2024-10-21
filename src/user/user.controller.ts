@@ -6,6 +6,7 @@ import {
   UseGuards,
   Param,
   Query,
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthService } from '../auth/auth.service';
@@ -22,12 +23,6 @@ export class UserController {
   async create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
-
-  // @Post('register')
-  // async register(@Body() createUserDto: CreateUserDto) {
-  //   const { username, password, email } = createUserDto;
-  //   return this.authService.register(username, password, email);
-  // }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -62,5 +57,10 @@ export class UserController {
   @Get('get-user-for-pay')
   async getUserPay() {
     return await this.userService.getUserPay();
+  }
+
+  @Put('refresh-users')
+  async updateUser() {
+    return await this.userService.refreshUsers();
   }
 }

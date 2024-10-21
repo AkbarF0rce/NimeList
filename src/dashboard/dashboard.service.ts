@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { CreateDashboardDto } from './dto/create-dashboard.dto';
-import { UpdateDashboardDto } from './dto/update-dashboard.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Topic } from 'src/topic/entities/topic.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Anime } from 'src/anime/entities/anime.entity';
+import { Transaction } from 'src/transaction/entities/transaction.entity';
 
 @Injectable()
 export class DashboardService {
@@ -15,6 +14,8 @@ export class DashboardService {
     private userRepository: Repository<User>,
     @InjectRepository(Anime)
     private animeRepository: Repository<Anime>,
+    @InjectRepository(Transaction)
+    private transactionsRepository: Repository<Transaction>,
   ) {}
   async getTotalTopic() {
     return { totalTopic: await this.topicRepository.count() };
@@ -52,5 +53,58 @@ export class DashboardService {
       rating: parseFloat(anime.avgrating).toFixed(1),
       totalReview: anime.reviewcount,
     }));
+  }
+
+  // Fungsi untuk mendapatkan nama bulan berdasarkan angka
+  private getMonthName(month: number): string {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return months[month - 1];
+  }
+
+  async getIncomeData(year: number) {
+    const transactions = await this.transactionsRepository
+      .createQueryBuilder('transaction')
+      .select('EXTRACT(MONTH FROM transaction.created_at) as month')
+      .addSelect('SUM(transaction.total) as total_income')
+      .where('EXTRACT(YEAR FROM transaction.created_at) = :year', { year })
+      .groupBy('month')
+      .orderBy('month', 'ASC')
+      .getRawMany();
+
+    // Format hasil query ke dalam bentuk array bulanan
+    const incomeData = transactions.map((transaction) => ({
+      month: this.getMonthName(transaction.month),
+      income: parseFloat(transaction.total_income),
+    }));
+
+    return incomeData;
+  }
+
+  async totalTransaction() {
+    return { total: await this.transactionsRepository.count() };
+  }
+
+  async totalIncome() {
+    const count = await this.transactionsRepository
+      .createQueryBuilder('transaction')
+      .select('SUM(transaction.total) as total_income')
+      .getRawOne();
+
+    return {
+      total: parseInt(count.total_income),
+    };
   }
 }

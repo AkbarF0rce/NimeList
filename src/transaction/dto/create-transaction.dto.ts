@@ -1,4 +1,5 @@
 import { IsNotEmpty } from 'class-validator';
+import { status } from '../entities/transaction.entity';
 
 export class CreateTransactionDto {
   @IsNotEmpty()
@@ -15,4 +16,7 @@ export class CreateTransactionDto {
 
   @IsNotEmpty()
   total: number;
+
+  @IsNotEmpty()
+  status: status;
 }

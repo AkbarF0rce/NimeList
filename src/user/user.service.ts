@@ -1,8 +1,8 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
-import { ILike, Repository } from 'typeorm';
+import { badges, status_premium, User } from './entities/user.entity';
+import { ILike, LessThan, Repository } from 'typeorm';
 import { v4 } from 'uuid';
 import { Role } from 'src/role/entities/role.entity';
 
@@ -106,5 +106,21 @@ export class UserService {
       username: user.username,
       email: user.email,
     };
+  }
+
+  async refreshUsers() {
+    const users = await this.userRepository.find({
+      where: {
+        status_premium: status_premium.ACTIVE,
+        end_premium: LessThan(new Date()),
+      },
+    });
+
+    // Update status premium
+    for (const user of users) {
+      user.status_premium = status_premium.INACTIVE;
+      user.badge = badges.NIMELIST_CITIZENS;
+      await this.userRepository.save(user);
+    }
   }
 }

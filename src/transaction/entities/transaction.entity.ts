@@ -11,6 +11,12 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export enum status {
+  PENDING = 'pending',
+  SUCCESS = 'success',
+  FAILED = 'failed',
+}
+
 @Entity()
 export class Transaction {
   @PrimaryGeneratedColumn('uuid')
@@ -30,6 +36,9 @@ export class Transaction {
 
   @Column('int')
   total: number;
+
+  @Column('enum', { enum: status, default: status.PENDING })
+  status: status;
 
   @CreateDateColumn()
   created_at: Date;

@@ -26,10 +26,8 @@ export enum status_premium {
 }
 
 export enum badges {
-  YEARLY_CHAMPION = 'yearly champion',
-  SIX_MONTH_CHAMPION = 'six-month champion',
-  ONE_MONTH_HERO = 'one-month hero',
-  NO_BADGE = 'no badge',
+  NIMELIST_CITIZENS = 'NimeList Citizens',
+  NIMELIST_HEROES = 'NimeList Heroes',
 }
 
 @Entity()
@@ -58,7 +56,7 @@ export class User {
   @Column('enum', { enum: status_premium, default: status_premium.INACTIVE })
   status_premium: status_premium;
 
-  @Column('enum', { enum: badges, default: badges.NO_BADGE })
+  @Column('enum', { enum: badges, default: badges.NIMELIST_CITIZENS })
   badge: badges;
 
   @Column('timestamp', { nullable: true, default: null })
