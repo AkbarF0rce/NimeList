@@ -26,16 +26,18 @@ export class UserService {
     });
 
     // Cek apakah username sudah ada
-    const existingUsername = await this.userRepository.findOneBy({
-      username: user.username,
+    const existingUsername = await this.userRepository.findOne({
+      select: ['username'],
+      where: { username: user.username },
     });
     if (existingUsername) {
       throw new ConflictException('Username already exists');
     }
 
     // Cek apakah email sudah ada
-    const existingEmail = await this.userRepository.findOneBy({
-      email: user.email,
+    const existingEmail = await this.userRepository.findOne({
+      select: ['email'],
+      where: { email: user.email },
     });
     if (existingEmail) {
       throw new ConflictException('Email already exists');
@@ -81,11 +83,11 @@ export class UserService {
   }
 
   async findOneByUsername(username: string) {
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.role', 'role')
-      .where('user.username = :username', { username: username })
-      .getOne();
+    const user = await this.userRepository.findOne({
+      select: ['salt', 'username', 'password', 'email', 'role', 'id'],
+      where: { username: username },
+      relations: ['role'],
+    });
 
     return {
       salt: user.salt,
@@ -110,6 +112,7 @@ export class UserService {
 
   async refreshUsers() {
     const users = await this.userRepository.find({
+      select: ['status_premium', 'end_premium', 'badge'],
       where: {
         status_premium: status_premium.ACTIVE,
         end_premium: LessThan(new Date()),

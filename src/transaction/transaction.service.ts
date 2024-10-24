@@ -4,14 +4,14 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { status, Transaction } from './entities/transaction.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import { PremiumService } from 'src/premium/premium.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { badges, status_premium, User } from 'src/user/entities/user.entity';
 import { Premium } from 'src/premium/entities/premium.entity';
 import * as fetch from 'node-fetch';
-import { v4 } from 'uuid';
+import { nanoid } from 'nanoid';
 
 @Injectable()
 export class TransactionService {
@@ -55,7 +55,7 @@ export class TransactionService {
       throw new HttpException('Membership not found', HttpStatus.BAD_REQUEST);
     }
 
-    const orderId = `NL-ORDER-${v4()}`;
+    const orderId = `NL${nanoid(13)}`;
     const amount = membership.price;
 
     // Transaksi detail
@@ -198,5 +198,67 @@ export class TransactionService {
     }
 
     return { message: 'Unhandled transaction status' };
+  }
+
+  async getTransaction(
+    page: number,
+    limit: number,
+    search: string,
+    order: 'ASC' | 'DESC',
+    status: string,
+  ) {
+    const transactionsQuery = this.transactionsRepository
+      .createQueryBuilder('transaction')
+      .leftJoin('transaction.user', 'user') // Join table user
+      .select(['transaction', 'user'])
+      .where('user.username ILIKE :search', { search: `%${search}%` })
+      .orWhere('transaction.order_id ILIKE :search', { search: `%${search}%` });
+
+    // Tambahkan kondisi AND WHERE jika status !== 'all'
+    if (status && status !== 'all') {
+      transactionsQuery.where('transaction.status = :status', {
+        status,
+      });
+    }
+
+    // Pagination dan Sorting
+    const [transactions, total] = await transactionsQuery
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('user.username', order)
+      .getManyAndCount();
+
+    const result = transactions.map((transaction) => ({
+      id: transaction.id,
+      order_id: transaction.order_id,
+      status: transaction.status,
+      total: transaction.total,
+      username: transaction.user.username,
+      created_at: transaction.created_at,
+      updated_at: transaction.updated_at,
+    }));
+
+    return {
+      data: result,
+      total,
+    };
+  }
+
+  async getTransactionById(id: string) {
+    const transaction = await this.transactionsRepository.findOne({
+      where: { id: id },
+      relations: ['user', 'premium'],
+    });
+
+    return {
+      order_id: transaction.order_id,
+      payment_platform: transaction.payment_platform,
+      username: transaction.user.username,
+      premium: transaction.premium,
+      status: transaction.status,
+      total: transaction.total,
+      created_at: transaction.created_at,
+      updated_at: transaction.updated_at,
+    };
   }
 }

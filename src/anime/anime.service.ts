@@ -233,14 +233,7 @@ export class AnimeService {
   async deleteAnime(animeId: string) {
     // Hapus anime dari database berdasarkan id yang diberikan
     const deleted = await this.animeRepository.softDelete({ id: animeId });
-
-    if (deleted) {
-      return 'data anime berhasil dihapus';
-    } else if (!deleted) {
-      return 'data anime gagal di hapus';
-    } else {
-      throw new NotFoundException('Anime tidak ditemukan');
-    }
+    const photoDeleted = await this.photoRepository.softDelete({ id_anime: animeId });
   }
 
   async getAllAnimeAdmin(
@@ -327,10 +320,11 @@ export class AnimeService {
       .createQueryBuilder('anime')
       .leftJoin('anime.review', 'review')
       .addSelect('COALESCE(AVG(review.rating), 0)', 'avgRating')
-      .addSelect('COUNT(review.id)', 'reviewCount')
+      .addSelect('COUNT(review.id)', 'totalReviews')
       .groupBy('anime.id')
       .having('AVG(review.rating) > :minRating', { minRating: 4 })
       .andHaving('COUNT(review.id) > :minReviews', { minReviews: 1 })
+      .take(8)
       .getRawMany();
 
     if (animes.length === 0) {

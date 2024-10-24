@@ -27,6 +27,11 @@ export class GenreController {
     return await this.genreService.deleteGenre(id);
   }
 
+  @Get('get/:id')
+  async getOneGenre(@Param('id') id: string) {
+    return await this.genreService.getById(id);
+  }
+
   @Put('update/:id')
   async update(
     @Param('id') id: string,

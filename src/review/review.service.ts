@@ -80,8 +80,7 @@ export class ReviewService {
     search: string = '',
     order: 'ASC' | 'DESC' = 'ASC',
   ) {
-    const total = await this.reviewRepository.count();
-    const reviews = await this.reviewRepository
+    const [reviews, total] = await this.reviewRepository
       .createQueryBuilder('review')
       .leftJoin('review.user', 'user') // Join table review
       .leftJoin('review.anime', 'anime') // Join table review
@@ -98,7 +97,7 @@ export class ReviewService {
       .skip((page - 1) * limit)
       .take(limit)
       .orderBy('user.username', order)
-      .getMany();
+      .getManyAndCount();
 
     const result = reviews.map((review) => ({
       id: review.id,

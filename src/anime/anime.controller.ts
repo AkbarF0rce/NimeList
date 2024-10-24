@@ -53,7 +53,7 @@ export class AnimeController {
             // Menentukan folder penyimpanan berdasarkan fieldname (photo_cover atau photo_content)
             if (file.fieldname === 'photo_cover') {
               cb(null, './images/anime/cover');
-            } else if (file.fieldname === 'photo_anime') {
+            } else if (file.fieldname === 'photos_anime') {
               cb(null, './images/anime/content');
             }
           },

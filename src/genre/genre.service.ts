@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
 import { Genre } from './entities/genre.entity';
@@ -29,6 +29,14 @@ export class GenreService {
   async updateGenre(id: string, updateGenreDto: CreateGenreDto) {
     // Update data genre berdasarkan id yang diberikan
     await this.genreRepository.update(id, updateGenreDto);
+  }
+
+  async getById(id: string) {
+    const get = await this.genreRepository.findOne({ where: { id } });
+    if (!get) {
+      throw new NotFoundException('data not found');
+    }
+    return get;
   }
 
   async getAllGenre(
