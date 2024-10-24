@@ -37,22 +37,63 @@ export class DashboardService {
   }
 
   async getAnimeTopAllTime() {
-    const get = await this.animeRepository
-      .createQueryBuilder('anime')
-      .leftJoin('anime.review', 'reviews')
-      .addSelect('COUNT (reviews.id)', 'reviewcount')
-      .addSelect('COALESCE(AVG(reviews.rating), 0)', 'avgrating')
-      .groupBy('anime.id')
-      .orderBy('avgrating', 'DESC')
-      .addOrderBy('reviewcount', 'DESC')
-      .limit(10)
-      .getRawMany();
+    // Langkah 1: Hitung rata-rata rating dari semua anime (C)
+    const allAnimes = await this.animeRepository.find({
+      relations: ['review'],
+    });
 
-    return get.map((anime) => ({
-      title: anime.anime_title,
-      rating: parseFloat(anime.avgrating).toFixed(1),
-      totalReview: anime.reviewcount,
-    }));
+    const totalRatings = allAnimes.reduce((sum, anime) => {
+      const animeTotalRating = anime.review.reduce(
+        (total, review) => total + Number(review.rating),
+        0,
+      );
+      return sum + animeTotalRating;
+    }, 0);
+
+    const totalReviews = allAnimes.reduce(
+      (sum, anime) => sum + anime.review.length,
+      0,
+    );
+
+    const avgRatingAllAnime = totalRatings / totalReviews; // Rata-rata rating semua anime
+
+    // Langkah 2: Tentukan jumlah minimum review (m)
+    const minReviews = 1; // Misalnya hanya anime dengan setidaknya 50 review yang masuk peringkat
+
+    // Langkah 3: Hitung Weighted Rating (WR) untuk setiap anime
+    const data = allAnimes
+      .map((anime) => {
+        const totalReviews = anime.review.length;
+        const avgRatingAnime =
+          totalReviews > 0
+            ? anime.review.reduce(
+                (total, review) => total + Number(review.rating),
+                0,
+              ) / totalReviews
+            : 0;
+
+        // Hanya hitung weighted rating untuk anime dengan jumlah review >= m
+        if (totalReviews >= minReviews) {
+          const weightedRating =
+            (totalReviews / (totalReviews + minReviews)) * avgRatingAnime +
+            (minReviews / (totalReviews + minReviews)) * avgRatingAllAnime;
+          return {
+            title: anime.title,
+            total_reviews: totalReviews,
+            avg_rating: avgRatingAnime.toFixed(1), // Rata-rata rating biasa
+            weighted_rating: weightedRating.toFixed(1), // Weighted Rating (WR)
+          };
+        }
+
+        return null; // Tidak memenuhi syarat
+      })
+      .filter((anime) => anime !== null) // Hapus anime yang tidak memenuhi syarat
+      .sort(
+        (a, b) => parseFloat(b.weighted_rating) - parseFloat(a.weighted_rating),
+      ); // Urutkan berdasarkan WR
+
+    // Langkah 4: Tampilkan anime dengan WR tertinggi sebagai "Anime All Time"
+    return data;
   }
 
   // Fungsi untuk mendapatkan nama bulan berdasarkan angka

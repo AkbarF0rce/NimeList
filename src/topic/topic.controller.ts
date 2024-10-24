@@ -10,6 +10,7 @@ import {
   UploadedFiles,
   Put,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { TopicService } from './topic.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
@@ -108,9 +109,14 @@ export class TopicController {
     return await this.topicService.getTopicById(id);
   }
 
-  @Get('get-all')
-  async getAllTopic() {
-    return await this.topicService.getAllTopic();
+  @Get('get-admin')
+  async getAllTopic(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search: string,
+    @Query('order') order?: 'ASC' | 'DESC',
+  ) {
+    return await this.topicService.getAllTopic(page, limit, search, order);
   }
 
   @Get('get-all-anime')

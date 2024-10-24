@@ -19,11 +19,6 @@ import { Roles } from '../common/decorators/roles.decorator';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('post')
-  async create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
-  }
-
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get('admin')

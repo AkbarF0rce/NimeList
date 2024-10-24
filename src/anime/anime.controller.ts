@@ -179,4 +179,9 @@ export class AnimeController {
   async getAllGenre() {
     return await this.animeService.getAllGenre();
   }
+
+  @Get('get-most-popular')
+  async getMostPopular() {
+    return await this.animeService.getMostPopular();
+  }
 }

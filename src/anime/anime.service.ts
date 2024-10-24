@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, ILike, Repository } from 'typeorm';
 import { Anime } from './entities/anime.entity';
 import { Genre } from 'src/genre/entities/genre.entity';
 import { PhotoAnime } from 'src/photo_anime/entities/photo_anime.entity';
@@ -15,6 +15,7 @@ import { Review } from 'src/review/entities/review.entity';
 import { UpdateAnimeDto } from './dto/update-anime.dto';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
+import { min } from 'class-validator';
 
 @Injectable()
 export class AnimeService {
@@ -233,7 +234,9 @@ export class AnimeService {
   async deleteAnime(animeId: string) {
     // Hapus anime dari database berdasarkan id yang diberikan
     const deleted = await this.animeRepository.softDelete({ id: animeId });
-    const photoDeleted = await this.photoRepository.softDelete({ id_anime: animeId });
+    const photoDeleted = await this.photoRepository.softDelete({
+      id_anime: animeId,
+    });
   }
 
   async getAllAnimeAdmin(
@@ -242,30 +245,38 @@ export class AnimeService {
     search: string = '',
     order: 'ASC' | 'DESC' = 'ASC',
   ) {
-    const total = await this.animeRepository.count();
-    const animes = await this.animeRepository
-      .createQueryBuilder('anime')
-      .leftJoin('anime.review', 'review')
-      .select([
-        'anime.id',
-        'anime.title',
-        'anime.type',
-        'anime.photo_cover',
-        'anime.created_at',
-        'anime.updated_at',
-      ])
-      .addSelect('COALESCE(AVG(review.rating), 0)', 'avg_rating')
-      .groupBy('anime.id')
-      .orderBy('anime.title', order)
-      .skip((page - 1) * limit)
-      .take(limit)
-      .where('anime.title ILIKE :search', { search: `%${search}%` })
-      .getRawMany();
+    // Ambil semua data anime dan relasi review
+    const [animes, total] = await this.animeRepository.findAndCount({
+      relations: ['review'],
+      where: {
+        title: ILike(`%${search}%`),
+      },
+      order: {
+        title: order,
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
 
-    const data = animes.map((anime) => ({
-      ...anime,
-      avg_rating: parseFloat(anime.avg_rating).toFixed(1),
-    }));
+    // Hitung rata-rata rating untuk setiap anime
+    const data = animes.map((anime) => {
+      // Menghitung rata-rata rating jika anime memiliki review
+      const avgRating =
+        anime.review.length > 0
+          ? anime.review.reduce(
+              (total, review) => total + Number(review.rating),
+              0,
+            ) / anime.review.length
+          : 0;
+
+      return {
+        id: anime.id,
+        title: anime.title,
+        created_at: anime.created_at,
+        updated_at: anime.updated_at,
+        avg_rating: avgRating.toFixed(1), // Format ke 1 desimal
+      };
+    });
 
     return {
       data,
@@ -322,8 +333,8 @@ export class AnimeService {
       .addSelect('COALESCE(AVG(review.rating), 0)', 'avgRating')
       .addSelect('COUNT(review.id)', 'totalReviews')
       .groupBy('anime.id')
-      .having('AVG(review.rating) > :minRating', { minRating: 4 })
-      .andHaving('COUNT(review.id) > :minReviews', { minReviews: 1 })
+      // .having('AVG(review.rating) > :minRating', { minRating: 4 })
+      .having('COUNT(review.id) > :minReviews', { minReviews: 3 })
       .take(8)
       .getRawMany();
 
@@ -334,9 +345,76 @@ export class AnimeService {
     }
 
     return animes.map((anime) => ({
-      ...anime,
+      id: anime.anime_id,
+      title: anime.anime_title,
+      type: anime.anime_type,
+      photo_cover: anime.anime_photo_cover,
       avgRating: parseFloat(anime.avgRating).toFixed(1),
     }));
+  }
+
+  async getMostPopular() {
+    // Langkah 1: Hitung rata-rata rating dari semua anime (C)
+    const allAnimes = await this.animeRepository.find({
+      relations: ['review'],
+    });
+
+    const totalRatings = allAnimes.reduce((sum, anime) => {
+      const animeTotalRating = anime.review.reduce(
+        (total, review) => total + Number(review.rating),
+        0,
+      );
+      return sum + animeTotalRating;
+    }, 0);
+
+    const totalReviews = allAnimes.reduce(
+      (sum, anime) => sum + anime.review.length,
+      0,
+    );
+
+    const avgRatingAllAnime = totalRatings / totalReviews; // Rata-rata rating semua anime
+
+    // Langkah 2: Tentukan jumlah minimum review (m)
+    const minReviews = 1; // Misalnya hanya anime dengan setidaknya 50 review yang masuk peringkat
+
+    // Langkah 3: Hitung Weighted Rating (WR) untuk setiap anime
+    const data = allAnimes
+      .map((anime) => {
+        const totalReviewAllAnime = anime.review.length;
+        const avgRatingAnime =
+          totalReviewAllAnime > 0
+            ? anime.review.reduce(
+                (total, review) => total + Number(review.rating),
+                0,
+              ) / totalReviewAllAnime
+            : 0;
+
+        // Hanya hitung weighted rating untuk anime dengan jumlah review >= m
+        if (totalReviewAllAnime >= minReviews) {
+          const weightedRating =
+            (totalReviewAllAnime / (totalReviewAllAnime + minReviews)) *
+              avgRatingAnime +
+            (minReviews / (totalReviewAllAnime + minReviews)) *
+              avgRatingAllAnime;
+          return {
+            id: anime.id,
+            title: anime.title,
+            type: anime.type,
+            photo_cover: anime.photo_cover,
+            avg_rating: avgRatingAnime.toFixed(1), // Rata-rata rating biasa
+            weighted_rating: weightedRating.toFixed(1), // Weighted Rating (WR)
+          };
+        }
+
+        return null; // Tidak memenuhi syarat
+      })
+      .filter((anime) => anime !== null) // Hapus anime yang tidak memenuhi syarat
+      .sort(
+        (a, b) => parseFloat(b.weighted_rating) - parseFloat(a.weighted_rating),
+      ); // Urutkan berdasarkan WR
+
+    // Langkah 4: Tampilkan anime dengan WR tertinggi sebagai "Anime All Time"
+    return data;
   }
 
   async getAllGenre() {

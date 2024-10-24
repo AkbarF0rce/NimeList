@@ -247,8 +247,13 @@ export class TopicService {
     };
   }
 
-  async getAllTopic() {
-    const topics = await this.topicRepository
+  async getAllTopic(
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    order: 'ASC' | 'DESC' = 'ASC',
+  ) {
+    const [topics, total] = await this.topicRepository
       .createQueryBuilder('topic')
       .leftJoinAndSelect('topic.user', 'user') // Join table user yang berelasi dengan topic
       .leftJoinAndSelect('topic.anime', 'anime') // Join table photos yang berelasi dengan topic
@@ -257,17 +262,28 @@ export class TopicService {
         'topic.title',
         'topic.created_at',
         'topic.updated_at',
-        'user.username', // Ambil username dari tabel user
-        'anime.title', // Ambil title dari tabel anime
+        'user', // Ambil username dari tabel user
+        'anime', // Ambil title dari tabel anime
       ])
-      .getMany();
+      .orderBy('anime.title', order)
+      .skip((page - 1) * limit)
+      .take(limit)
+      .where('anime.title ILIKE :search', { search: `%${search}%` })
+      .orWhere('user.username ILIKE :search', { search: `%${search}%` })
+      .orWhere('topic.title ILIKE :search', { search: `%${search}%` })
+      .getManyAndCount();
 
     // Tampilkan semua topik dengan username user yang terkait
-    return topics.map((topic) => ({
+    const data = topics.map((topic) => ({
       ...topic,
       user: topic.user.username,
       anime: topic.anime.title,
     }));
+
+    return {
+      data,
+      total,
+    };
   }
 
   async getAllAnime() {
