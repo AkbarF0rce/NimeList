@@ -15,9 +15,9 @@ export class DashboardController {
     return await this.dashboardService.countUserPremium();
   }
 
-  @Get('anime-top')
-  async getTopAllTime() {
-    return await this.dashboardService.getAnimeTopAllTime();
+  @Get('top-10-anime')
+  async getTop10AllTime() {
+    return await this.dashboardService.getTop10AnimeAllTime();
   }
 
   @Get('income-data')

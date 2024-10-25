@@ -288,6 +288,7 @@ export class AnimeService {
     const animes = await this.animeRepository.find({
       order: { release_date: 'DESC' },
       relations: ['genres'],
+      take: 10,
       select: [
         'id',
         'title',
@@ -326,35 +327,52 @@ export class AnimeService {
     }));
   }
 
-  async getAnimeRecommended() {
-    const animes = await this.animeRepository
-      .createQueryBuilder('anime')
-      .leftJoin('anime.review', 'review')
-      .addSelect('COALESCE(AVG(review.rating), 0)', 'avgRating')
-      .addSelect('COUNT(review.id)', 'totalReviews')
-      .groupBy('anime.id')
-      // .having('AVG(review.rating) > :minRating', { minRating: 4 })
-      .having('COUNT(review.id) > :minReviews', { minReviews: 3 })
-      .take(8)
-      .getRawMany();
+  async getRecommended() {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
 
-    if (animes.length === 0) {
-      throw new NotFoundException(
-        'Anime yang direkomendasikan tidak ditemukan',
-      );
+    // Tentukan periode berdasarkan bulan saat ini
+    let startDate: Date;
+    let endDate: Date;
+
+    if (currentDate.getMonth() < 6) {
+      // Periode Januari - Juni
+      startDate = new Date(year, 0, 1); // 1 Januari
+      endDate = new Date(year, 5, 30, 23, 59, 59); // 30 Juni
+    } else {
+      // Periode Juli - Desember
+      startDate = new Date(year, 6, 1); // 1 Juli
+      endDate = new Date(year, 11, 31, 23, 59, 59); // 31 Desember
     }
 
-    return animes.map((anime) => ({
-      id: anime.anime_id,
-      title: anime.anime_title,
-      type: anime.anime_type,
-      photo_cover: anime.anime_photo_cover,
-      avgRating: parseFloat(anime.avgRating).toFixed(1),
+    const recommendedAnimes = await this.animeRepository
+      .createQueryBuilder('anime')
+      .leftJoin('anime.review', 'review')
+      .select([
+        'anime.id',
+        'anime.title',
+        'anime.photo_cover',
+        'anime.type',
+        'AVG(review.rating) AS avg_rating',
+        'COUNT(review.id) AS review_count',
+      ])
+      .groupBy('anime.id')
+      .where('review.created_at BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .orderBy('avg_rating', 'DESC') // Urutkan berdasarkan rating
+      .limit(10) // Batasi ke 10 anime teratas
+      .getRawMany();
+
+    return recommendedAnimes.map((anime) => ({
+      ...anime,
+      avg_rating: parseFloat(anime.avg_rating).toFixed(1),
     }));
   }
 
   async getMostPopular() {
-    // Langkah 1: Hitung rata-rata rating dari semua anime (C)
+    // Hitung rata-rata rating dari semua anime (C)
     const allAnimes = await this.animeRepository.find({
       relations: ['review'],
     });
@@ -374,10 +392,10 @@ export class AnimeService {
 
     const avgRatingAllAnime = totalRatings / totalReviews; // Rata-rata rating semua anime
 
-    // Langkah 2: Tentukan jumlah minimum review (m)
+    // Tentukan jumlah minimum review (m)
     const minReviews = 1; // Misalnya hanya anime dengan setidaknya 50 review yang masuk peringkat
 
-    // Langkah 3: Hitung Weighted Rating (WR) untuk setiap anime
+    // Hitung Weighted Rating (WR) untuk setiap anime
     const data = allAnimes
       .map((anime) => {
         const totalReviewAllAnime = anime.review.length;
@@ -413,7 +431,7 @@ export class AnimeService {
         (a, b) => parseFloat(b.weighted_rating) - parseFloat(a.weighted_rating),
       ); // Urutkan berdasarkan WR
 
-    // Langkah 4: Tampilkan anime dengan WR tertinggi sebagai "Anime All Time"
+    // Tampilkan anime dengan WR tertinggi sebagai "Anime All Time"
     return data;
   }
 

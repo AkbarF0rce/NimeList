@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { PhotoTopicService } from './photo_topic.service';
 import { CreatePhotoTopicDto } from './dto/create-photo_topic.dto';
@@ -52,8 +53,13 @@ export class PhotoTopicController {
   }
 
   @Get('get-all')
-  async getAllPhotos() {
-    return await this.photoTopicService.getAllPhotos();
+  async getAllPhotos(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search: string,
+    @Query('order') order?: 'ASC' | 'DESC',
+  ) {
+    return await this.photoTopicService.getAllPhotos(page, limit, search, order);
   }
 
   @Get('get/:id')

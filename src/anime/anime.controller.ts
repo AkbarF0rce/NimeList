@@ -172,7 +172,7 @@ export class AnimeController {
 
   @Get('recommended')
   async getRecommendedAnime() {
-    return await this.animeService.getAnimeRecommended();
+    return await this.animeService.getRecommended();
   }
 
   @Get('get-all-genre')

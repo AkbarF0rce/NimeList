@@ -82,26 +82,34 @@ export class PhotoTopicService {
     };
   }
 
-  async getAllPhotos() {
-    const photo = await this.photoTopicRepository
+  async getAllPhotos(
+    page: number = 1,
+    limit: number = 10,
+    search: string = '',
+    order: 'ASC' | 'DESC' = 'ASC',
+  ) {
+    const [photo, total] = await this.photoTopicRepository
       .createQueryBuilder('photo')
       .leftJoin('photo.topic', 'topic')
-      .select([
-        'photo.id',
-        'photo.file_path',
-        'topic.title',
-        'photo.created_at',
-        'photo.updated_at',
-      ])
-      .getMany();
+      .skip((page - 1) * limit)
+      .take(limit)
+      .select(['photo', 'topic'])
+      .orderBy('topic.title', order)
+      .where('topic.title ILIKE :search', { search: `%${search}%` })
+      .getManyAndCount();
 
-    return photo.map((photo) => ({
+    const data = photo.map((photo) => ({
       id: photo.id,
       file_path: photo.file_path,
       topic: photo.topic.title,
       created_at: photo.created_at,
       updated_at: photo.updated_at,
     }));
+
+    return {
+      data,
+      total,
+    };
   }
 
   async getPhotoById(id: string) {

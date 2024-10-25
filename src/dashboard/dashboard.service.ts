@@ -36,8 +36,8 @@ export class DashboardService {
     };
   }
 
-  async getAnimeTopAllTime() {
-    // Langkah 1: Hitung rata-rata rating dari semua anime (C)
+  async getTop10AnimeAllTime() {
+    // Hitung rata-rata rating dari semua anime
     const allAnimes = await this.animeRepository.find({
       relations: ['review'],
     });
@@ -57,10 +57,10 @@ export class DashboardService {
 
     const avgRatingAllAnime = totalRatings / totalReviews; // Rata-rata rating semua anime
 
-    // Langkah 2: Tentukan jumlah minimum review (m)
-    const minReviews = 1; // Misalnya hanya anime dengan setidaknya 50 review yang masuk peringkat
+    // Jumlah minimum review yang diperlukan
+    const minReviews = 1;
 
-    // Langkah 3: Hitung Weighted Rating (WR) untuk setiap anime
+    // Hitung Weighted Rating (WR) untuk setiap anime
     const data = allAnimes
       .map((anime) => {
         const totalReviews = anime.review.length;
@@ -72,7 +72,7 @@ export class DashboardService {
               ) / totalReviews
             : 0;
 
-        // Hanya hitung weighted rating untuk anime dengan jumlah review >= m
+        // Hanya hitung weighted rating untuk anime dengan jumlah review lebih atau sama dari minimum review
         if (totalReviews >= minReviews) {
           const weightedRating =
             (totalReviews / (totalReviews + minReviews)) * avgRatingAnime +
@@ -90,7 +90,8 @@ export class DashboardService {
       .filter((anime) => anime !== null) // Hapus anime yang tidak memenuhi syarat
       .sort(
         (a, b) => parseFloat(b.weighted_rating) - parseFloat(a.weighted_rating),
-      ); // Urutkan berdasarkan WR
+      ) // Urutkan anime berdasarkan WR
+      .slice(0, 10); // Tampilkan 10 anime dengan WR tertinggi
 
     // Langkah 4: Tampilkan anime dengan WR tertinggi sebagai "Anime All Time"
     return data;
