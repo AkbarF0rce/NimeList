@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { Seeder } from './seeder.interface';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { status_premium, User } from 'src/user/entities/user.entity';
-import { Role } from 'src/role/entities/role.entity';
+import { status_premium, User } from 'src/AuthModule/user/entities/user.entity';
+import { Role } from 'src/AuthModule/role/entities/role.entity';
 import { v4 } from 'uuid';
 
 @Injectable()

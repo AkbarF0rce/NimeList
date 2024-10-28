@@ -3,10 +3,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RoleSeeder } from './role.seeder';
 import { SeederService } from './seeder.service';
-import { Role } from 'src/role/entities/role.entity';
-import { RoleModule } from 'src/role/role.module';
-import { User } from 'src/user/entities/user.entity';
-import { UserModule } from 'src/user/user.module';
+import { Role } from 'src/AuthModule/role/entities/role.entity';
+import { RoleModule } from 'src/AuthModule/role/role.module';
+import { User } from 'src/AuthModule/user/entities/user.entity';
+import { UserModule } from 'src/AuthModule/user/user.module';
 import { UserSeeder } from './user.seeder';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 

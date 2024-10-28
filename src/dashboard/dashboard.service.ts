@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Topic } from 'src/topic/entities/topic.entity';
+import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
 import { Repository } from 'typeorm';
-import { User } from 'src/user/entities/user.entity';
-import { Anime } from 'src/anime/entities/anime.entity';
-import { Transaction } from 'src/transaction/entities/transaction.entity';
+import { User } from 'src/AuthModule/user/entities/user.entity';
+import { Transaction } from 'src/TransactionModule/transaction/entities/transaction.entity';
+import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
 
 @Injectable()
 export class DashboardService {
