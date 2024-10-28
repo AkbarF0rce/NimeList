@@ -41,14 +41,13 @@ export class ReviewController {
     return await this.reviewService.deleteReview(id);
   }
 
-  @Get('get-all-admin')
+  @Get('get-admin')
   async getAll(
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('search') search: string,
-    @Query('order') order?: 'ASC' | 'DESC',
   ) {
-    return await this.reviewService.getAllReview(page, limit, search, order);
+    return await this.reviewService.getAllReview(page, limit, search);
   }
 
   @Get('get-all-anime')

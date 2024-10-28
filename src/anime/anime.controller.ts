@@ -145,9 +145,8 @@ export class AnimeController {
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('search') search: string,
-    @Query('order') order?: 'ASC' | 'DESC',
   ) {
-    return await this.animeService.getAllAnimeAdmin(page, limit, search, order);
+    return await this.animeService.getAllAnimeAdmin(page, limit, search);
   }
 
   @Get('get-newest')

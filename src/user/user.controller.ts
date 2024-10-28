@@ -9,11 +9,10 @@ import {
   Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { AuthService } from '../auth/auth.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { status_premium } from './entities/user.entity';
 
 @Controller('user')
 export class UserController {
@@ -39,14 +38,14 @@ export class UserController {
     return 'Public Access';
   }
 
-  @Get('get-all')
+  @Get('get-admin')
   async getAllUsers(
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('search') search: string,
-    @Query('order') order?: 'ASC' | 'DESC',
+    @Query('status') status?: status_premium,
   ) {
-    return await this.userService.getUsers(page, limit, search, order);
+    return await this.userService.getUsers(page, limit, search, status);
   }
 
   @Get('get-user-for-pay')

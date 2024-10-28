@@ -243,7 +243,6 @@ export class AnimeService {
     page: number = 1,
     limit: number = 10,
     search: string = '',
-    order: 'ASC' | 'DESC' = 'ASC',
   ) {
     // Ambil semua data anime dan relasi review
     const [animes, total] = await this.animeRepository.findAndCount({
@@ -252,7 +251,7 @@ export class AnimeService {
         title: ILike(`%${search}%`),
       },
       order: {
-        title: order,
+        release_date: 'DESC',
       },
       skip: (page - 1) * limit,
       take: limit,
@@ -273,6 +272,7 @@ export class AnimeService {
         id: anime.id,
         title: anime.title,
         created_at: anime.created_at,
+        release_date: anime.release_date,
         updated_at: anime.updated_at,
         avg_rating: avgRating.toFixed(1), // Format ke 1 desimal
       };

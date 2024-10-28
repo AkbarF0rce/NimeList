@@ -42,15 +42,15 @@ export class TransactionController {
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
     @Query('search') search: string = '',
-    @Query('order') order: 'ASC' | 'DESC' = 'ASC',
-    @Query('status') status: string = 'all',
+    @Query('status') status?: string,
+    @Query('premium') premium?: string,
   ) {
     return await this.transactionService.getTransaction(
       page,
       limit,
       search,
-      order,
       status,
+      decodeURIComponent(premium),
     );
   }
 

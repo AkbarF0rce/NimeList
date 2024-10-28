@@ -204,28 +204,41 @@ export class TransactionService {
     page: number,
     limit: number,
     search: string,
-    order: 'ASC' | 'DESC',
     status: string,
+    premium: string,
   ) {
     const transactionsQuery = this.transactionsRepository
       .createQueryBuilder('transaction')
       .leftJoin('transaction.user', 'user') // Join table user
-      .select(['transaction', 'user'])
-      .where('user.username ILIKE :search', { search: `%${search}%` })
-      .orWhere('transaction.order_id ILIKE :search', { search: `%${search}%` });
+      .leftJoin('transaction.premium', 'premium') // Join table premium
+      .select(['transaction', 'user', 'premium']);
+
+    // Tambahan kondisi WHERE untuk pencarian
+    if (search) {
+      transactionsQuery
+        .where('user.username ILIKE :search', { search: `%${search}%` })
+        .orWhere('transaction.order_id ILIKE :search', {
+          search: `%${search}%`,
+        });
+    }
 
     // Tambahkan kondisi AND WHERE jika status !== 'all'
     if (status && status !== 'all') {
-      transactionsQuery.where('transaction.status = :status', {
+      transactionsQuery.andWhere('transaction.status = :status', {
         status,
       });
+    }
+
+    // Tambahkan kondisi AND WHERE jika premium !== 'all'
+    if (premium && premium !== 'all') {
+      transactionsQuery.andWhere('premium.name = :premium', { premium });
     }
 
     // Pagination dan Sorting
     const [transactions, total] = await transactionsQuery
       .skip((page - 1) * limit)
       .take(limit)
-      .orderBy('user.username', order)
+      .orderBy('transaction.created_at', 'DESC')
       .getManyAndCount();
 
     const result = transactions.map((transaction) => ({

@@ -78,7 +78,6 @@ export class ReviewService {
     page: number = 1,
     limit: number = 10,
     search: string = '',
-    order: 'ASC' | 'DESC' = 'ASC',
   ) {
     const [reviews, total] = await this.reviewRepository
       .createQueryBuilder('review')
@@ -96,7 +95,7 @@ export class ReviewService {
       .orWhere('user.username ILIKE :search', { search: `%${search}%` })
       .skip((page - 1) * limit)
       .take(limit)
-      .orderBy('user.username', order)
+      .orderBy('review.created_at', 'DESC')
       .getManyAndCount();
 
     const result = reviews.map((review) => ({

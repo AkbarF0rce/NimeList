@@ -52,14 +52,13 @@ export class PhotoTopicController {
     return await this.photoTopicService.deletePhoto(id);
   }
 
-  @Get('get-all')
+  @Get('get-admin')
   async getAllPhotos(
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('search') search: string,
-    @Query('order') order?: 'ASC' | 'DESC',
   ) {
-    return await this.photoTopicService.getAllPhotos(page, limit, search, order);
+    return await this.photoTopicService.getAllPhotos(page, limit, search);
   }
 
   @Get('get/:id')

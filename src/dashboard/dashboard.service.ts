@@ -58,7 +58,7 @@ export class DashboardService {
     const avgRatingAllAnime = totalRatings / totalReviews; // Rata-rata rating semua anime
 
     // Jumlah minimum review yang diperlukan
-    const minReviews = 1;
+    const minReviews = 3;
 
     // Hitung Weighted Rating (WR) untuk setiap anime
     const data = allAnimes

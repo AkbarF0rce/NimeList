@@ -58,13 +58,17 @@ export class UserService {
     page: number = 1,
     limit: number = 10,
     search: string = '',
-    order: 'ASC' | 'DESC' = 'ASC',
+    status: status_premium,
   ) {
     const [data, total] = await this.userRepository.findAndCount({
-      where: { username: ILike(`%${search}%`), role: { name: 'user' } },
+      where: {
+        username: ILike(`%${search}%`),
+        role: { name: 'user' },
+        status_premium: status,
+      },
       skip: (page - 1) * limit,
       take: limit,
-      order: { username: order },
+      order: { username: 'ASC' },
     });
 
     return {

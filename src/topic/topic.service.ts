@@ -247,12 +247,7 @@ export class TopicService {
     };
   }
 
-  async getAllTopic(
-    page: number = 1,
-    limit: number = 10,
-    search: string = '',
-    order: 'ASC' | 'DESC' = 'ASC',
-  ) {
+  async getAllTopic(page: number = 1, limit: number = 10, search: string = '') {
     const [topics, total] = await this.topicRepository
       .createQueryBuilder('topic')
       .leftJoinAndSelect('topic.user', 'user') // Join table user yang berelasi dengan topic
@@ -265,7 +260,7 @@ export class TopicService {
         'user', // Ambil username dari tabel user
         'anime', // Ambil title dari tabel anime
       ])
-      .orderBy('anime.title', order)
+      .orderBy('topic.created_at', 'ASC')
       .skip((page - 1) * limit)
       .take(limit)
       .where('anime.title ILIKE :search', { search: `%${search}%` })

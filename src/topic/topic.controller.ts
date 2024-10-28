@@ -114,9 +114,8 @@ export class TopicController {
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('search') search: string,
-    @Query('order') order?: 'ASC' | 'DESC',
   ) {
-    return await this.topicService.getAllTopic(page, limit, search, order);
+    return await this.topicService.getAllTopic(page, limit, search);
   }
 
   @Get('get-all-anime')

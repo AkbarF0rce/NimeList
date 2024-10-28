@@ -86,7 +86,6 @@ export class PhotoTopicService {
     page: number = 1,
     limit: number = 10,
     search: string = '',
-    order: 'ASC' | 'DESC' = 'ASC',
   ) {
     const [photo, total] = await this.photoTopicRepository
       .createQueryBuilder('photo')
@@ -94,7 +93,7 @@ export class PhotoTopicService {
       .skip((page - 1) * limit)
       .take(limit)
       .select(['photo', 'topic'])
-      .orderBy('topic.title', order)
+      .orderBy('topic.created_at', 'DESC')
       .where('topic.title ILIKE :search', { search: `%${search}%` })
       .getManyAndCount();
 
