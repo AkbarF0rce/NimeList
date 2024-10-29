@@ -150,8 +150,10 @@ export class AnimeController {
   }
 
   @Get('get-newest')
-  async getAnimeNewest() {
-    return await this.animeService.getAnimeNewest();
+  async getAnimeNewest(
+    @Query('limit') limit: number,
+  ) {
+    return await this.animeService.getAnimeNewest(limit);
   }
 
   @Get('get/:id')

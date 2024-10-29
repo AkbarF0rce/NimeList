@@ -284,11 +284,11 @@ export class AnimeService {
     };
   }
 
-  async getAnimeNewest() {
+  async getAnimeNewest(limit: number) {
     const animes = await this.animeRepository.find({
       order: { release_date: 'DESC' },
       relations: ['genres'],
-      take: 10,
+      take: limit,
       select: [
         'id',
         'title',
