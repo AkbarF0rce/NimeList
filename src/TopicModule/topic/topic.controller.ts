@@ -111,9 +111,9 @@ export class TopicController {
 
   @Get('get-admin')
   async getAllTopic(
-    @Query('page') page: number,
-    @Query('limit') limit: number,
-    @Query('search') search: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('search') search: string = '',
   ) {
     return await this.topicService.getAllTopic(page, limit, search);
   }

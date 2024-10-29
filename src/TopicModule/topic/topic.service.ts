@@ -247,7 +247,7 @@ export class TopicService {
     };
   }
 
-  async getAllTopic(page: number = 1, limit: number = 10, search: string = '') {
+  async getAllTopic(page: number, limit: number, search: string) {
     const [topics, total] = await this.topicRepository
       .createQueryBuilder('topic')
       .leftJoinAndSelect('topic.user', 'user') // Join table user yang berelasi dengan topic

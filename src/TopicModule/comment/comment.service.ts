@@ -62,8 +62,8 @@ export class CommentService {
     };
   }
 
-  async getAllComment() {
-    const data = await this.commentRepository
+  async getAllCommentAdmin(page: number, limit: number, search: string) {
+    const [data, total] = await this.commentRepository
       .createQueryBuilder('comment')
       .leftJoin('comment.user', 'user')
       .leftJoin('comment.topic', 'topic')
@@ -74,15 +74,23 @@ export class CommentService {
         'user',
         'topic',
       ])
-      .getMany();
+      .orderBy('comment.created_at', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .where('user.username ILIKE :search', { search: `%${search}%` })
+      .orWhere('topic.title ILIKE :search', { search: `%${search}%` })
+      .getManyAndCount();
 
-    return data.map((comment) => ({
-      id: comment.id,
-      created_at: comment.created_at,
-      updated_at: comment.updated_at,
+    const result = data.map((comment) => ({
+      ...comment,
       user: comment.user.username,
       topic: comment.topic.title,
     }));
+
+    return {
+      data: result,
+      total,
+    };
   }
 
   async getCommentById(id: string) {

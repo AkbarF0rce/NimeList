@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Put,
+  Query,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -36,9 +37,13 @@ export class CommentController {
     return await this.commentService.restoreComment(id);
   }
 
-  @Get('get-all')
-  async getAllComment() {
-    return await this.commentService.getAllComment();
+  @Get('get-admin')
+  async getAllComment(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('search') search: string = '',
+  ) {
+    return await this.commentService.getAllCommentAdmin(page, limit, search);
   }
 
   @Get('get/:id')
