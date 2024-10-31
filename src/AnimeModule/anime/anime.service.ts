@@ -366,7 +366,10 @@ export class AnimeService {
       .getRawMany();
 
     return recommendedAnimes.map((anime) => ({
-      ...anime,
+      id : anime.anime_id,
+      title: anime.anime_title,
+      photo_cover: anime.anime_photo_cover,
+      type: anime.anime_type,
       avg_rating: parseFloat(anime.avg_rating).toFixed(1),
     }));
   }
