@@ -14,6 +14,8 @@ import {
   HttpStatus,
   HttpException,
   Query,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AnimeService } from './anime.service';
 import { CreateAnimeDto } from './dto/create-anime.dto';
@@ -26,6 +28,7 @@ import path, { extname, join } from 'path';
 import * as fs from 'fs';
 import { v4 } from 'uuid';
 import { UpdateAnimeDto } from './dto/update-anime.dto';
+import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 
 @Controller('anime')
 export class AnimeController {
@@ -150,8 +153,8 @@ export class AnimeController {
   }
 
   @Get('get-newest')
-  async getAnimeNewest() {
-    return await this.animeService.getAnimeNewest();
+  async getAnimeNewest(@Query('limit') limit: number) {
+    return await this.animeService.getAnimeNewest(limit);
   }
 
   @Get('get/:id')
@@ -182,5 +185,32 @@ export class AnimeController {
   @Get('get-most-popular')
   async getMostPopular() {
     return await this.animeService.getMostPopular();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('favorite-user')
+  async getFavoriteAnime(@Request() req) {
+    return await this.animeService.getFavoriteAnimeByUserLogin(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('add-favorite-by-user')
+  async addFavoriteAnime(@Request() req, @Body('id_anime') id_anime: string) {
+    return await this.animeService.addFavoriteAnimeByUserLogin(
+      req.user.userId,
+      id_anime,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('delete-favorite-by-user/:id_anime')
+  async deleteFavoriteAnime(
+    @Request() req,
+    @Param('id_anime') id_anime: string,
+  ) {
+    return await this.animeService.deleteFavoriteAnimeByUserLogin(
+      req.user.userId,
+      id_anime,
+    );
   }
 }

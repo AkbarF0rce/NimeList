@@ -28,7 +28,7 @@ export class AuthService {
     const payload = {
       username: user.username,
       email: user.email,
-      sub: user.salt,
+      userId: user.id,
       role: user.role,
     };
     return {
@@ -36,13 +36,31 @@ export class AuthService {
     };
   }
 
+  generateAccessToken(userId: string, role: string, username: string, email: string) {
+    const payload = { userId, username, role, email };
+    return this.jwtService.sign(payload);
+  }
+
+  async validateRefreshToken(token: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret:
+          'baec005e5d355ac15e6aba7a6d1fcd00316be94faf502b50638161a76046e86b600cdd950fd1b5420c6cfb2d3bf442f1a256ab40e5ae4e4f96aa60bef08c7eba',
+      });
+      return payload;
+    } catch (error) {
+      return null;
+    }
+  }
+
   // Method for signing JWT
   async register(user: CreateUserDto) {
     const register = await this.usersService.create(user);
     const payload = {
       username: register.username,
-      sub: register.salt,
+      userId: register.id,
       role: register.role,
+      email: register.email,
     };
     return {
       access_token: this.jwtService.sign(payload),

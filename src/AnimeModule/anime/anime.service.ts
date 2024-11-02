@@ -284,11 +284,11 @@ export class AnimeService {
     };
   }
 
-  async getAnimeNewest() {
+  async getAnimeNewest(limit: number) {
     const animes = await this.animeRepository.find({
       order: { release_date: 'DESC' },
       relations: ['genres'],
-      take: 10,
+      take: limit,
       select: [
         'id',
         'title',
@@ -366,8 +366,11 @@ export class AnimeService {
       .getRawMany();
 
     return recommendedAnimes.map((anime) => ({
-      ...anime,
-      avg_rating: parseFloat(anime.avg_rating).toFixed(1),
+      id: anime.anime_id,
+      title: anime.anime_title,
+      photo_cover: anime.anime_photo_cover,
+      type: anime.anime_type,
+      avgRating: parseFloat(anime.avg_rating).toFixed(1),
     }));
   }
 
@@ -419,7 +422,7 @@ export class AnimeService {
             title: anime.title,
             type: anime.type,
             photo_cover: anime.photo_cover,
-            avg_rating: avgRatingAnime.toFixed(1), // Rata-rata rating biasa
+            avgRating: avgRatingAnime.toFixed(1), // Rata-rata rating biasa
             weighted_rating: weightedRating.toFixed(1), // Weighted Rating (WR)
           };
         }
@@ -437,5 +440,32 @@ export class AnimeService {
 
   async getAllGenre() {
     return await this.genreRepository.find();
+  }
+
+  async getFavoriteAnimeByUserLogin(id: string) {
+    const favoriteAnimes = await this.favoriteAnimeRepository.find({
+      where: { id_user: id },
+      select: ['id_anime'],
+    });
+
+    return favoriteAnimes;
+  }
+
+  async addFavoriteAnimeByUserLogin(id_user: string, id_anime: string) {
+    const favoriteAnimes = await this.favoriteAnimeRepository.save({
+      id_anime: id_anime,
+      id_user: id_user,
+    });
+
+    return favoriteAnimes;
+  }
+
+  async deleteFavoriteAnimeByUserLogin(id_user: string, id_anime: string) {
+    const favoriteAnimes = await this.favoriteAnimeRepository.delete({
+      id_user: id_user,
+      id_anime: id_anime,
+    });
+
+    return favoriteAnimes;
   }
 }

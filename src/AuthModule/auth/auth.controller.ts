@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Request,
+  UnauthorizedException,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -26,5 +27,34 @@ export class AuthController {
   @Post('register')
   async signup(@Body() user: CreateUserDto) {
     return this.authService.register(user);
+  }
+
+  @Post('refresh-token')
+  async refreshAccessToken(
+    @Body('refreshToken') refreshToken: string,
+    @Body('data_user') data_user: any,
+  ) {
+    const payload = await this.authService.validateRefreshToken(refreshToken);
+
+    const { userId, role, username, email } = data_user;
+
+    if (!payload) {
+      const newAccessToken = this.authService.generateAccessToken(
+        userId,
+        role,
+        username,
+        email,
+      );
+
+      return { accessToken: newAccessToken };
+    }
+
+    const newAccessToken = this.authService.generateAccessToken(
+      payload.userId,
+      payload.role,
+      payload.username,
+      payload.email,
+    );
+    return { accessToken: newAccessToken };
   }
 }

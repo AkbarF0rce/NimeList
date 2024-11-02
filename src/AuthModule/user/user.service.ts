@@ -51,6 +51,7 @@ export class UserService {
       username: user.username,
       email: user.email,
       salt: user.salt,
+      id: user.id,
     };
   }
 
@@ -94,7 +95,7 @@ export class UserService {
     });
 
     return {
-      salt: user.salt,
+      id: user.id,
       username: user.username,
       password: user.password,
       email: user.email,
