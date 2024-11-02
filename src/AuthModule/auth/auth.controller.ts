@@ -12,6 +12,7 @@ import {
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CreateUserDto } from 'src/AuthModule/user/dto/create-user.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -32,9 +33,20 @@ export class AuthController {
   @Post('refresh-token')
   async refreshAccessToken(
     @Body('refreshToken') refreshToken: string,
-    @Body('data_user') data_user: any,
+    @Body('data_user')
+    data_user: {
+      userId: string;
+      role: string;
+      username: string;
+      email: string;
+    },
   ) {
-    const payload = await this.authService.validateRefreshToken(refreshToken);
+    const payload: {
+      userId: string;
+      role: string;
+      username: string;
+      email: string;
+    } = await this.authService.validateRefreshToken(refreshToken);
 
     const { userId, role, username, email } = data_user;
 
@@ -56,5 +68,11 @@ export class AuthController {
       payload.email,
     );
     return { accessToken: newAccessToken };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(@Body('token') token: string) {
+    return this.authService.logout(token);
   }
 }

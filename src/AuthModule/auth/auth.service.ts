@@ -3,9 +3,11 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/AuthModule/user/dto/create-user.dto';
 import { UserService } from 'src/AuthModule/user/user.service';
+import { status } from 'src/TransactionModule/transaction/entities/transaction.entity';
 
 @Injectable()
 export class AuthService {
+  private blacklistedTokens: Set<string> = new Set();
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UserService, // Uncomment this when you implement UsersService
@@ -36,7 +38,12 @@ export class AuthService {
     };
   }
 
-  generateAccessToken(userId: string, role: string, username: string, email: string) {
+  generateAccessToken(
+    userId: string,
+    role: string,
+    username: string,
+    email: string,
+  ) {
     const payload = { userId, username, role, email };
     return this.jwtService.sign(payload);
   }
@@ -65,5 +72,17 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  async logout(token: string) {
+    const blacklisted = this.blacklistedTokens.add(token); // Tambahkan token ke daftar hitam
+    if (!blacklisted) {
+      return { message: 'Failed to logout', status: 500 };
+    }
+    return { message: 'Successfully logged out', status: 200 };
+  }
+
+  isTokenBlacklisted(token: string): boolean {
+    return this.blacklistedTokens.has(token);
   }
 }

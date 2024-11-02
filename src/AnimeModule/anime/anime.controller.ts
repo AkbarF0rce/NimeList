@@ -29,11 +29,13 @@ import * as fs from 'fs';
 import { v4 } from 'uuid';
 import { UpdateAnimeDto } from './dto/update-anime.dto';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
+import { AdminGuard } from 'src/AuthModule/auth/guards/admin-guard';
 
 @Controller('anime')
 export class AnimeController {
   constructor(private readonly animeService: AnimeService) {}
 
+  @UseGuards(AdminGuard)
   @Post('post')
   @UseInterceptors(
     FileFieldsInterceptor(

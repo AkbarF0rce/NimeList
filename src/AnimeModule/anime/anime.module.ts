@@ -8,6 +8,7 @@ import { AnimeController } from './anime.controller';
 import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
 import { FavoriteAnime } from 'src/AnimeModule/favorite_anime/entities/favorite_anime.entity';
 import { Review } from 'src/AnimeModule/review/entities/review.entity';
+import { AuthModule } from 'src/AuthModule/auth/auth.module';
 
 @Module({
   controllers: [AnimeController],
@@ -21,6 +22,7 @@ import { Review } from 'src/AnimeModule/review/entities/review.entity';
       Review,
       FavoriteAnime,
     ]),
+    AuthModule
   ],
 })
 export class AnimeModule {}
