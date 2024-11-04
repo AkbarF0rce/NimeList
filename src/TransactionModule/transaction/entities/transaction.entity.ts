@@ -1,5 +1,5 @@
 import { Premium } from 'src/TransactionModule/premium/entities/premium.entity';
-import { User } from 'src/AuthModule/user/entities/user.entity';
+import { User } from 'src/UserModule/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

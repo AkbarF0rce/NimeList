@@ -1,5 +1,5 @@
 import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
-import { User } from 'src/AuthModule/user/entities/user.entity';
+import { User } from 'src/UserModule/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

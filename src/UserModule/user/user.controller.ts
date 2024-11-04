@@ -9,9 +9,9 @@ import {
   Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../AuthModule/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../AuthModule/common/guards/roles.guard';
+import { Roles } from '../../AuthModule/common/decorators/roles.decorator';
 import { status_premium } from './entities/user.entity';
 
 @Controller('user')
@@ -39,6 +39,8 @@ export class UserController {
   }
 
   @Get('get-admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async getAllUsers(
     @Query('page') page: number,
     @Query('limit') limit: number,
@@ -54,7 +56,16 @@ export class UserController {
   }
 
   @Put('refresh-users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async updateUser() {
     return await this.userService.refreshUsers();
+  }
+
+  @Get('detail-admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async getOneUser(@Param('id') id: string) {
+    return await this.userService.getDetailAdmin(id);
   }
 }

@@ -5,14 +5,14 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { status, Transaction } from './entities/transaction.entity';
 import { ILike, Repository } from 'typeorm';
-import { UserService } from 'src/AuthModule/user/user.service';
+import { UserService } from 'src/UserModule/user/user.service';
 import { PremiumService } from 'src/TransactionModule/premium/premium.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import {
   badges,
   status_premium,
   User,
-} from 'src/AuthModule/user/entities/user.entity';
+} from 'src/UserModule/user/entities/user.entity';
 import { Premium } from 'src/TransactionModule/premium/entities/premium.entity';
 import * as fetch from 'node-fetch';
 import { nanoid } from 'nanoid';

@@ -1,5 +1,5 @@
 import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
-import { User } from 'src/AuthModule/user/entities/user.entity';
+import { User } from 'src/UserModule/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

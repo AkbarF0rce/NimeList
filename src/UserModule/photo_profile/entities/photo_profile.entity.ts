@@ -1,28 +1,25 @@
-import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
 import { User } from 'src/UserModule/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
   PrimaryGeneratedColumn,
-  Unique,
   UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity()
-@Unique(['id_topic', 'id_user'])
-export class DislikeTopic {
+export class PhotoProfile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column('text')
-  id_topic: string;
-
-  @Column()
   id_user: string;
+
+  @Column('text')
+  path_photo: string;
 
   @CreateDateColumn()
   created_at: Date;
@@ -33,11 +30,7 @@ export class DislikeTopic {
   @DeleteDateColumn()
   deleted_at: Date;
 
-  @ManyToOne(() => Topic, (topic) => topic.likes, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'id_topic' })
-  topic: Topic;
-
-  @ManyToOne(() => User, (user) => user.likes_topic, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.photo_profile)
   @JoinColumn({ name: 'id_user' })
   user: User;
 }

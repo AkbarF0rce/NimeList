@@ -13,14 +13,15 @@ import { LikeTopicModule } from './TopicModule/like_topic/like_topic.module';
 import { FavoriteAnimeModule } from './AnimeModule/favorite_anime/favorite_anime.module';
 import { CommentModule } from './TopicModule/comment/comment.module';
 import { ReviewModule } from './AnimeModule/review/review.module';
-import { UserModule } from './AuthModule/user/user.module';
-import { RoleModule } from './AuthModule/role/role.module';
+import { UserModule } from './UserModule/user/user.module';
+import { RoleModule } from './UserModule/role/role.module';
 import { LikeCommentModule } from './TopicModule/like_comment/like_comment.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AuthModule } from './AuthModule/auth/auth.module';
 import { DislikeTopicModule } from './TopicModule/dislike_topic/dislike_topic.module';
 import { PremiumModule } from './TransactionModule/premium/premium.module';
 import { TransactionModule } from './TransactionModule/transaction/transaction.module';
+import { PhotoProfileModule } from './UserModule/photo_profile/photo_profile.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { TransactionModule } from './TransactionModule/transaction/transaction.m
     DislikeTopicModule,
     TransactionModule,
     PremiumModule,
+    PhotoProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -83,7 +83,7 @@ export class AnimeService {
 
     return {
       status: 201,
-      message: 'data created',
+      message: 'Data created',
     };
   }
 
@@ -182,6 +182,11 @@ export class AnimeService {
           });
       }
     }
+
+    return {
+      status: 200,
+      message: 'Data updated',
+    };
   }
 
   async getAnimeById(animeId: string) {

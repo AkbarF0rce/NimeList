@@ -3,7 +3,7 @@ import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
 import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
 import { LikeTopic } from 'src/TopicModule/like_topic/entities/like_topic.entity';
 import { PhotoTopic } from 'src/TopicModule/photo_topic/entities/photo_topic.entity';
-import { User } from 'src/AuthModule/user/entities/user.entity';
+import { User } from 'src/UserModule/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

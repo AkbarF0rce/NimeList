@@ -1,7 +1,12 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
+import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
+import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 
 @Controller('dashboard')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 

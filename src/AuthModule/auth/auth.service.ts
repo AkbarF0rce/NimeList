@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from 'src/AuthModule/user/dto/create-user.dto';
-import { UserService } from 'src/AuthModule/user/user.service';
+import { CreateUserDto } from 'src/UserModule/user/dto/create-user.dto';
+import { UserService } from 'src/UserModule/user/user.service';
 import { status } from 'src/TransactionModule/transaction/entities/transaction.entity';
 
 @Injectable()
@@ -76,9 +76,6 @@ export class AuthService {
 
   async logout(token: string) {
     const blacklisted = this.blacklistedTokens.add(token); // Tambahkan token ke daftar hitam
-    if (!blacklisted) {
-      return { message: 'Failed to logout', status: 500 };
-    }
     return { message: 'Successfully logged out', status: 200 };
   }
 

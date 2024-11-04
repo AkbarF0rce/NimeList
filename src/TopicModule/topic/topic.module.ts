@@ -7,7 +7,7 @@ import { PhotoTopic } from 'src/TopicModule/photo_topic/entities/photo_topic.ent
 import { LikeTopic } from 'src/TopicModule/like_topic/entities/like_topic.entity';
 import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
 import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
-import { User } from 'src/AuthModule/user/entities/user.entity';
+import { User } from 'src/UserModule/user/entities/user.entity';
 import { DislikeTopic } from 'src/TopicModule/dislike_topic/entities/dislike_topic.entity';
 
 @Module({

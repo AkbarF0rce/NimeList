@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { badges, status_premium, User } from './entities/user.entity';
 import { ILike, LessThan, Repository } from 'typeorm';
 import { v4 } from 'uuid';
-import { Role } from 'src/AuthModule/role/entities/role.entity';
+import { Role } from 'src/UserModule/role/entities/role.entity';
 
 @Injectable()
 export class UserService {
@@ -129,6 +129,26 @@ export class UserService {
       user.status_premium = status_premium.INACTIVE;
       user.badge = badges.NIMELIST_CITIZENS;
       await this.userRepository.save(user);
+    }
+  }
+
+  async getDetailAdmin(id: string) {
+    const data = await this.userRepository.findOne({
+      where: { id: id, role: { name: 'admin' } },
+      relations: ['photo_profile'],
+      select: ['id', 'username', 'email', 'photo_profile'],
+    });
+
+    return {
+      id: data.id,
+      username: data.username,
+      email: data.email,
+      photo_profile: data.photo_profile.map((photo) => {
+        return {
+          id: photo.id,
+          path: photo.path_photo,
+        };
+      }),
     }
   }
 }

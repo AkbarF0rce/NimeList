@@ -1,4 +1,4 @@
-import { Role } from 'src/AuthModule/role/entities/role.entity';
+import { Role } from 'src/UserModule/role/entities/role.entity';
 import {
   BeforeInsert,
   Column,
@@ -19,6 +19,7 @@ import { FavoriteAnime } from 'src/AnimeModule/favorite_anime/entities/favorite_
 import { Review } from 'src/AnimeModule/review/entities/review.entity';
 import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
 import { Transaction } from 'src/TransactionModule/transaction/entities/transaction.entity';
+import { PhotoProfile } from 'src/UserModule/photo_profile/entities/photo_profile.entity';
 
 export enum status_premium {
   ACTIVE = 'active',
@@ -98,6 +99,9 @@ export class User {
 
   @OneToMany(() => Transaction, (transaction) => transaction.user)
   transactions: Transaction[];
+
+  @OneToMany(() => PhotoProfile, (photo_profile) => photo_profile.user)
+  photo_profile: PhotoProfile[];
 
   @BeforeInsert()
   async hashPassword() {

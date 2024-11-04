@@ -29,14 +29,16 @@ import * as fs from 'fs';
 import { v4 } from 'uuid';
 import { UpdateAnimeDto } from './dto/update-anime.dto';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
-import { AdminGuard } from 'src/AuthModule/auth/guards/admin-guard';
+import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
+import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 
 @Controller('anime')
 export class AnimeController {
   constructor(private readonly animeService: AnimeService) {}
 
-  @UseGuards(AdminGuard)
   @Post('post')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -74,18 +76,20 @@ export class AnimeController {
     @Body() createAnimeDto: CreateAnimeDto,
     @UploadedFiles()
     files: {
-      photos_anime?: Express.Multer.File[];
-      photo_cover?: Express.Multer.File[];
+      photos_anime: Express.Multer.File[];
+      photo_cover: Express.Multer.File;
     },
   ) {
     return this.animeService.createAnime(
       createAnimeDto,
       files.photos_anime || [],
-      files.photo_cover?.[0],
+      files.photo_cover,
     );
   }
 
   @Put('update/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -146,6 +150,8 @@ export class AnimeController {
   }
 
   @Get('get-admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async getAllAnimeAdmin(
     @Query('page') page: number,
     @Query('limit') limit: number,
@@ -170,6 +176,8 @@ export class AnimeController {
   }
 
   @Delete('delete/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async deleteAnime(@Param('id') animeId: string) {
     return await this.animeService.deleteAnime(animeId);
   }

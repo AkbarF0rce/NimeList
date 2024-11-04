@@ -9,14 +9,17 @@ import {
   Get,
   Query,
   Param,
+  UseGuards,
 } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 
 @Controller('transactions')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post('create')
   async createTransaction(@Body() body: CreateTransactionDto) {
     const { id_user, id_premium } = body;
