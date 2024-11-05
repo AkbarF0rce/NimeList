@@ -5,6 +5,9 @@ import { badges, status_premium, User } from './entities/user.entity';
 import { ILike, LessThan, Repository } from 'typeorm';
 import { v4 } from 'uuid';
 import { Role } from 'src/UserModule/role/entities/role.entity';
+import { PhotoProfileService } from '../photo_profile/photo_profile.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { stat } from 'fs';
 
 @Injectable()
 export class UserService {
@@ -13,6 +16,7 @@ export class UserService {
     private userRepository: Repository<User>,
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
+    private readonly photoProfileService: PhotoProfileService,
   ) {}
   async create(createUserDto: CreateUserDto) {
     // Mencari role user
@@ -136,19 +140,40 @@ export class UserService {
     const data = await this.userRepository.findOne({
       where: { id: id, role: { name: 'admin' } },
       relations: ['photo_profile'],
-      select: ['id', 'username', 'email', 'photo_profile'],
+      select: ['id', 'username', 'email', 'photo_profile', 'bio', 'badge'],
     });
+    const photo = await this.photoProfileService.getPhotoAdmin(id);
 
     return {
       id: data.id,
       username: data.username,
       email: data.email,
-      photo_profile: data.photo_profile.map((photo) => {
-        return {
-          id: photo.id,
-          path: photo.path_photo,
-        };
-      }),
+      photo_profile: photo,
+      bio: data.bio,
+      badge: data.badge,
+    };
+  }
+
+  async updateProfileAdmin(
+    id: string,
+    body: UpdateUserDto,
+    photo?: Express.Multer.File,
+  ) {
+    const user = await this.userRepository.findOne({
+      where: { id: id },
+    });
+    console.log(user);
+
+    Object.assign(user, body);
+    const save = await this.userRepository.save(user);
+
+    if (photo && save) {
+      const update_photo = await this.photoProfileService.create(id, photo);
     }
+
+    return {
+      status: 200,
+      message: 'Updated successfully',
+    };
   }
 }

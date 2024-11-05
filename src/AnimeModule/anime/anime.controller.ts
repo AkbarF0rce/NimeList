@@ -83,7 +83,7 @@ export class AnimeController {
     return this.animeService.createAnime(
       createAnimeDto,
       files.photos_anime || [],
-      files.photo_cover,
+      files.photo_cover[0],
     );
   }
 

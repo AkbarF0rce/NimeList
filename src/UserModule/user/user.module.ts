@@ -11,6 +11,7 @@ import { Review } from 'src/AnimeModule/review/entities/review.entity';
 import { FavoriteAnime } from 'src/AnimeModule/favorite_anime/entities/favorite_anime.entity';
 import { Transaction } from 'src/TransactionModule/transaction/entities/transaction.entity';
 import { AuthModule } from '../../AuthModule/auth/auth.module';
+import { PhotoProfileModule } from '../photo_profile/photo_profile.module';
 
 @Module({
   controllers: [UserController],
@@ -26,6 +27,7 @@ import { AuthModule } from '../../AuthModule/auth/auth.module';
       Role,
       Transaction,
     ]),
+    PhotoProfileModule
   ],
   exports: [UserService],
 })

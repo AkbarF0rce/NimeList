@@ -4,6 +4,7 @@ import { UpdatePhotoProfileDto } from './dto/update-photo_profile.dto';
 import { PhotoProfile } from './entities/photo_profile.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class PhotoProfileService {
@@ -12,6 +13,13 @@ export class PhotoProfileService {
     private photoProfileRepository: Repository<PhotoProfile>,
   ) {}
   async create(id_user: string, photo: Express.Multer.File) {
+    const find = await this.photoProfileRepository.findOne({
+      where: { id_user: id_user },
+    });
+
+    if (find) {
+      this.updatePhotoIfExist(id_user, photo.path, find.path_photo);
+    }
     const create = this.photoProfileRepository.create({
       id_user: id_user,
       path_photo: photo.path,
@@ -19,23 +27,29 @@ export class PhotoProfileService {
     return await this.photoProfileRepository.save(create);
   }
 
+  async updatePhotoIfExist(
+    id_user: string,
+    photoNew: string,
+    photoOld?: string,
+  ) {
+    const find = await this.photoProfileRepository.findOne({
+      where: { id_user: id_user },
+    });
+
+    if (find) {
+      await this.photoProfileRepository.delete({ id_user: id_user });
+      await unlink(photoOld);
+      await this.photoProfileRepository.update(id_user, {
+        path_photo: photoNew,
+      });
+    }
+  }
+
   async getPhotoAdmin(id: string) {
     const get = await this.photoProfileRepository.findOne({
       where: { id_user: id },
     });
 
-    return get;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} photoProfile`;
-  }
-
-  update(id: number, updatePhotoProfileDto: UpdatePhotoProfileDto) {
-    return `This action updates a #${id} photoProfile`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} photoProfile`;
+    return get.path_photo;
   }
 }

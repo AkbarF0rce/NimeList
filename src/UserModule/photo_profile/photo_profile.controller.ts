@@ -11,6 +11,7 @@ import {
   HttpException,
   HttpStatus,
   UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
 import { PhotoProfileService } from './photo_profile.service';
 import { CreatePhotoProfileDto } from './dto/create-photo_profile.dto';
@@ -57,9 +58,11 @@ export class PhotoProfileController {
   )
   create(
     @Body('id_user') id_user: string,
-    @UploadedFile() photo: Express.Multer.File,
+    @UploadedFiles() files: {
+      photo: Express.Multer.File;
+    },
   ) {
-    return this.photoProfileService.create(id_user, photo);
+    return this.photoProfileService.create(id_user, files.photo[0]);
   }
 
   @Get('admin/:id')
@@ -67,23 +70,5 @@ export class PhotoProfileController {
   @Roles('admin')
   async getPhotoAdmin(@Body('id') id: string) {
     return this.photoProfileService.getPhotoAdmin(id);
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.photoProfileService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updatePhotoProfileDto: UpdatePhotoProfileDto,
-  ) {
-    return this.photoProfileService.update(+id, updatePhotoProfileDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.photoProfileService.remove(+id);
   }
 }
