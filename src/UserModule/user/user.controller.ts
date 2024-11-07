@@ -59,12 +59,7 @@ export class UserController {
   ) {
     return await this.userService.getUsers(page, limit, search, status);
   }
-
-  @Get('get-user-for-pay')
-  async getUserPay() {
-    return await this.userService.getUserPay();
-  }
-
+  
   @Put('refresh-users')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

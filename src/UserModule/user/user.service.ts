@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { badges, status_premium, User } from './entities/user.entity';
@@ -7,7 +7,6 @@ import { v4 } from 'uuid';
 import { Role } from 'src/UserModule/role/entities/role.entity';
 import { PhotoProfileService } from '../photo_profile/photo_profile.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { stat } from 'fs';
 
 @Injectable()
 export class UserService {
@@ -82,21 +81,16 @@ export class UserService {
     };
   }
 
-  async getUserPay() {
-    const users = await this.userRepository.find({
-      select: ['id', 'username'],
-      where: { role: { name: 'user' } },
-    });
-
-    return users;
-  }
-
   async findOneByUsername(username: string) {
     const user = await this.userRepository.findOne({
       select: ['salt', 'username', 'password', 'email', 'role', 'id'],
       where: { username: username },
       relations: ['role'],
     });
+
+    if(user === null) {
+      throw new NotFoundException('User not found');
+    }
 
     return {
       id: user.id,

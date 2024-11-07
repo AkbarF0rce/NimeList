@@ -98,9 +98,60 @@ export class TransactionService {
     const save = await this.transactionsRepository.save(transaction);
   }
 
+  private async updateUser(id_user: string, id_premium: string) {
+    // Setelah transaksi sukses, lakukan update pada user
+    const premium = await this.premiumRepository.findOne({
+      where: { id: id_premium },
+    });
+
+    const user = await this.usersRepository.findOne({
+      where: { id: id_user },
+    });
+
+    if (!user || !premium) {
+      throw new Error('User or premium data not found');
+    }
+
+    const current_time = new Date();
+
+    if (
+      user.status_premium === status_premium.ACTIVE &&
+      user.end_premium > current_time
+    ) {
+      // Perpanjang waktu end premium
+      const newEndPremium = new Date(
+        user.end_premium.getTime() + premium.duration * 24 * 60 * 60 * 1000,
+      );
+
+      // Atur waktu menjadi jam 12 malam (00:00:00) pada tanggal baru
+      user.end_premium = new Date(
+        newEndPremium.getFullYear(),
+        newEndPremium.getMonth(),
+        newEndPremium.getDate(),
+      );
+    } else {
+      // Update status premium
+      user.badge = badges.NIMELIST_HEROES;
+      user.status_premium = status_premium.ACTIVE;
+      user.start_premium = current_time;
+      const newEndPremium = new Date(
+        current_time.getTime() + premium.duration * 24 * 60 * 60 * 1000,
+      );
+
+      // Atur waktu menjadi jam 12 malam (00:00:00) pada tanggal baru
+      user.end_premium = new Date(
+        newEndPremium.getFullYear(),
+        newEndPremium.getMonth(),
+        newEndPremium.getDate(),
+      );
+    }
+
+    // Simpan perubahan pada user
+    await this.usersRepository.save(user);
+  }
+
   async handleNotification(notification: any) {
     const { order_id, transaction_status, fraud_status } = notification;
-    console.log(notification);
 
     // Cek status pembayaran dari Midtrans
     if (transaction_status === 'settlement' && fraud_status === 'accept') {
@@ -118,57 +169,8 @@ export class TransactionService {
       transaction.payment_platform = notification.issuer;
       await this.transactionsRepository.save(transaction);
 
-      // Setelah transaksi sukses, lakukan update pada user
-      const premium = await this.premiumRepository.findOne({
-        where: { id: transaction.id_premium },
-      });
-
-      const user = await this.usersRepository.findOne({
-        where: { id: transaction.id_user },
-      });
-
-      if (!user || !premium) {
-        throw new Error('User or premium data not found');
-      }
-
-      const current_time = new Date();
-
-      if (
-        user.status_premium === status_premium.ACTIVE &&
-        user.end_premium > current_time
-      ) {
-        // Overwrite tanpa memperpanjang jika masih aktif
-        user.badge = badges.NIMELIST_HEROES;
-        user.start_premium = current_time;
-        const newEndPremium = new Date(
-          user.end_premium.getTime() + premium.duration * 24 * 60 * 60 * 1000,
-        );
-
-        // Atur waktu menjadi jam 12 malam (00:00:00) pada tanggal baru
-        user.end_premium = new Date(
-          newEndPremium.getFullYear(),
-          newEndPremium.getMonth(),
-          newEndPremium.getDate(),
-        );
-      } else {
-        // Update status premium
-        user.badge = badges.NIMELIST_HEROES;
-        user.status_premium = status_premium.ACTIVE;
-        user.start_premium = current_time;
-        const newEndPremium = new Date(
-          current_time.getTime() + premium.duration * 24 * 60 * 60 * 1000,
-        );
-
-        // Atur waktu menjadi jam 12 malam (00:00:00) pada tanggal baru
-        user.end_premium = new Date(
-          newEndPremium.getFullYear(),
-          newEndPremium.getMonth(),
-          newEndPremium.getDate(),
-        );
-      }
-
-      // Simpan perubahan pada user
-      await this.usersRepository.save(user);
+      // Update user berdasarkan data transaksi
+      await this.updateUser(transaction.id_user, transaction.id_premium);
 
       return { message: 'Transaction and user updated successfully' };
     } else if (transaction_status === 'pending') {
