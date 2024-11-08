@@ -1,4 +1,10 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { badges, status_premium, User } from './entities/user.entity';
@@ -88,7 +94,7 @@ export class UserService {
       relations: ['role'],
     });
 
-    if(user === null) {
+    if (user === null) {
       throw new NotFoundException('User not found');
     }
 
@@ -154,20 +160,40 @@ export class UserService {
     photo?: Express.Multer.File,
   ) {
     const user = await this.userRepository.findOne({
-      where: { id: id },
+      where: { id: id, role: { name: 'admin' } },
     });
-    console.log(user);
 
     Object.assign(user, body);
     const save = await this.userRepository.save(user);
 
     if (photo && save) {
-      const update_photo = await this.photoProfileService.create(id, photo);
+      await this.photoProfileService.create(id, photo);
     }
 
     return {
       status: 200,
       message: 'Updated successfully',
+    };
+  }
+
+  async getCheckPremium(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: id, status_premium: status_premium.ACTIVE },
+    });
+
+    if (!user) {
+      throw new HttpException(
+        {
+          status: 404,
+          message: 'User not found',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return {
+      status: 200,
+      message: 'User found',
     };
   }
 }
