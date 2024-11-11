@@ -31,7 +31,7 @@ export class TransactionService {
     private premiumService: PremiumService,
   ) {}
 
-  async handleTransaction(data: any) {
+  async handleApiMidtrans(data: any) {
     // Midtrans API untuk membuat transaksi
     const url = 'https://app.sandbox.midtrans.com/snap/v1/transactions';
     const options = {
@@ -48,7 +48,7 @@ export class TransactionService {
     return response.json();
   }
 
-  async createTransactionToken(userId: string, membershipId: string) {
+  async createMidtransToken(userId: string, membershipId: string) {
     const user = await this.usersService.findById(userId);
     if (!user) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
@@ -82,7 +82,7 @@ export class TransactionService {
     };
 
     try {
-      const data = await this.handleTransaction(orderData);
+      const data = await this.handleApiMidtrans(orderData);
       return data;
     } catch (error) {
       throw new HttpException(
@@ -95,7 +95,7 @@ export class TransactionService {
   async createPayment(data: CreateTransactionDto) {
     // Simpan transaksi dengan status pending
     const transaction = this.transactionsRepository.create(data);
-    const save = await this.transactionsRepository.save(transaction);
+    await this.transactionsRepository.save(transaction);
   }
 
   private async updateUser(id_user: string, id_premium: string) {

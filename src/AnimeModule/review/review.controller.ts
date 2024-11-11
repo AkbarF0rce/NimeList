@@ -8,11 +8,15 @@ import {
   Delete,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { get } from 'http';
+import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
+import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 
 @Controller('review')
 export class ReviewController {
@@ -42,6 +46,8 @@ export class ReviewController {
   }
 
   @Get('get-admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async getAll(
     @Query('page') page: number,
     @Query('limit') limit: number,

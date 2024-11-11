@@ -33,7 +33,7 @@ export class TransactionController {
       );
     }
     const { token, redirect_url } =
-      await this.transactionService.createTransactionToken(id_user, id_premium);
+      await this.transactionService.createMidtransToken(id_user, id_premium);
     return { token, redirect_url };
   }
 

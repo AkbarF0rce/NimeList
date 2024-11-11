@@ -37,8 +37,9 @@ export class DashboardService {
   }
 
   async getTop10AnimeAllTime() {
-    // Hitung rata-rata rating dari semua anime
+    // Mencari semua data anime dan relasi review
     const allAnimes = await this.animeRepository.find({
+      select: ['id', 'title'],
       relations: ['review'],
     });
 
@@ -93,7 +94,7 @@ export class DashboardService {
       ) // Urutkan anime berdasarkan WR
       .slice(0, 10); // Tampilkan 10 anime dengan WR tertinggi
 
-    // Langkah 4: Tampilkan anime dengan WR tertinggi sebagai "Anime All Time"
+    // Tampilkan hasil query
     return data;
   }
 

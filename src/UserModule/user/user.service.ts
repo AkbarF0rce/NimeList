@@ -182,13 +182,10 @@ export class UserService {
     });
 
     if (!user) {
-      throw new HttpException(
-        {
-          status: 404,
-          message: 'User not found',
-        },
-        HttpStatus.NOT_FOUND,
-      );
+      return {
+        status: 404,
+        message: 'User not found',
+      }
     }
 
     return {
