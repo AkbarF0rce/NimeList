@@ -123,6 +123,7 @@ export class DashboardService {
       .select('EXTRACT(MONTH FROM transaction.created_at) as month')
       .addSelect('SUM(transaction.total) as total_income')
       .where('EXTRACT(YEAR FROM transaction.created_at) = :year', { year })
+      .andWhere('transaction.status = :status', { status: 'success' })
       .groupBy('month')
       .orderBy('month', 'ASC')
       .getRawMany();
@@ -144,6 +145,7 @@ export class DashboardService {
     const count = await this.transactionsRepository
       .createQueryBuilder('transaction')
       .select('SUM(transaction.total) as total_income')
+      .where('transaction.status = :status', { status: 'success' })
       .getRawOne();
 
     return {
