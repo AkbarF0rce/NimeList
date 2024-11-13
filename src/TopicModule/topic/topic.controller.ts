@@ -26,13 +26,15 @@ import { extname } from 'path';
 import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
+import { Premium } from 'src/TransactionModule/premium/entities/premium.entity';
+import { PremiumGuard } from 'src/AuthModule/auth/guards/isPremium.guard';
 
+@UseGuards(PremiumGuard, JwtAuthGuard)
 @Controller('topic')
 export class TopicController {
   constructor(private readonly topicService: TopicService) {}
 
   @Post('post')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -61,7 +63,6 @@ export class TopicController {
   }
 
   @Put('update/:id')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -89,7 +90,7 @@ export class TopicController {
   async update(
     @Param('id') id: string,
     @Body() updateTopicDto: CreateTopicDto,
-    @Body('existing_photos') existingPhotosString: string[],
+    @Body('existing_photos') existingPhotosString: [],
     @UploadedFiles()
     files: {
       new_photos?: Express.Multer.File[];
@@ -106,20 +107,17 @@ export class TopicController {
   }
 
   @Delete('delete/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   async delete(@Param('id') id: string) {
     return await this.topicService.deleteTopic(id);
   }
 
   @Get('get/:id')
-  @UseGuards(JwtAuthGuard)
   async getTopicById(@Param('id') id: string) {
     return await this.topicService.getTopicById(id);
   }
 
   @Get('get-admin')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
   @Roles('admin')
   async getAllTopic(
     @Query('page') page: number = 1,
@@ -140,7 +138,6 @@ export class TopicController {
   }
 
   @Post('upload-image')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({

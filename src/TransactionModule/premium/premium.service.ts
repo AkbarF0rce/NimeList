@@ -19,6 +19,11 @@ export class PremiumService {
     await this.premiumRepository.save(premium);
   }
 
+  async findById(id: string) {
+    const premium = await this.premiumRepository.findOne({ where: { id } });
+    return premium;
+  }
+
   async getPremium() {
     const premium = await this.premiumRepository.find({
       relations: ['transactions'],

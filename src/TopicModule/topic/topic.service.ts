@@ -139,22 +139,23 @@ export class TopicService {
 
     // Cek apakah ada path gambar yang ada di dalam database
     await this.checkImageExists();
+    console.log(existing_photos);
+
+    // Hapus data foto lama
+    for (const photo of topic.photos) {
+      const oldFilePath = join(process.cwd(), photo.file_path);
+      // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
+      if (!existing_photos.includes(photo.file_path)) {
+        try {
+          await unlink(oldFilePath); // Hapus file lama dari sistem
+        } catch (err) {
+          console.error('Error deleting old photo file:', err);
+        }
+        await this.photoTopicRepository.remove(photo); // Hapus data foto lama dari database
+      }
+    }
 
     if (photos && photos.length > 0) {
-      // Hapus data foto lama
-      for (const photo of topic.photos) {
-        const oldFilePath = join(process.cwd(), photo.file_path);
-        // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
-        if (!existing_photos.includes(photo.file_path)) {
-          try {
-            await unlink(oldFilePath); // Hapus file lama dari sistem
-          } catch (err) {
-            console.error('Error deleting old photo file:', err);
-          }
-          await this.photoTopicRepository.remove(photo); // Hapus data foto lama dari database
-        }
-      }
-
       // Simpan foto baru
       const newPhotos = photos
         .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
