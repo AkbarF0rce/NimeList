@@ -290,22 +290,29 @@ export class AnimeService {
   }
 
   async getAnimeNewest(limit: number) {
-    const animes = await this.animeRepository.find({
-      order: { release_date: 'DESC' },
-      relations: ['genres'],
-      take: limit,
-      select: [
-        'id',
-        'title',
-        'type',
-        'photo_cover',
-        'release_date',
-        'synopsis',
-        'trailer_link',
-      ],
-    });
+    const animes = await this.animeRepository
+      .createQueryBuilder('anime')
+      .leftJoin('anime.review', 'review') // Join table review
+      .leftJoin('anime.genres', 'genre') // Join table genre
+      .addSelect('COALESCE(AVG(review.rating), 0)', 'averageRating')
+      .addSelect('array_agg(genre.name)', 'genres') // Aggregate genre names as an array
+      .groupBy('anime.id')
+      .orderBy('anime.release_date', 'DESC')
+      .limit(limit)
+      .getRawMany();
 
-    return { data: animes };
+    const result = animes.map((anime) => ({
+      id: anime.anime_id,
+      synopsis: anime.anime_synopsis,
+      title: anime.anime_title,
+      photo_cover: anime.anime_photo_cover,
+      trailer_link: anime.anime_trailer_link,
+      type: anime.anime_type,
+      avgRating: parseFloat(anime.averageRating).toFixed(1),
+      genres: anime.genres,
+    }));
+
+    return { data: result };
   }
 
   async getAnimeByGenre(genreId: number) {
