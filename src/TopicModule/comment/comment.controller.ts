@@ -8,12 +8,19 @@ import {
   Delete,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
+import { PremiumGuard } from 'src/AuthModule/auth/guards/isPremium.guard';
+import { Role } from 'src/UserModule/role/entities/role.entity';
+import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
+import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 
 @Controller('comment')
+@UseGuards(JwtAuthGuard, PremiumGuard)
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
@@ -38,6 +45,8 @@ export class CommentController {
   }
 
   @Get('get-admin')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   async getAllComment(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
@@ -52,6 +61,8 @@ export class CommentController {
   }
 
   @Get('get-all-user')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   async getAllUser() {
     return await this.commentService.getAllUser();
   }

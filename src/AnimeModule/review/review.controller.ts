@@ -23,11 +23,13 @@ export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
   @Post('post')
+  @UseGuards(JwtAuthGuard)
   async create(@Body() createReviewDto: CreateReviewDto) {
     return await this.reviewService.createReview(createReviewDto);
   }
 
   @Put('update/:id')
+  @UseGuards(JwtAuthGuard)
   async update(
     @Param('id') id: string,
     @Body() updateReviewDto: UpdateReviewDto,
@@ -41,6 +43,7 @@ export class ReviewController {
   }
 
   @Delete('delete/:id')
+  @UseGuards(JwtAuthGuard)
   async delete(@Param('id') id: string) {
     return await this.reviewService.deleteReview(id);
   }
@@ -62,6 +65,8 @@ export class ReviewController {
   }
 
   @Get('get-all-user')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async getAllUser() {
     return await this.reviewService.getAllUser();
   }
