@@ -1,4 +1,10 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { badges, status_premium, User } from './entities/user.entity';
@@ -7,7 +13,6 @@ import { v4 } from 'uuid';
 import { Role } from 'src/UserModule/role/entities/role.entity';
 import { PhotoProfileService } from '../photo_profile/photo_profile.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { stat } from 'fs';
 
 @Injectable()
 export class UserService {
@@ -82,21 +87,16 @@ export class UserService {
     };
   }
 
-  async getUserPay() {
-    const users = await this.userRepository.find({
-      select: ['id', 'username'],
-      where: { role: { name: 'user' } },
-    });
-
-    return users;
-  }
-
   async findOneByUsername(username: string) {
     const user = await this.userRepository.findOne({
       select: ['salt', 'username', 'password', 'email', 'role', 'id'],
       where: { username: username },
       relations: ['role'],
     });
+
+    if (user === null) {
+      throw new NotFoundException('User not found');
+    }
 
     return {
       id: user.id,
@@ -160,20 +160,37 @@ export class UserService {
     photo?: Express.Multer.File,
   ) {
     const user = await this.userRepository.findOne({
-      where: { id: id },
+      where: { id: id, role: { name: 'admin' } },
     });
-    console.log(user);
 
     Object.assign(user, body);
     const save = await this.userRepository.save(user);
 
     if (photo && save) {
-      const update_photo = await this.photoProfileService.create(id, photo);
+      await this.photoProfileService.create(id, photo);
     }
 
     return {
       status: 200,
       message: 'Updated successfully',
+    };
+  }
+
+  async getCheckPremium(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: id, status_premium: status_premium.ACTIVE },
+    });
+
+    if (!user) {
+      return {
+        status: 404,
+        message: 'User not found',
+      }
+    }
+
+    return {
+      status: 200,
+      message: 'User found',
     };
   }
 }

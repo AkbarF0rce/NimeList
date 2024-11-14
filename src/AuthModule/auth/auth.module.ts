@@ -7,6 +7,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { UserModule } from 'src/UserModule/user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PremiumGuard } from './guards/isPremium.guard';
 
 @Module({
   imports: [
@@ -16,13 +17,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule], // Impor ConfigModule untuk akses ConfigService
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'), // Mengambil JWT_SECRET dari .env
+        secret: configService.get('JWT_SECRET'), // Mengambil JWT_SECRET dari .env
         signOptions: { expiresIn: '1h' }, // Atur waktu kedaluwarsa token
       }),
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, PremiumGuard],
   exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

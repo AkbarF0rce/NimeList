@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   HttpException,
   HttpStatus,
+  Request,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../../AuthModule/auth/guards/jwt-auth.guard';
@@ -58,11 +59,6 @@ export class UserController {
     @Query('status') status?: status_premium,
   ) {
     return await this.userService.getUsers(page, limit, search, status);
-  }
-
-  @Get('get-user-for-pay')
-  async getUserPay() {
-    return await this.userService.getUserPay();
   }
 
   @Put('refresh-users')
@@ -120,5 +116,11 @@ export class UserController {
       body,
       files.photo_profile?.[0],
     );
+  }
+
+  @Get('check-premium')
+  @UseGuards(JwtAuthGuard)
+  async getCheckPremium(@Request() req) {
+    return await this.userService.getCheckPremium(req.user.userId);
   }
 }

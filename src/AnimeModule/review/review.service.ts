@@ -74,12 +74,8 @@ export class ReviewService {
     };
   }
 
-  async getAllReview(
-    page: number = 1,
-    limit: number = 10,
-    search: string = '',
-  ) {
-    const [reviews, total] = await this.reviewRepository
+  async getAllReview(page: number = 1, limit: number = 10, search?: string) {
+    const query = this.reviewRepository
       .createQueryBuilder('review')
       .leftJoin('review.user', 'user') // Join table review
       .leftJoin('review.anime', 'anime') // Join table review
@@ -91,12 +87,17 @@ export class ReviewService {
         'review.created_at',
         'review.updated_at',
       ])
-      .where('anime.title ILIKE :search', { search: `%${search}%` })
-      .orWhere('user.username ILIKE :search', { search: `%${search}%` })
       .skip((page - 1) * limit)
       .take(limit)
-      .orderBy('review.created_at', 'DESC')
-      .getManyAndCount();
+      .orderBy('review.created_at', 'DESC');
+
+    if (search && search !== '' && search !== null) {
+      query
+        .where('anime.title ILIKE :search', { search: `%${search}%` })
+        .orWhere('user.username ILIKE :search', { search: `%${search}%` });
+    }
+
+    const [reviews, total] = await query.getManyAndCount();
 
     const result = reviews.map((review) => ({
       id: review.id,

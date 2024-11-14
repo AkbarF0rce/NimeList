@@ -8,22 +8,28 @@ import {
   Delete,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { get } from 'http';
+import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
+import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 
 @Controller('review')
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
   @Post('post')
+  @UseGuards(JwtAuthGuard)
   async create(@Body() createReviewDto: CreateReviewDto) {
     return await this.reviewService.createReview(createReviewDto);
   }
 
   @Put('update/:id')
+  @UseGuards(JwtAuthGuard)
   async update(
     @Param('id') id: string,
     @Body() updateReviewDto: UpdateReviewDto,
@@ -37,11 +43,14 @@ export class ReviewController {
   }
 
   @Delete('delete/:id')
+  @UseGuards(JwtAuthGuard)
   async delete(@Param('id') id: string) {
     return await this.reviewService.deleteReview(id);
   }
 
   @Get('get-admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async getAll(
     @Query('page') page: number,
     @Query('limit') limit: number,
@@ -56,6 +65,8 @@ export class ReviewController {
   }
 
   @Get('get-all-user')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async getAllUser() {
     return await this.reviewService.getAllUser();
   }

@@ -59,23 +59,17 @@ export class TopicService {
     }
   }
 
-  async createTopic(
-    createTopicDto: CreateTopicDto,
-    photos: Express.Multer.File[],
-  ) {
-    // Create data baru untuk topic
-    const topic = this.topicRepository.create(createTopicDto);
-    await this.topicRepository.save(topic);
+  private async checkImageExists() {
+    const existTopic = await this.topicRepository.find({
+      select: ['body'],
+    });
 
-    // Mengambil semua data topic
-    const existingTopic = await this.topicRepository.find();
-
-    if (existingTopic.length > 0) {
+    if (existTopic.length > 0) {
       const images = []; // Array untuk menyimpan path gambar yang ada dalam database
-      for (const exist of existingTopic) {
+      for (const exist of existTopic) {
         const existImg = this.extractImageSources(exist.body);
         if (existImg.length > 0) {
-          images.push(existImg); // Menyimpan path gambar yang ada ke dalam array
+          images.push(existImg); // Menyimpan path gambar ke dalam array
         }
       }
 
@@ -92,6 +86,18 @@ export class TopicService {
         this.deleteOldImages(deletedImages);
       }
     }
+  }
+
+  async createTopic(
+    createTopicDto: CreateTopicDto,
+    photos: Express.Multer.File[],
+  ) {
+    // Create data baru untuk topic
+    const topic = this.topicRepository.create(createTopicDto);
+    await this.topicRepository.save(topic);
+
+    // Cek apakah ada path gambar yang ada di dalam database
+    await this.checkImageExists();
 
     // Simpan photo jika ada
     if (photos && photos.length > 0) {
@@ -131,47 +137,25 @@ export class TopicService {
     Object.assign(topic, updateTopicDto);
     await this.topicRepository.save(topic);
 
-    // Mengambil semua data topic
-    const existTopic = await this.topicRepository.find();
+    // Cek apakah ada path gambar yang ada di dalam database
+    await this.checkImageExists();
+    console.log(existing_photos);
 
-    if (existTopic.length > 0) {
-      const images = []; // Array untuk menyimpan path gambar yang ada dalam database
-      for (const exist of existTopic) {
-        const existImg = this.extractImageSources(exist.body);
-        if (existImg.length > 0) {
-          images.push(existImg); // Menyimpan path gambar ke dalam array
+    // Hapus data foto lama
+    for (const photo of topic.photos) {
+      const oldFilePath = join(process.cwd(), photo.file_path);
+      // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
+      if (!existing_photos.includes(photo.file_path)) {
+        try {
+          await unlink(oldFilePath); // Hapus file lama dari sistem
+        } catch (err) {
+          console.error('Error deleting old photo file:', err);
         }
-      }
-
-      const filesInFolder = await fs.promises.readdir('./images/topic/body'); // Mengambil semua path file yang ada di dalam folder
-      const existFolderFileUrl = filesInFolder.map((file) => {
-        return `/images/topic/body/${file}`; // Menyimpan path gambar yang ada dalam folder ke dalam array
-      });
-
-      const deletedImages = existFolderFileUrl.filter(
-        (img) => !images.flat(Infinity).includes(img),
-      ); // Melakukan penghapusan jika ada path gambar dalam folder yang tidak sesuai dengan path yang ada
-
-      if (deletedImages.length > 0) {
-        this.deleteOldImages(deletedImages);
+        await this.photoTopicRepository.remove(photo); // Hapus data foto lama dari database
       }
     }
 
     if (photos && photos.length > 0) {
-      // Hapus data foto lama
-      for (const photo of topic.photos) {
-        const oldFilePath = join(process.cwd(), photo.file_path);
-        // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
-        if (!existing_photos.includes(photo.file_path)) {
-          try {
-            await unlink(oldFilePath); // Hapus file lama dari sistem
-          } catch (err) {
-            console.error('Error deleting old photo file:', err);
-          }
-          await this.photoTopicRepository.remove(photo); // Hapus data foto lama dari database
-        }
-      }
-
       // Simpan foto baru
       const newPhotos = photos
         .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database

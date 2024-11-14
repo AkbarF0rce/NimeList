@@ -12,6 +12,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -20,7 +21,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         port: +configService.get('DB_PORT'),
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_NAME') || 'nimelist',
+        database: configService.get('DB_NAME'),
         entities: [__dirname + '/../**/*.entity.{js,ts}'],
         synchronize: true,
       }),

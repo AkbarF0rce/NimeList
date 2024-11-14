@@ -11,6 +11,7 @@ import {
   UploadedFiles,
   UploadedFile,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { PhotoTopicService } from './photo_topic.service';
 import { CreatePhotoTopicDto } from './dto/create-photo_topic.dto';
@@ -19,8 +20,13 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { v4 } from 'uuid';
 import { extname } from 'path';
+import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
+import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
+import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 
 @Controller('photo-topic')
+@UseGuards(RolesGuard, JwtAuthGuard)
+@Roles('admin')
 export class PhotoTopicController {
   constructor(private readonly photoTopicService: PhotoTopicService) {}
 

@@ -14,13 +14,15 @@ import {
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
+import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 
 @Controller('transactions')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post('create')
+  @UseGuards(JwtAuthGuard)
   async createTransaction(@Body() body: CreateTransactionDto) {
     const { id_user, id_premium } = body;
 
@@ -31,7 +33,7 @@ export class TransactionController {
       );
     }
     const { token, redirect_url } =
-      await this.transactionService.createTransactionToken(id_user, id_premium);
+      await this.transactionService.createMidtransToken(id_user, id_premium);
     return { token, redirect_url };
   }
 
@@ -41,6 +43,8 @@ export class TransactionController {
   }
 
   @Get('get-admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async getTransaction(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
@@ -58,6 +62,8 @@ export class TransactionController {
   }
 
   @Get('get-admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   async getTransactionById(@Param('id') id: string) {
     return await this.transactionService.getTransactionById(id);
   }

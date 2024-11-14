@@ -37,8 +37,9 @@ export class DashboardService {
   }
 
   async getTop10AnimeAllTime() {
-    // Hitung rata-rata rating dari semua anime
+    // Mencari semua data anime dan relasi review
     const allAnimes = await this.animeRepository.find({
+      select: ['id', 'title'],
       relations: ['review'],
     });
 
@@ -77,23 +78,46 @@ export class DashboardService {
           const weightedRating =
             (totalReviews / (totalReviews + minReviews)) * avgRatingAnime +
             (minReviews / (totalReviews + minReviews)) * avgRatingAllAnime;
+
+          // Ambil rating dari review terakhir (terbaru) berdasarkan tanggal createdAt
+          const latestReview = anime.review.reduce((latest, review) => {
+            const reviewDate = new Date(review.created_at); // Pastikan review memiliki createdAt
+            return reviewDate > new Date(latest.created_at) ? review : latest;
+          }, anime.review[0]); // Inisialisasi dengan review pertama
+
           return {
             title: anime.title,
             total_reviews: totalReviews,
             avg_rating: avgRatingAnime.toFixed(1), // Rata-rata rating biasa
             weighted_rating: weightedRating.toFixed(1), // Weighted Rating (WR)
+            latest_review_rating: Number(latestReview.rating), // Rating terakhir
           };
         }
 
         return null; // Tidak memenuhi syarat
       })
       .filter((anime) => anime !== null) // Hapus anime yang tidak memenuhi syarat
-      .sort(
-        (a, b) => parseFloat(b.weighted_rating) - parseFloat(a.weighted_rating),
-      ) // Urutkan anime berdasarkan WR
+      .sort((a, b) => {
+        // Urutkan berdasarkan WR terlebih dahulu
+        const weightedDifference =
+          parseFloat(b.weighted_rating) - parseFloat(a.weighted_rating);
+        if (weightedDifference !== 0) return weightedDifference;
+
+        // Jika WR sama, urutkan berdasarkan jumlah review (total_reviews) secara menurun
+        const reviewDifference = b.total_reviews - a.total_reviews;
+        if (reviewDifference !== 0) return reviewDifference;
+
+        // Jika jumlah review juga sama, urutkan berdasarkan avg_rating secara menurun
+        const avgRatingDifference =
+          parseFloat(b.avg_rating) - parseFloat(a.avg_rating);
+        if (avgRatingDifference !== 0) return avgRatingDifference;
+
+        // Jika avg_rating juga sama, urutkan berdasarkan tanggal review terakhir (latest_review_date) secara menurun
+        return b.latest_review_rating - a.latest_review_rating;
+      })
       .slice(0, 10); // Tampilkan 10 anime dengan WR tertinggi
 
-    // Langkah 4: Tampilkan anime dengan WR tertinggi sebagai "Anime All Time"
+    // Tampilkan hasil query
     return data;
   }
 
@@ -122,6 +146,7 @@ export class DashboardService {
       .select('EXTRACT(MONTH FROM transaction.created_at) as month')
       .addSelect('SUM(transaction.total) as total_income')
       .where('EXTRACT(YEAR FROM transaction.created_at) = :year', { year })
+      .andWhere('transaction.status = :status', { status: 'success' })
       .groupBy('month')
       .orderBy('month', 'ASC')
       .getRawMany();
@@ -143,6 +168,7 @@ export class DashboardService {
     const count = await this.transactionsRepository
       .createQueryBuilder('transaction')
       .select('SUM(transaction.total) as total_income')
+      .where('transaction.status = :status', { status: 'success' })
       .getRawOne();
 
     return {

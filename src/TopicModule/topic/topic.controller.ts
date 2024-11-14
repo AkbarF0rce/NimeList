@@ -11,6 +11,7 @@ import {
   Put,
   UploadedFile,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { TopicService } from './topic.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
@@ -22,7 +23,13 @@ import {
 import { v4 } from 'uuid';
 import * as sanitize from 'sanitize-html';
 import { extname } from 'path';
+import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
+import { Premium } from 'src/TransactionModule/premium/entities/premium.entity';
+import { PremiumGuard } from 'src/AuthModule/auth/guards/isPremium.guard';
 
+@UseGuards(PremiumGuard, JwtAuthGuard)
 @Controller('topic')
 export class TopicController {
   constructor(private readonly topicService: TopicService) {}
@@ -83,7 +90,7 @@ export class TopicController {
   async update(
     @Param('id') id: string,
     @Body() updateTopicDto: CreateTopicDto,
-    @Body('existing_photos') existingPhotosString: string[],
+    @Body('existing_photos') existingPhotosString: [],
     @UploadedFiles()
     files: {
       new_photos?: Express.Multer.File[];
@@ -110,6 +117,8 @@ export class TopicController {
   }
 
   @Get('get-admin')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   async getAllTopic(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
