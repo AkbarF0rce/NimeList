@@ -120,20 +120,18 @@ export class UserService {
   }
 
   async refreshUsers() {
-    const users = await this.userRepository.find({
-      select: ['status_premium', 'end_premium', 'badge'],
-      where: {
+    await this.userRepository.update(
+      {
         status_premium: status_premium.ACTIVE,
         end_premium: LessThan(new Date()),
       },
-    });
-
-    // Update status premium
-    for (const user of users) {
-      user.status_premium = status_premium.INACTIVE;
-      user.badge = badges.NIMELIST_CITIZENS;
-      await this.userRepository.save(user);
-    }
+      {
+        status_premium: status_premium.INACTIVE,
+        badge: badges.NIMELIST_CITIZENS,
+        start_premium: null,
+        end_premium: null,
+      },
+    );
   }
 
   async getDetailAdmin(id: string) {
@@ -185,7 +183,7 @@ export class UserService {
       return {
         status: 404,
         message: 'User not found',
-      }
+      };
     }
 
     return {

@@ -50,4 +50,11 @@ export class PremiumService {
     });
     return premium;
   }
+
+  async getAll() {
+    const premium = await this.premiumRepository.find({
+      select: ['id', 'name', 'price', 'duration'],
+    });
+    return premium;
+  }
 }

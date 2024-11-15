@@ -46,4 +46,9 @@ export class PremiumController {
   async getPremiumEdit(@Param('id') id: string) {
     return await this.premiumService.getPremiumEdit(id);
   }
+
+  @Get('get-all')
+  async getAll() {
+    return await this.premiumService.getAll();
+  }
 }

@@ -113,6 +113,8 @@ export class TransactionService {
     }
 
     const current_time = new Date();
+    const duration = premium.duration * 24 * 60 * 60 * 1000;
+    const extendedDuraiton = 1 * 24 * 60 * 60 * 1000;
 
     if (
       user.status_premium === status_premium.ACTIVE &&
@@ -120,30 +122,28 @@ export class TransactionService {
     ) {
       // Perpanjang waktu end premium
       const newEndPremium = new Date(
-        user.end_premium.getTime() + premium.duration * 24 * 60 * 60 * 1000,
+        user.end_premium.getTime() + duration + extendedDuraiton,
       );
 
-      // Atur waktu menjadi jam 12 malam (00:00:00) pada tanggal baru
-      user.end_premium = new Date(
-        newEndPremium.getFullYear(),
-        newEndPremium.getMonth(),
-        newEndPremium.getDate(),
-      );
+      // Atur waktu menjadi jam 12 malam
+      newEndPremium.setHours(0, 0, 0, 0);
+
+      // Isi waktu end premium dengan waktu yang ditentukan
+      user.end_premium = newEndPremium;
     } else {
       // Update status premium
       user.badge = badges.NIMELIST_HEROES;
       user.status_premium = status_premium.ACTIVE;
       user.start_premium = current_time;
       const newEndPremium = new Date(
-        current_time.getTime() + premium.duration * 24 * 60 * 60 * 1000,
+        current_time.getTime() + duration + extendedDuraiton,
       );
 
-      // Atur waktu menjadi jam 12 malam (00:00:00) pada tanggal baru
-      user.end_premium = new Date(
-        newEndPremium.getFullYear(),
-        newEndPremium.getMonth(),
-        newEndPremium.getDate(),
-      );
+      // Atur waktu menjadi jam 12 malam
+      newEndPremium.setHours(0, 0, 0, 0);
+
+      // Isi waktu end premium dengan waktu yang ditentukan
+      user.end_premium = newEndPremium;
     }
 
     // Simpan perubahan pada user

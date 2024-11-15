@@ -295,7 +295,7 @@ export class AnimeService {
       .leftJoin('anime.review', 'review') // Join table review
       .leftJoin('anime.genres', 'genre') // Join table genre
       .addSelect('COALESCE(AVG(review.rating), 0)', 'averageRating')
-      .addSelect('array_agg(genre.name)', 'genres') // Aggregate genre names as an array
+      .addSelect('array_agg(distinct genre.name)', 'genres') // Aggregate genre names as an array
       .groupBy('anime.id')
       .orderBy('anime.release_date', 'DESC')
       .limit(limit)
@@ -387,7 +387,7 @@ export class AnimeService {
   }
 
   async getMostPopular() {
-    // Hitung rata-rata rating dari semua anime (C)
+    // Mencari semua data anime dan relasi review
     const allAnimes = await this.animeRepository.find({
       relations: ['review'],
     });
@@ -407,46 +407,69 @@ export class AnimeService {
 
     const avgRatingAllAnime = totalRatings / totalReviews; // Rata-rata rating semua anime
 
-    // Tentukan jumlah minimum review (m)
-    const minReviews = 1; // Misalnya hanya anime dengan setidaknya 50 review yang masuk peringkat
+    // Jumlah minimum review yang diperlukan
+    const minReviews = 3;
 
     // Hitung Weighted Rating (WR) untuk setiap anime
     const data = allAnimes
       .map((anime) => {
-        const totalReviewAllAnime = anime.review.length;
+        const totalReviews = anime.review.length;
         const avgRatingAnime =
-          totalReviewAllAnime > 0
+          totalReviews > 0
             ? anime.review.reduce(
                 (total, review) => total + Number(review.rating),
                 0,
-              ) / totalReviewAllAnime
+              ) / totalReviews
             : 0;
 
-        // Hanya hitung weighted rating untuk anime dengan jumlah review >= m
-        if (totalReviewAllAnime >= minReviews) {
+        // Hanya hitung weighted rating untuk anime dengan jumlah review lebih atau sama dari minimum review
+        if (totalReviews >= minReviews) {
           const weightedRating =
-            (totalReviewAllAnime / (totalReviewAllAnime + minReviews)) *
-              avgRatingAnime +
-            (minReviews / (totalReviewAllAnime + minReviews)) *
-              avgRatingAllAnime;
+            (totalReviews / (totalReviews + minReviews)) * avgRatingAnime +
+            (minReviews / (totalReviews + minReviews)) * avgRatingAllAnime;
+
+          // Ambil rating dari review terakhir (terbaru) berdasarkan tanggal createdAt
+          const latestReview = anime.review.reduce((latest, review) => {
+            const reviewDate = new Date(review.created_at); // Pastikan review memiliki createdAt
+            return reviewDate > new Date(latest.created_at) ? review : latest;
+          }, anime.review[0]); // Inisialisasi dengan review pertama
+
           return {
-            id: anime.id,
             title: anime.title,
-            type: anime.type,
+            id: anime.id,
             photo_cover: anime.photo_cover,
+            type: anime.type,
+            total_reviews: totalReviews,
             avgRating: avgRatingAnime.toFixed(1), // Rata-rata rating biasa
             weighted_rating: weightedRating.toFixed(1), // Weighted Rating (WR)
+            latest_review_rating: Number(latestReview.rating), // Rating terakhir
           };
         }
 
         return null; // Tidak memenuhi syarat
       })
       .filter((anime) => anime !== null) // Hapus anime yang tidak memenuhi syarat
-      .sort(
-        (a, b) => parseFloat(b.weighted_rating) - parseFloat(a.weighted_rating),
-      ); // Urutkan berdasarkan WR
+      .sort((a, b) => {
+        // Urutkan berdasarkan WR terlebih dahulu
+        const weightedDifference =
+          parseFloat(b.weighted_rating) - parseFloat(a.weighted_rating);
+        if (weightedDifference !== 0) return weightedDifference;
 
-    // Tampilkan anime dengan WR tertinggi sebagai "Anime All Time"
+        // Jika WR sama, urutkan berdasarkan jumlah review (total_reviews) secara menurun
+        const reviewDifference = b.total_reviews - a.total_reviews;
+        if (reviewDifference !== 0) return reviewDifference;
+
+        // Jika jumlah review juga sama, urutkan berdasarkan avg_rating secara menurun
+        const avgRatingDifference =
+          parseFloat(b.avgRating) - parseFloat(a.avgRating);
+        if (avgRatingDifference !== 0) return avgRatingDifference;
+
+        // Jika avg_rating juga sama, urutkan berdasarkan tanggal review terakhir (latest_review_date) secara menurun
+        return b.latest_review_rating - a.latest_review_rating;
+      })
+      .slice(0, 10); // Tampilkan 10 anime dengan WR tertinggi
+
+    // Tampilkan hasil query
     return data;
   }
 
