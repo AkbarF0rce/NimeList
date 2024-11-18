@@ -12,6 +12,7 @@ import {
   HttpStatus,
   UploadedFile,
   UploadedFiles,
+  Request,
 } from '@nestjs/common';
 import { PhotoProfileService } from './photo_profile.service';
 import { CreatePhotoProfileDto } from './dto/create-photo_profile.dto';
@@ -58,17 +59,18 @@ export class PhotoProfileController {
   )
   create(
     @Body('id_user') id_user: string,
-    @UploadedFiles() files: {
+    @UploadedFiles()
+    files: {
       photo: Express.Multer.File;
     },
   ) {
     return this.photoProfileService.create(id_user, files.photo[0]);
   }
 
-  @Get('admin/:id')
+  @Get('admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async getPhotoAdmin(@Body('id') id: string) {
-    return this.photoProfileService.getPhotoAdmin(id);
+  async getPhotoAdmin(@Request() req) {
+    return this.photoProfileService.getPhotoAdmin(req.user.userId);
   }
 }

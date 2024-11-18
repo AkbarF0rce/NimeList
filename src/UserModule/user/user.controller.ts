@@ -13,6 +13,7 @@ import {
   HttpException,
   HttpStatus,
   Request,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../../AuthModule/auth/guards/jwt-auth.guard';
@@ -68,14 +69,14 @@ export class UserController {
     return await this.userService.refreshUsers();
   }
 
-  @Get('detail-admin/:id')
+  @Get('detail-admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async getOneUser(@Param('id') id: string) {
-    return await this.userService.getDetailAdmin(id);
+  async getOneUser(@Request() req) {
+    return await this.userService.getDetailAdmin(req.user.userId);
   }
 
-  @Put('update-profile-admin/:id')
+  @Put('update-profile-admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @UseInterceptors(
@@ -104,7 +105,7 @@ export class UserController {
     }),
   )
   async updateProfileAdmin(
-    @Param('id') id: string,
+    @Request() req,
     @Body() body: UpdateUserDto,
     @UploadedFiles()
     files?: {
@@ -112,7 +113,7 @@ export class UserController {
     },
   ) {
     return await this.userService.updateProfileAdmin(
-      id,
+      req.user.userId,
       body,
       files.photo_profile?.[0],
     );

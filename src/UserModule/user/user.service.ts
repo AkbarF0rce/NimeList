@@ -191,4 +191,18 @@ export class UserService {
       message: 'User found',
     };
   }
+
+  async findByEmail(email: string) {
+    const user = await this.userRepository.findOne({
+      select: ['salt', 'username', 'password', 'email', 'role', 'id'],
+      where: { email: email },
+      relations: ['role'],
+    });
+
+    return user;
+  }
+
+  async updateResetToken(id: string, token: string) {
+    await this.userRepository.update(id, { reset_token: token });
+  }
 }

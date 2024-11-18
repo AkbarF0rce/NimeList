@@ -212,6 +212,7 @@ export class TransactionService {
     search: string,
     status: string,
     premium: string,
+    platform: string,
   ) {
     const transactionsQuery = this.transactionsRepository
       .createQueryBuilder('transaction')
@@ -238,6 +239,12 @@ export class TransactionService {
     // Tambahkan kondisi AND WHERE jika premium !== 'all'
     if (premium && premium !== 'all') {
       transactionsQuery.andWhere('premium.name = :premium', { premium });
+    }
+
+    if (platform && platform !== 'null') {
+      transactionsQuery.andWhere('transaction.payment_platform = :platform', {
+        platform,
+      });
     }
 
     // Pagination dan Sorting

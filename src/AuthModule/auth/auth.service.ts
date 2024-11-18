@@ -82,4 +82,35 @@ export class AuthService {
   isTokenBlacklisted(token: string): boolean {
     return this.blacklistedTokens.has(token);
   }
+
+  async generateResetToken(): Promise<string> {
+    // Generate 6 digit random numeric token
+    return Math.floor(100000 + Math.random() * 900000).toString(); // 6 angka
+  }
+
+  async hashToken(token: string): Promise<string> {
+    // Hash the token for secure storage
+    const saltRounds = 10;
+    return bcrypt.hash(token, saltRounds);
+  }
+
+  async validateToken(token: string, hashedToken: string): Promise<boolean> {
+    // Compare token input dengan hash yang disimpan
+    return bcrypt.compare(token, hashedToken);
+  }
+
+  async generateTokenResetPassword(email: string) {
+    const user = await this.usersService.findByEmail(email);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const token = await this.generateResetToken();
+    const hashedToken = await this.hashToken(token);
+
+    await this.usersService.updateResetToken(user.id, hashedToken);
+
+    return { message: 'Reset token sent to email' };
+  }
 }

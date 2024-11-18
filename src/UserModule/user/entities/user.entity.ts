@@ -66,6 +66,9 @@ export class User {
   @Column('timestamp', { nullable: true, default: null })
   end_premium: Date;
 
+  @Column('text', { nullable: true, default: null })
+  reset_token: string;
+
   @CreateDateColumn()
   created_at: Date;
 

@@ -51,6 +51,7 @@ export class TransactionController {
     @Query('search') search: string = '',
     @Query('status') status?: string,
     @Query('premium') premium?: string,
+    @Query('platform') platform?: string,
   ) {
     return await this.transactionService.getTransaction(
       page,
@@ -58,6 +59,7 @@ export class TransactionController {
       search,
       status,
       decodeURIComponent(premium),
+      platform,
     );
   }
 

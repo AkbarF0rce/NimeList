@@ -75,4 +75,9 @@ export class AuthController {
   async logout(@Body('token') token: string) {
     return this.authService.logout(token);
   }
+
+  @Post('generate-token-reset-password')
+  async generateTokenResetPassword(@Body('email') email: string) {
+    return this.authService.generateTokenResetPassword(email);
+  }
 }
