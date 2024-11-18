@@ -6,6 +6,7 @@ import { Review } from './entities/review.entity';
 import { Repository } from 'typeorm';
 import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
 import { User } from 'src/UserModule/user/entities/user.entity';
+import { parse } from 'path';
 
 @Injectable()
 export class ReviewService {
@@ -175,5 +176,41 @@ export class ReviewService {
       .getMany();
 
     return anime.map((anime) => anime.anime.id);
+  }
+
+  async getAvgRating(id: string) {
+    const review = await this.reviewRepository.average('rating', {
+      id_anime: id,
+    });
+    return Number(parseFloat(review.toString()).toFixed(1));
+  }
+
+  async getAllAndCout(id: string) {
+    const [reviews, total] = await this.reviewRepository.findAndCount({
+      where: { id_anime: id },
+      relations: ['user'],
+      select: {
+        id: true,
+        rating: true,
+        review: true,
+        user: {
+          username: true,
+        },
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    return {
+      data: reviews.map((review) => ({
+        id: review.id,
+        username: review.user.username,
+        review: review.review,
+        rating: review.rating,
+        created_at: review.created_at,
+        updated_at: review.updated_at,
+      })),
+      total,
+    };
   }
 }

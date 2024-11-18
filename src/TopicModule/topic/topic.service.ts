@@ -293,4 +293,25 @@ export class TopicService {
       username: user.username,
     }));
   }
+
+  async getAllTopicAndCount(id: string) {
+    const [topics, total] = await this.topicRepository.findAndCount({
+      where: { id_anime: id },
+      relations: ['user'],
+      select: {
+        id: true,
+        title: true,
+        created_at: true,
+        updated_at: true,
+        user: {
+          username: true,
+        },
+      },
+    });
+
+    return {
+      data: topics,
+      total,
+    };
+  }
 }

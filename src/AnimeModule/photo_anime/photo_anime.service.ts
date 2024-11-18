@@ -139,4 +139,13 @@ export class PhotoAnimeService {
       updated_at: photo.updated_at,
     };
   }
+
+  async getByAnime(id: string) {
+    const photo = await this.photoRepository.find({
+      where: { id_anime: id },
+      select: ['id', 'file_path'],
+    });
+
+    return photo;
+  }
 }

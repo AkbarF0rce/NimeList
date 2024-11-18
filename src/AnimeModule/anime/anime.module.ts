@@ -9,6 +9,9 @@ import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
 import { FavoriteAnime } from 'src/AnimeModule/favorite_anime/entities/favorite_anime.entity';
 import { Review } from 'src/AnimeModule/review/entities/review.entity';
 import { AuthModule } from 'src/AuthModule/auth/auth.module';
+import { ReviewModule } from '../review/review.module';
+import { TopicModule } from 'src/TopicModule/topic/topic.module';
+import { GenreModule } from '../genre/genre.module';
 
 @Module({
   controllers: [AnimeController],
@@ -22,7 +25,10 @@ import { AuthModule } from 'src/AuthModule/auth/auth.module';
       Review,
       FavoriteAnime,
     ]),
-    AuthModule
+    AuthModule,
+    ReviewModule,
+    TopicModule,
+    GenreModule
   ],
 })
 export class AnimeModule {}

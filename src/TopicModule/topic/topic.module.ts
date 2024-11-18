@@ -30,5 +30,6 @@ import { JwtModule } from '@nestjs/jwt';
     UserModule,
     JwtModule
   ],
+  exports: [TopicService],
 })
 export class TopicModule {}

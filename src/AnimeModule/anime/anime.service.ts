@@ -16,6 +16,9 @@ import { UpdateAnimeDto } from './dto/update-anime.dto';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { min } from 'class-validator';
+import { ReviewService } from '../review/review.service';
+import { TopicService } from 'src/TopicModule/topic/topic.service';
+import { GenreService } from '../genre/genre.service';
 
 @Injectable()
 export class AnimeService {
@@ -32,6 +35,9 @@ export class AnimeService {
     private topicRepository: Repository<Topic>,
     @InjectRepository(FavoriteAnime)
     private favoriteAnimeRepository: Repository<FavoriteAnime>,
+    private readonly reviewService: ReviewService,
+    private readonly topicService: TopicService,
+    private readonly genreService: GenreService,
   ) {}
 
   async createAnime(
@@ -193,34 +199,23 @@ export class AnimeService {
     // Cari anime berdasarkan id
     const anime = await this.animeRepository.findOne({
       where: { id: animeId },
-      relations: ['genres', 'photos', 'review', 'topic'],
+      relations: ['photos'],
     });
 
     if (!anime) {
       throw new NotFoundException('Anime tidak ditemukan');
     }
 
-    // Hitung total review dari id anime
-    const reviewCount = await this.reviewRepository
-      .createQueryBuilder('review')
-      .where('review.id_anime = :animeId', { animeId })
-      .getCount();
+    // Ambil jumlah dan data review yang berkaitan dengan id anime
+    const review = await this.reviewService.getAllAndCout(animeId);
 
     // Hitung average rating dari id anime
-    const getAvgRating = await this.reviewRepository
-      .createQueryBuilder('review')
-      .where('review.id_anime = :animeId', { animeId })
-      .select('AVG(review.rating)', 'ratingAvg')
-      .getRawOne();
+    const getAvgRating = await this.reviewService.getAvgRating(animeId);
 
-    // Format rata-rata rating dengan dua angka di belakang koma
-    const avgRating = parseFloat(getAvgRating.ratingAvg).toFixed(1);
+    // Ambil jumlah dan data topic yang berkaitan dengan id anime
+    const topic = await this.topicService.getAllTopicAndCount(animeId);
 
-    // Hitung total topic dari id anime
-    const topicCount = await this.topicRepository
-      .createQueryBuilder('topic')
-      .where('topic.id_anime = :animeId', { animeId })
-      .getCount();
+    const genres = await this.genreService.getByAnime(animeId);
 
     const totalFav = await this.favoriteAnimeRepository
       .createQueryBuilder('fav')
@@ -229,9 +224,10 @@ export class AnimeService {
 
     return {
       anime,
-      reviewCount,
-      averageRating: parseFloat(avgRating) || 0, // Set 0 jika tidak ada rating
-      topicCount,
+      genres,
+      review,
+      avgRating: getAvgRating, // Set 0 jika tidak ada rating
+      topic,
       totalFav,
     };
   }

@@ -52,4 +52,12 @@ export class GenreService {
       total,
     };
   }
+
+  async getByAnime(id: string) {
+    const get = await this.genreRepository.find({
+      where: { animes: { id } },
+      select: ['id', 'name'],
+    });
+    return get;
+  }
 }

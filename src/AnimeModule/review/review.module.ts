@@ -10,5 +10,6 @@ import { User } from 'src/UserModule/user/entities/user.entity';
   controllers: [ReviewController],
   providers: [ReviewService],
   imports: [TypeOrmModule.forFeature([Review, Anime, User])],
+  exports: [ReviewService],
 })
 export class ReviewModule {}
