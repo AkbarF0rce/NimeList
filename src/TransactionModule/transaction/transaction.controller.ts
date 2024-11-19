@@ -63,9 +63,8 @@ export class TransactionController {
     );
   }
 
-  @Get('get-admin/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Get('get/:id')
+  @UseGuards(JwtAuthGuard)
   async getTransactionById(@Param('id') id: string) {
     return await this.transactionService.getTransactionById(id);
   }

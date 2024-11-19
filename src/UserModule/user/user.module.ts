@@ -12,6 +12,7 @@ import { FavoriteAnime } from 'src/AnimeModule/favorite_anime/entities/favorite_
 import { Transaction } from 'src/TransactionModule/transaction/entities/transaction.entity';
 import { AuthModule } from '../../AuthModule/auth/auth.module';
 import { PhotoProfileModule } from '../photo_profile/photo_profile.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   controllers: [UserController],
@@ -27,7 +28,8 @@ import { PhotoProfileModule } from '../photo_profile/photo_profile.module';
       Role,
       Transaction,
     ]),
-    PhotoProfileModule
+    PhotoProfileModule,
+    JwtModule,
   ],
   exports: [UserService],
 })

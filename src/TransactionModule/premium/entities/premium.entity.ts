@@ -20,7 +20,7 @@ export class Premium {
   @Column('int')
   price: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('int')
   duration: number;
 
   @CreateDateColumn()

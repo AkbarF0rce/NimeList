@@ -27,6 +27,7 @@ export class PremiumService {
   async getPremium() {
     const premium = await this.premiumRepository.find({
       relations: ['transactions'],
+      order: { price: 'ASC' },
     });
 
     const result = premium.map((item) => ({
@@ -51,10 +52,11 @@ export class PremiumService {
     return premium;
   }
 
-  async getAll() {
-    const premium = await this.premiumRepository.find({
-      select: ['id', 'name', 'price', 'duration'],
-    });
-    return premium;
+  async updatePremium(id: string, updatePremiumDto: UpdatePremiumDto) {
+    const premium = await this.premiumRepository.update(id, updatePremiumDto);
+    return {
+      message: 'Premium updated successfully',
+      staus: 200,
+    }
   }
 }

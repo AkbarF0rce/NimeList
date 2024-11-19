@@ -114,16 +114,13 @@ export class TransactionService {
 
     const current_time = new Date();
     const duration = premium.duration * 24 * 60 * 60 * 1000;
-    const extendedDuraiton = 1 * 24 * 60 * 60 * 1000;
 
     if (
       user.status_premium === status_premium.ACTIVE &&
       user.end_premium > current_time
     ) {
       // Perpanjang waktu end premium
-      const newEndPremium = new Date(
-        user.end_premium.getTime() + duration + extendedDuraiton,
-      );
+      const newEndPremium = new Date(user.end_premium.getTime() + duration);
 
       // Atur waktu menjadi jam 12 malam
       newEndPremium.setHours(0, 0, 0, 0);
@@ -135,9 +132,7 @@ export class TransactionService {
       user.badge = badges.NIMELIST_HEROES;
       user.status_premium = status_premium.ACTIVE;
       user.start_premium = current_time;
-      const newEndPremium = new Date(
-        current_time.getTime() + duration + extendedDuraiton,
-      );
+      const newEndPremium = new Date(current_time.getTime() + duration);
 
       // Atur waktu menjadi jam 12 malam
       newEndPremium.setHours(0, 0, 0, 0);

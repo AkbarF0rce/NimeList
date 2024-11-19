@@ -69,16 +69,14 @@ export class UserController {
     return await this.userService.refreshUsers();
   }
 
-  @Get('detail-admin')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Get('detail')
+  @UseGuards(JwtAuthGuard)
   async getOneUser(@Request() req) {
     return await this.userService.getDetailAdmin(req.user.userId);
   }
 
-  @Put('update-profile-admin')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Put('update-profile')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([{ name: 'photo_profile', maxCount: 1 }], {
       fileFilter: (req, file, cb) => {
@@ -112,7 +110,7 @@ export class UserController {
       photo_profile?: Express.Multer.File;
     },
   ) {
-    return await this.userService.updateProfileAdmin(
+    return await this.userService.updateProfile(
       req.user.userId,
       body,
       files.photo_profile?.[0],

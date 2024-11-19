@@ -13,6 +13,7 @@ import { v4 } from 'uuid';
 import { Role } from 'src/UserModule/role/entities/role.entity';
 import { PhotoProfileService } from '../photo_profile/photo_profile.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
@@ -22,6 +23,7 @@ export class UserService {
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
     private readonly photoProfileService: PhotoProfileService,
+    private readonly jwtService: JwtService,
   ) {}
   async create(createUserDto: CreateUserDto) {
     // Mencari role user
@@ -152,26 +154,28 @@ export class UserService {
     };
   }
 
-  async updateProfileAdmin(
+  async updateProfile(
     id: string,
     body: UpdateUserDto,
     photo?: Express.Multer.File,
   ) {
-    const user = await this.userRepository.findOne({
-      where: { id: id, role: { name: 'admin' } },
-    });
+    try {
+      await this.userRepository.update({ id: id }, body);
 
-    Object.assign(user, body);
-    const save = await this.userRepository.save(user);
+      if (photo) {
+        await this.photoProfileService.create(id, photo);
+      }
 
-    if (photo && save) {
-      await this.photoProfileService.create(id, photo);
+      return {
+        status: 200,
+        message: 'Updated successfully',
+      };
+    } catch (error) {
+      return {
+        status: error.status,
+        message: error.message,
+      };
     }
-
-    return {
-      status: 200,
-      message: 'Updated successfully',
-    };
   }
 
   async getCheckPremium(id: string) {

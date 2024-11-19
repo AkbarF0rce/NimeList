@@ -8,23 +8,24 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class FavoriteAnimeService {
   constructor(
-    @InjectRepository(FavoriteAnime) private favoriteAnimeRepository: Repository<FavoriteAnime>,
+    @InjectRepository(FavoriteAnime)
+    private favoriteAnimeRepository: Repository<FavoriteAnime>,
   ) {}
 
-  async createFav(data: CreateFavoriteAnimeDto){
+  async createFav(data: CreateFavoriteAnimeDto) {
     const create = await this.favoriteAnimeRepository.create(data);
 
-    if(!create){
+    if (!create) {
       throw new Error('data not created');
     }
 
     return {
       message: 'data created',
       data: await this.favoriteAnimeRepository.save(create),
-    }
+    };
   }
 
-  async deleteFav (id: string) {
+  async deleteFav(id: string) {
     // Hapus data like berdasarkan id
     await this.favoriteAnimeRepository.softDelete(id);
 
@@ -34,7 +35,7 @@ export class FavoriteAnimeService {
     };
   }
 
-  async restoreFav (id: string) {
+  async restoreFav(id: string) {
     // Restore data like berdasarkan id
     await this.favoriteAnimeRepository.restore(id);
 

@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Put,
 } from '@nestjs/common';
 import { PremiumService } from './premium.service';
 import { CreatePremiumDto } from './dto/create-premium.dto';
@@ -26,13 +27,6 @@ export class PremiumController {
     return this.premiumService.createPremium(createPremiumDto);
   }
 
-  @Get('get-admin')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  async getPremium() {
-    return await this.premiumService.getPremium();
-  }
-
   @Delete('delete-admin/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -49,6 +43,13 @@ export class PremiumController {
 
   @Get('get-all')
   async getAll() {
-    return await this.premiumService.getAll();
+    return await this.premiumService.getPremium();
+  }
+
+  @Put('update-admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  updatePremium(@Param('id') id: string, @Body() updatePremiumDto: UpdatePremiumDto) {
+    return this.premiumService.updatePremium(id, updatePremiumDto);
   }
 }

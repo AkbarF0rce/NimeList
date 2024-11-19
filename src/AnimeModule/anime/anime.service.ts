@@ -207,26 +207,27 @@ export class AnimeService {
     }
 
     // Ambil jumlah dan data review yang berkaitan dengan id anime
-    const review = await this.reviewService.getAllAndCout(animeId);
+    const review = await this.reviewService.getAndCountByAnime(animeId);
 
     // Hitung average rating dari id anime
-    const getAvgRating = await this.reviewService.getAvgRating(animeId);
+    const getAvgRating = await this.reviewService.getAvgRatingByAnime(animeId);
 
     // Ambil jumlah dan data topic yang berkaitan dengan id anime
-    const topic = await this.topicService.getAllTopicAndCount(animeId);
+    const topic = await this.topicService.getAndCountByAnime(animeId);
 
+    // Ambil semua data genre yang berkaitan dengan id anime
     const genres = await this.genreService.getByAnime(animeId);
 
-    const totalFav = await this.favoriteAnimeRepository
-      .createQueryBuilder('fav')
-      .where('fav.id_anime = :animeId', { animeId })
-      .getCount();
+    // Hitung jumlah favorit berdasarkan id anime
+    const totalFav = await this.favoriteAnimeRepository.countBy({
+      id_anime: animeId,
+    });
 
     return {
       anime,
       genres,
       review,
-      avgRating: getAvgRating, // Set 0 jika tidak ada rating
+      avgRating: getAvgRating || 0, // Set 0 jika tidak ada rating
       topic,
       totalFav,
     };
@@ -263,10 +264,16 @@ export class AnimeService {
       // Menghitung rata-rata rating jika anime memiliki review
       const avgRating =
         anime.review.length > 0
-          ? anime.review.reduce(
-              (total, review) => total + Number(review.rating),
-              0,
-            ) / anime.review.length
+          ? Number(
+              parseFloat(
+                (
+                  anime.review.reduce(
+                    (total, review) => total + Number(review.rating),
+                    0,
+                  ) / anime.review.length
+                ).toString(),
+              ).toFixed(1),
+            )
           : 0;
 
       return {
@@ -275,12 +282,13 @@ export class AnimeService {
         created_at: anime.created_at,
         release_date: anime.release_date,
         updated_at: anime.updated_at,
-        avg_rating: avgRating.toFixed(1), // Format ke 1 desimal
+        avg_rating: avgRating,
       };
     });
 
     return {
       data,
+      animes,
       total,
     };
   }

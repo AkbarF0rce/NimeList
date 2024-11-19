@@ -294,7 +294,7 @@ export class TopicService {
     }));
   }
 
-  async getAllTopicAndCount(id: string) {
+  async getAndCountByAnime(id: string) {
     const [topics, total] = await this.topicRepository.findAndCount({
       where: { id_anime: id },
       relations: ['user'],

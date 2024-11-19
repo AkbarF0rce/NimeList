@@ -178,14 +178,14 @@ export class ReviewService {
     return anime.map((anime) => anime.anime.id);
   }
 
-  async getAvgRating(id: string) {
+  async getAvgRatingByAnime(id: string) {
     const review = await this.reviewRepository.average('rating', {
       id_anime: id,
     });
     return Number(parseFloat(review.toString()).toFixed(1));
   }
 
-  async getAllAndCout(id: string) {
+  async getAndCountByAnime(id: string) {
     const [reviews, total] = await this.reviewRepository.findAndCount({
       where: { id_anime: id },
       relations: ['user'],
