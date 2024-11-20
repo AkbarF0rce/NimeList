@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -30,39 +30,34 @@ export class ReviewService {
   }
 
   async updateReview(id: string, data: UpdateReviewDto) {
-    // Cari review berdasarkan id yang diberikan
-    const get = await this.reviewRepository.findOne({
-      where: { id },
+    // Cari review berdasarkan id
+    const review = await this.reviewRepository.findOne({
+      where: { id: id },
+      select: ['id_user'],
     });
+    const { id_user, role, ...update } = data;
 
-    // Jika data tidak ada tampilkan pesan error
-    if (!get) {
-      throw new NotFoundException('data not found');
+    if (role === 'user') {
+      if (id_user !== review.id_user) {
+        throw new HttpException('you are not allowed to update this data', 403);
+      }
+
+      return await this.reviewRepository.update(id, update);
     }
 
-    return {
-      message: 'data updated',
-      data: await this.reviewRepository.save({ ...get, ...data }),
-    };
+    return await this.reviewRepository.update(id, update);
   }
 
-  async deleteReview(id: string) {
-    // Cari review berdasarkan id yang diberikan
-    const get = await this.reviewRepository.findOne({
-      where: { id },
-    });
+  async deleteReview(id: string, userId: string, role: string) {
+    if (role === 'user') {
+      if (userId !== id) {
+        throw new Error('you are not allowed to delete this data');
+      }
 
-    if (!get) {
-      throw new NotFoundException('data not found');
+      return await this.reviewRepository.softDelete(id);
     }
 
-    // Hapus data berdasarkan id
-    await this.reviewRepository.softDelete({ id });
-
-    // Tampilkan pesan data berhasil dihapus
-    return {
-      message: 'data deleted',
-    };
+    return await this.reviewRepository.softDelete(id);
   }
 
   async restoreReview(id: string) {
@@ -182,6 +177,9 @@ export class ReviewService {
     const review = await this.reviewRepository.average('rating', {
       id_anime: id,
     });
+
+    if (!review) return 0;
+
     return Number(parseFloat(review.toString()).toFixed(1));
   }
 

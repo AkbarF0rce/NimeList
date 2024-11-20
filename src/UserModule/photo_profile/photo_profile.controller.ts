@@ -67,10 +67,9 @@ export class PhotoProfileController {
     return this.photoProfileService.create(id_user, files.photo[0]);
   }
 
-  @Get('admin')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Get('get')
+  @UseGuards(JwtAuthGuard)
   async getPhotoAdmin(@Request() req) {
-    return this.photoProfileService.getPhotoAdmin(req.user.userId);
+    return this.photoProfileService.getPhoto(req.user.userId);
   }
 }

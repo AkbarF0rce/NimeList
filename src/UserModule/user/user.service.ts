@@ -136,13 +136,12 @@ export class UserService {
     );
   }
 
-  async getDetailAdmin(id: string) {
+  async getProfile(id: string) {
     const data = await this.userRepository.findOne({
-      where: { id: id, role: { name: 'admin' } },
-      relations: ['photo_profile'],
-      select: ['id', 'username', 'email', 'photo_profile', 'bio', 'badge'],
+      where: { id: id },
+      select: ['id', 'username', 'email', 'bio', 'badge'],
     });
-    const photo = await this.photoProfileService.getPhotoAdmin(id);
+    const photo = await this.photoProfileService.getPhoto(id);
 
     return {
       id: data.id,
@@ -159,23 +158,16 @@ export class UserService {
     body: UpdateUserDto,
     photo?: Express.Multer.File,
   ) {
-    try {
-      await this.userRepository.update({ id: id }, body);
+    await this.userRepository.update({ id: id }, body);
 
-      if (photo) {
-        await this.photoProfileService.create(id, photo);
-      }
-
-      return {
-        status: 200,
-        message: 'Updated successfully',
-      };
-    } catch (error) {
-      return {
-        status: error.status,
-        message: error.message,
-      };
+    if (photo) {
+      await this.photoProfileService.create(id, photo);
     }
+
+    return {
+      status: 200,
+      message: 'Updated successfully',
+    };
   }
 
   async getCheckPremium(id: string) {

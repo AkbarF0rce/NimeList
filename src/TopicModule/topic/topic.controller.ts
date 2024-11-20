@@ -12,6 +12,7 @@ import {
   UploadedFile,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { TopicService } from './topic.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
@@ -28,6 +29,7 @@ import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
 import { Premium } from 'src/TransactionModule/premium/entities/premium.entity';
 import { PremiumGuard } from 'src/AuthModule/auth/guards/isPremium.guard';
+import { UpdateTopicDto } from './dto/update-topic.dto';
 
 @UseGuards(PremiumGuard, JwtAuthGuard)
 @Controller('topic')
@@ -89,26 +91,27 @@ export class TopicController {
   )
   async update(
     @Param('id') id: string,
-    @Body() updateTopicDto: CreateTopicDto,
-    @Body('existing_photos') existingPhotosString: [],
+    @Request() req,
+    @Body() updateTopicDto: UpdateTopicDto,
     @UploadedFiles()
     files: {
       new_photos?: Express.Multer.File[];
     },
   ) {
-    const sanitizedHtml = this.filterHtmlContent(updateTopicDto.body);
+    updateTopicDto.body = this.filterHtmlContent(updateTopicDto.body);
+    updateTopicDto.photos = files.new_photos || [];
+    updateTopicDto.id_user = req.user.userId;
+    updateTopicDto.role = req.user.role;
 
-    return await this.topicService.updateTopic(
+    return await this.topicService.update(
       id,
-      files.new_photos || [],
-      { ...updateTopicDto, body: sanitizedHtml },
-      existingPhotosString,
+      updateTopicDto,
     );
   }
 
   @Delete('delete/:id')
-  async delete(@Param('id') id: string) {
-    return await this.topicService.deleteTopic(id);
+  async delete(@Param('id') id: string, @Request() req) {
+    return await this.topicService.deleteTopic(id, req.user.userId, req.user.role);
   }
 
   @Get('get/:id')

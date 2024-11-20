@@ -1,11 +1,6 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateReviewDto } from './create-review.dto';
-import { IsNumber, IsString } from 'class-validator';
-
-export class UpdateReviewDto extends PartialType(CreateReviewDto) {
-    @IsString()
-    review?: string;
-
-    @IsNumber()
-    rating?: number;
+export class UpdateReviewDto {
+  review?: string;
+  rating?: number;
+  id_user?: string;
+  role?: string;
 }

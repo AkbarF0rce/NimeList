@@ -43,6 +43,15 @@ export class DashboardService {
       relations: ['review'],
     });
 
+    const totalReviews = allAnimes.reduce(
+      (sum, anime) => sum + anime.review.length,
+      0,
+    );
+
+    if (totalReviews === 0) {
+      return [];
+    }
+
     const totalRatings = allAnimes.reduce((sum, anime) => {
       const animeTotalRating = anime.review.reduce(
         (total, review) => total + Number(review.rating),
@@ -50,11 +59,6 @@ export class DashboardService {
       );
       return sum + animeTotalRating;
     }, 0);
-
-    const totalReviews = allAnimes.reduce(
-      (sum, anime) => sum + anime.review.length,
-      0,
-    );
 
     const avgRatingAllAnime = totalRatings / totalReviews; // Rata-rata rating semua anime
 

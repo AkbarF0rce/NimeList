@@ -44,7 +44,7 @@ export class TopicService {
     return imageSources;
   }
 
-  // Helper function to delete old images
+  // Fungsi untuk menghapus gambar lama dari body topic
   private async deleteOldImages(images: string[]) {
     if (images.length > 0) {
       for (const img of images) {
@@ -96,9 +96,6 @@ export class TopicService {
     const topic = this.topicRepository.create(createTopicDto);
     await this.topicRepository.save(topic);
 
-    // Cek apakah ada path gambar yang ada di dalam database
-    await this.checkImageExists();
-
     // Simpan photo jika ada
     if (photos && photos.length > 0) {
       for (const file of photos) {
@@ -116,17 +113,15 @@ export class TopicService {
     };
   }
 
-  async updateTopic(
-    id: string,
-    photos: Express.Multer.File[],
-    updateTopicDto: UpdateTopicDto,
-    existing_photos: string[],
-  ) {
+  private async updateTopic(id: string, updateTopicDto: UpdateTopicDto) {
     // Cari topic berdasarkan id
     const topic = await this.topicRepository.findOne({
-      where: { id },
+      where: { id: id },
       relations: ['photos'],
     });
+
+    const { existing_photos, photos, id_user, role, ...update } =
+      updateTopicDto;
 
     // Jika topic tidak ada tampilkan pesan error
     if (!topic) {
@@ -134,12 +129,8 @@ export class TopicService {
     }
 
     // Update informasi dasar topic
-    Object.assign(topic, updateTopicDto);
+    Object.assign(topic, update);
     await this.topicRepository.save(topic);
-
-    // Cek apakah ada path gambar yang ada di dalam database
-    await this.checkImageExists();
-    console.log(existing_photos);
 
     // Hapus data foto lama
     for (const photo of topic.photos) {
@@ -162,14 +153,35 @@ export class TopicService {
         .map(async (file) => {
           const photo = this.photoTopicRepository.create({
             file_path: file.path,
-            topic,
+            id_topic: id,
           });
           await this.photoTopicRepository.save(photo);
         });
+
+      console.log(newPhotos);
     }
   }
 
-  async deleteTopic(id: string) {
+  async update(id: string, updateTopicDto: UpdateTopicDto) {
+    const getTopicCreated = await this.topicRepository.findOne({
+      where: { id },
+      select: ['id_user'],
+    });
+
+    console.log(getTopicCreated);
+
+    if (updateTopicDto.role === 'user') {
+      if (updateTopicDto.id_user !== getTopicCreated.id_user) {
+        throw new Error('you are not allowed to update this data');
+      }
+
+      return await this.updateTopic(id, updateTopicDto);
+    }
+
+    return await this.updateTopic(id, updateTopicDto);
+  }
+
+  async deleteTopic(id: string, userId: string, role: string) {
     // Cari topic berdasarkan id
     const topic = await this.topicRepository.findOne({ where: { id } });
 
@@ -177,12 +189,24 @@ export class TopicService {
     if (!topic) {
       throw new NotFoundException('Topic tidak ditemukan');
     }
-    // Hapus topic dari database berdasarkan id
+
+    if (role === 'user') {
+      if (userId !== topic.id_user) {
+        throw new Error('you are not allowed to delete this data');
+      }
+
+      await this.topicRepository.softDelete(id);
+
+      return {
+        message: 'Topic data deleted successfully',
+      };
+    }
+
     await this.topicRepository.softDelete(id);
 
     // Tampilkan pesan saat data berhasil dihapus
     return {
-      message: 'Data topic berhasil dihapus',
+      message: 'Topic data deleted successfully',
     };
   }
 

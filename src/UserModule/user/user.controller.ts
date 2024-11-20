@@ -30,26 +30,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @Get('admin')
-  getAdminData() {
-    return 'Admin Access Only';
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('user')
-  @Get('user')
-  getUserData() {
-    return 'User Access Only';
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('all')
-  getAllUsersData() {
-    return 'Public Access';
-  }
-
   @Get('get-admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -69,10 +49,10 @@ export class UserController {
     return await this.userService.refreshUsers();
   }
 
-  @Get('detail')
+  @Get('profile')
   @UseGuards(JwtAuthGuard)
-  async getOneUser(@Request() req) {
-    return await this.userService.getDetailAdmin(req.user.userId);
+  async getProfile(@Request() req) {
+    return await this.userService.getProfile(req.user.userId);
   }
 
   @Put('update-profile')

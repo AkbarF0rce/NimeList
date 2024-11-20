@@ -9,6 +9,7 @@ import {
   Put,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -32,8 +33,12 @@ export class ReviewController {
   @UseGuards(JwtAuthGuard)
   async update(
     @Param('id') id: string,
+    @Request() req,
     @Body() updateReviewDto: UpdateReviewDto,
   ) {
+    updateReviewDto.id_user = req.user.userId;
+    updateReviewDto.role = req.user.role;
+
     return await this.reviewService.updateReview(id, updateReviewDto);
   }
 
@@ -44,8 +49,12 @@ export class ReviewController {
 
   @Delete('delete/:id')
   @UseGuards(JwtAuthGuard)
-  async delete(@Param('id') id: string) {
-    return await this.reviewService.deleteReview(id);
+  async delete(@Param('id') id: string, @Request() req) {
+    return await this.reviewService.deleteReview(
+      id,
+      req.user.userId,
+      req.user.role,
+    );
   }
 
   @Get('get-admin')

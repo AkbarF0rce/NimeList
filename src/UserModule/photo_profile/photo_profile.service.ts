@@ -43,7 +43,7 @@ export class PhotoProfileService {
     }
   }
 
-  async getPhotoAdmin(id: string) {
+  async getPhoto(id: string) {
     const get = await this.photoProfileRepository.findOne({
       where: { id_user: id },
       select: ['path_photo'],
