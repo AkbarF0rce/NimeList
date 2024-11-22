@@ -24,8 +24,16 @@ export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
   @Post('post')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async post(@Body() createReviewDto: CreateReviewDto) {
+    return await this.reviewService.createReview(createReviewDto);
+  }
+
+  @Post('create')
   @UseGuards(JwtAuthGuard)
-  async create(@Body() createReviewDto: CreateReviewDto) {
+  async create(@Body() createReviewDto: CreateReviewDto, @Request() req) {
+    createReviewDto.id_user = req.user.userId;
     return await this.reviewService.createReview(createReviewDto);
   }
 

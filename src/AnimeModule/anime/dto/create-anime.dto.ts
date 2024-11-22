@@ -27,5 +27,8 @@ export class CreateAnimeDto {
   @IsNotEmpty()
   type: Types;
 
+  @IsNotEmpty()
+  slug: string;
+
   // File foto akan dikelola melalui file interceptor di controller
 }

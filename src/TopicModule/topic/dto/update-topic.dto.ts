@@ -10,4 +10,5 @@ export class UpdateTopicDto {
   id_user?: string;
   id_anime?: string;
   role?: string;
+  slug?: string;
 }

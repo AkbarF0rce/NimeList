@@ -265,11 +265,15 @@ export class TransactionService {
     };
   }
 
-  async getTransactionById(id: string) {
+  async getTransactionById(id: string, user: any) {
     const transaction = await this.transactionsRepository.findOne({
       where: { id: id },
       relations: ['user', 'premium'],
     });
+    
+    if (user.role === 'user' && user.userId !== transaction.user.id) {
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
 
     return {
       order_id: transaction.order_id,

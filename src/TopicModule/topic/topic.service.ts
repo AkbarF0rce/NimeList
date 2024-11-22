@@ -13,6 +13,8 @@ import * as fs from 'fs';
 import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
 import { User } from 'src/UserModule/user/entities/user.entity';
 import { DislikeTopic } from 'src/TopicModule/dislike_topic/entities/dislike_topic.entity';
+import slugify from 'slugify';
+import { v4 } from 'uuid';
 
 @Injectable()
 export class TopicService {
@@ -92,7 +94,13 @@ export class TopicService {
     createTopicDto: CreateTopicDto,
     photos: Express.Multer.File[],
   ) {
-    // Create data baru untuk topic
+    // Generate slug dengan sebagian uuid
+    const slug = slugify(createTopicDto.title, {
+      lower: true,
+      strict: true,
+    });
+    createTopicDto.slug = `${slug}-${v4().split('-')[0]}`;
+
     const topic = this.topicRepository.create(createTopicDto);
     await this.topicRepository.save(topic);
 
@@ -119,6 +127,15 @@ export class TopicService {
       where: { id: id },
       relations: ['photos'],
     });
+
+    if (topic.title !== updateTopicDto.title) {
+      const slug = slugify(updateTopicDto.title, {
+        lower: true,
+        strict: true,
+      });
+
+      updateTopicDto.slug = `${slug}-${v4().split('-')[0]}`;
+    }
 
     const { existing_photos, photos, id_user, role, ...update } =
       updateTopicDto;
@@ -210,7 +227,7 @@ export class TopicService {
     };
   }
 
-  async getTopicById(id: string) {
+  async getTopicBySlug(slug: string) {
     const get = await this.topicRepository
       .createQueryBuilder('topic')
       .leftJoin('topic.user', 'user')
@@ -226,22 +243,22 @@ export class TopicService {
         'topic.body',
         'photos.file_path',
       ])
-      .where('topic.id = :id', { id })
+      .where('topic.slug = :slug', { slug })
       .getOne();
 
     const likes = await this.likeTopicRepository
       .createQueryBuilder('like')
-      .where('like.id_topic = :id', { id })
+      .where('like.id_topic = :id', { id: get.id })
       .getCount();
 
     const dislikes = await this.dislikeTopicRepository
       .createQueryBuilder('dislike')
-      .where('dislike.id_topic = :id', { id })
+      .where('dislike.id_topic = :id', { id: get.id })
       .getCount();
 
     const comments = await this.commentRepository
       .createQueryBuilder('comment')
-      .where('comment.id_topic = :id', { id })
+      .where('comment.id_topic = :id', { id: get.id })
       .getCount();
 
     return {
@@ -265,6 +282,7 @@ export class TopicService {
         'topic.title',
         'topic.created_at',
         'topic.updated_at',
+        'topic.slug',
         'user', // Ambil username dari tabel user
         'anime', // Ambil title dari tabel anime
       ])

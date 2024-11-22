@@ -165,14 +165,14 @@ export class AnimeController {
     return await this.animeService.getAnimeNewest(limit);
   }
 
-  @Get('get/:id')
-  async getAnime(@Param('id') animeId: string) {
-    return await this.animeService.getAnimeById(animeId);
+  @Get('get/:slug')
+  async getAnime(@Param('slug') slug: string) {
+    return await this.animeService.getAnimeBySlug(slug);
   }
 
-  @Get('get/by-genre/:id')
-  async getAnimeByGenre(@Param('id') genreId: number) {
-    return await this.animeService.getAnimeByGenre(genreId);
+  @Get('get/by-genre/:name')
+  async getAnimeByGenre(@Param('name') name: string) {
+    return await this.animeService.getAnimeByGenre(name);
   }
 
   @Delete('delete/:id')

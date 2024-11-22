@@ -29,8 +29,8 @@ export class DashboardController {
   }
 
   @Get('income-data')
-  async getIncomeData(@Query('year') year: number) {
-    return await this.dashboardService.getIncomeData(year);
+  async getReportData(@Query('year') year: number) {
+    return await this.dashboardService.getReportData(year);
   }
 
   @Get('total-transaction')

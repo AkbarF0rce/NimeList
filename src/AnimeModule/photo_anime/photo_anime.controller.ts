@@ -1,9 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
   Param,
   Delete,
   Put,
@@ -15,8 +12,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { PhotoAnimeService } from './photo_anime.service';
-import { CreatePhotoAnimeDto } from './dto/create-photo_anime.dto';
-import { UpdatePhotoAnimeDto } from './dto/update-photo_anime.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { v4 } from 'uuid';
@@ -26,19 +21,17 @@ import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
 import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 
 @Controller('photo-anime')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
 export class PhotoAnimeController {
   constructor(private readonly photoAnimeService: PhotoAnimeService) {}
 
   @Delete('delete/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   async deletePhoto(@Param('id') id: string) {
     return this.photoAnimeService.deletePhoto(id);
   }
 
   @Put('update/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -78,8 +71,6 @@ export class PhotoAnimeController {
   }
 
   @Get('get-all')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   async getAllPhoto(
     @Query('page') page: number,
     @Query('limit') limit: number,
@@ -89,8 +80,6 @@ export class PhotoAnimeController {
   }
 
   @Get('get/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
   async getPhotoById(@Param('id') id: string) {
     return this.photoAnimeService.getPhotoById(id);
   }

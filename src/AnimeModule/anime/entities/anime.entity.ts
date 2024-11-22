@@ -26,8 +26,11 @@ export class Anime {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('varchar', { length: 255 })
+  @Column('varchar', { length: 255, unique: true })
   title: string;
+
+  @Column('varchar', { length: 255, unique: true })
+  slug: string;
 
   @Column('text')
   synopsis: string;

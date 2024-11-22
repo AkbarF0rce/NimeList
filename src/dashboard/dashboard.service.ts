@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
-import { Repository } from 'typeorm';
-import { User } from 'src/UserModule/user/entities/user.entity';
+import { Between, Repository } from 'typeorm';
+import { status_premium, User } from 'src/UserModule/user/entities/user.entity';
 import { Transaction } from 'src/TransactionModule/transaction/entities/transaction.entity';
 import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
+import { Premium } from 'src/TransactionModule/premium/entities/premium.entity';
 
 @Injectable()
 export class DashboardService {
@@ -18,21 +19,33 @@ export class DashboardService {
     private transactionsRepository: Repository<Transaction>,
   ) {}
   async getTotalTopic() {
-    return { totalTopic: await this.topicRepository.count() };
+    return {
+      totalTopic:
+        (await this.topicRepository.count({
+          where: {
+            created_at: Between(
+              new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+              new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+            ),
+          },
+        })) || 0,
+    };
   }
 
   async countUserPremium() {
-    const count = await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoinAndSelect('user.role', 'role')
-      .where('role.name = :roleName', { roleName: 'user' })
-      .andWhere('user.status_premium = :premiumStatus', {
-        premiumStatus: 'active',
-      })
-      .getCount();
+    const count = await this.userRepository.count({
+      where: {
+        status_premium: status_premium.ACTIVE,
+        role: { name: 'user' },
+        start_premium: Between(
+          new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+        ),
+      },
+    });
 
     return {
-      totalUserPremium: count,
+      totalUserPremium: count || 0,
     };
   }
 
@@ -144,39 +157,67 @@ export class DashboardService {
     return months[month - 1];
   }
 
-  async getIncomeData(year: number) {
+  async getReportData(year: number) {
     const transactions = await this.transactionsRepository
       .createQueryBuilder('transaction')
       .select('EXTRACT(MONTH FROM transaction.created_at) as month')
-      .addSelect('SUM(transaction.total) as total_income')
+      .addSelect(
+        'SUM(CASE WHEN transaction.status = :success THEN transaction.total ELSE 0 END) as total_income',
+      )
+      .addSelect(
+        'COUNT(CASE WHEN transaction.status = :success THEN 1 ELSE NULL END) as total_success_transactions',
+      )
+      .addSelect(
+        'COUNT(CASE WHEN transaction.status = :failed THEN 1 ELSE NULL END) as total_failed_transactions',
+      )
       .where('EXTRACT(YEAR FROM transaction.created_at) = :year', { year })
-      .andWhere('transaction.status = :status', { status: 'success' })
+      .setParameters({ success: 'success', failed: 'failed' })
       .groupBy('month')
       .orderBy('month', 'ASC')
       .getRawMany();
 
     // Format hasil query ke dalam bentuk array bulanan
-    const incomeData = transactions.map((transaction) => ({
+    const data = transactions.map((transaction) => ({
       month: this.getMonthName(transaction.month),
       income: parseFloat(transaction.total_income),
+      total_success_transactions: Number(
+        transaction.total_success_transactions,
+      ),
+      total_failed_transactions: Number(transaction.total_failed_transactions),
     }));
 
-    return incomeData;
+    return data;
   }
 
   async totalTransaction() {
-    return { total: await this.transactionsRepository.count() };
+    return {
+      total:
+        (await this.transactionsRepository.count({
+          where: {
+            created_at: Between(
+              new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+              new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+            ),
+          },
+        })) || 0,
+    };
   }
 
   async totalIncome() {
     const count = await this.transactionsRepository
       .createQueryBuilder('transaction')
       .select('SUM(transaction.total) as total_income')
-      .where('transaction.status = :status', { status: 'success' })
+      .where(
+        'EXTRACT(MONTH FROM transaction.created_at) = EXTRACT(MONTH FROM CURRENT_DATE)',
+      )
+      .andWhere(
+        'EXTRACT(YEAR FROM transaction.created_at) = EXTRACT(YEAR FROM CURRENT_DATE)',
+      )
+      .andWhere('transaction.status = :status', { status: 'success' })
       .getRawOne();
 
     return {
-      total: parseInt(count.total_income),
+      total: parseInt(count.total_income) || 0,
     };
   }
 }

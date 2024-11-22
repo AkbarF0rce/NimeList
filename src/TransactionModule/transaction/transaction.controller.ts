@@ -65,7 +65,7 @@ export class TransactionController {
 
   @Get('get/:id')
   @UseGuards(JwtAuthGuard)
-  async getTransactionById(@Param('id') id: string) {
-    return await this.transactionService.getTransactionById(id);
+  async getTransactionById(@Param('id') id: string, @Request() req) {
+    return await this.transactionService.getTransactionById(id, req.user);
   }
 }

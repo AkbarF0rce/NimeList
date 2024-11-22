@@ -19,6 +19,7 @@ import { min } from 'class-validator';
 import { ReviewService } from '../review/review.service';
 import { TopicService } from 'src/TopicModule/topic/topic.service';
 import { GenreService } from '../genre/genre.service';
+import slugify from 'slugify';
 
 @Injectable()
 export class AnimeService {
@@ -54,6 +55,7 @@ export class AnimeService {
       type,
       episodes,
       watch_link,
+      slug,
     } = createAnimeDto;
 
     // Cari genre berdasarkan ID
@@ -73,6 +75,7 @@ export class AnimeService {
       watch_link,
       photo_cover: photo_cover.path,
       genres: genreEntities,
+      slug: slugify(title, { lower: true, strict: true }),
     });
     await this.animeRepository.save(anime);
 
@@ -120,6 +123,13 @@ export class AnimeService {
 
     if (!anime) {
       throw new NotFoundException('Anime tidak ditemukan');
+    }
+
+    if (anime.title !== updateAnimeDto.title) {
+      updateAnimeDto.slug = slugify(updateAnimeDto.title, {
+        lower: true,
+        strict: true,
+      });
     }
 
     if (photo_cover) {
@@ -195,10 +205,10 @@ export class AnimeService {
     };
   }
 
-  async getAnimeById(animeId: string) {
+  async getAnimeBySlug(slug: string) {
     // Cari anime berdasarkan id
     const anime = await this.animeRepository.findOne({
-      where: { id: animeId },
+      where: { slug: slug },
       relations: ['photos'],
     });
 
@@ -207,20 +217,20 @@ export class AnimeService {
     }
 
     // Ambil jumlah dan data review yang berkaitan dengan id anime
-    const review = await this.reviewService.getAndCountByAnime(animeId);
+    const review = await this.reviewService.getAndCountByAnime(anime.id);
 
     // Hitung average rating dari id anime
-    const getAvgRating = await this.reviewService.getAvgRatingByAnime(animeId);
+    const getAvgRating = await this.reviewService.getAvgRatingByAnime(anime.id);
 
     // Ambil jumlah dan data topic yang berkaitan dengan id anime
-    const topic = await this.topicService.getAndCountByAnime(animeId);
+    const topic = await this.topicService.getAndCountByAnime(anime.id);
 
     // Ambil semua data genre yang berkaitan dengan id anime
-    const genres = await this.genreService.getByAnime(animeId);
+    const genres = await this.genreService.getByAnime(anime.id);
 
     // Hitung jumlah favorit berdasarkan id anime
     const totalFav = await this.favoriteAnimeRepository.countBy({
-      id_anime: animeId,
+      id_anime: anime.id,
     });
 
     return {
@@ -282,6 +292,7 @@ export class AnimeService {
         created_at: anime.created_at,
         release_date: anime.release_date,
         updated_at: anime.updated_at,
+        slug: anime.slug,
         avg_rating: avgRating,
       };
     });
@@ -319,13 +330,20 @@ export class AnimeService {
     return { data: result };
   }
 
-  async getAnimeByGenre(genreId: number) {
+  async getAnimeByGenre(name: string) {
     const animes = await this.animeRepository
       .createQueryBuilder('anime')
       .leftJoin('anime.review', 'review') // Join table review
       .leftJoin('anime.genres', 'genre') // Join table genre
+      .select([
+        'anime.id',
+        'anime.photo_cover',
+        'anime.type',
+        'anime.title',
+        'anime.slug',
+      ])
       .addSelect('COALESCE(AVG(review.rating), 0)', 'averageRating')
-      .where('genre.id = :genreId', { genreId }) // Menyaring anime berdasarkan id genre
+      .where('genre.name = :name', { name }) // Menyaring anime berdasarkan id genre
       .groupBy('anime.id')
       .getRawMany();
 
@@ -338,7 +356,11 @@ export class AnimeService {
 
     // Tampilkan anime yang ada
     return animes.map((anime) => ({
-      ...anime,
+      id: anime.anime_id,
+      photo_cover: anime.anime_photo_cover,
+      type: anime.anime_type,
+      title: anime.anime_title,
+      slug: anime.anime_slug,
       averageRating: parseFloat(anime.averageRating).toFixed(1),
     }));
   }
@@ -378,7 +400,7 @@ export class AnimeService {
         endDate,
       })
       .orderBy('avg_rating', 'DESC') // Urutkan berdasarkan rating
-      .limit(10) // Batasi ke 10 anime teratas
+      .limit(14) // Batasi ke 14 anime teratas
       .getRawMany();
 
     return recommendedAnimes.map((anime) => ({

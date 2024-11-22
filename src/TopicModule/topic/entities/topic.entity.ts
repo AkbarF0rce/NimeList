@@ -35,6 +35,9 @@ export class Topic {
   @Column('text')
   id_user: string;
 
+  @Column('text', { unique: true })
+  slug: string;
+
   @CreateDateColumn()
   created_at: Date;
 

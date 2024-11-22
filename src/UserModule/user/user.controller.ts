@@ -49,10 +49,15 @@ export class UserController {
     return await this.userService.refreshUsers();
   }
 
-  @Get('profile')
+  @Get('profile/:name')
+  async getProfile(@Param('name') name: string) {
+    return await this.userService.getProfile(name);
+  }
+
+  @Get('profile-for-edit/:name')
   @UseGuards(JwtAuthGuard)
-  async getProfile(@Request() req) {
-    return await this.userService.getProfile(req.user.userId);
+  async getProfileForEdit(@Param('name') name: string, @Request() req) {
+    return await this.userService.getProfileForEdit(name, req.user);
   }
 
   @Put('update-profile')

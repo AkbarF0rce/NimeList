@@ -1,4 +1,9 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,15 +22,23 @@ export class ReviewService {
   ) {}
 
   async createReview(data: CreateReviewDto) {
+    const exist = await this.reviewRepository.findOne({
+      where: { id_anime: data.id_anime, id_user: data.id_user },
+    });
+
+    if (exist) {
+      throw new BadRequestException('You have already reviewed this anime');
+    }
+
     const post = this.reviewRepository.create(data);
 
     if (!post) {
       throw new Error('data not created');
     }
 
+    await this.reviewRepository.save(post);
     return {
       message: 'data created',
-      data: await this.reviewRepository.save(post),
     };
   }
 
@@ -54,10 +67,10 @@ export class ReviewService {
         throw new Error('you are not allowed to delete this data');
       }
 
-      return await this.reviewRepository.softDelete(id);
+      return await this.reviewRepository.delete(id);
     }
 
-    return await this.reviewRepository.softDelete(id);
+    return await this.reviewRepository.delete(id);
   }
 
   async restoreReview(id: string) {

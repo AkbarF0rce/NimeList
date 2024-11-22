@@ -12,4 +12,7 @@ export class CreateTopicDto {
 
     @IsNotEmpty()
     id_user: string
+
+    @IsNotEmpty()
+    slug: string
 }

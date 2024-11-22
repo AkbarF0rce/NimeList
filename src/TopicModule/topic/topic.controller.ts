@@ -114,9 +114,9 @@ export class TopicController {
     return await this.topicService.deleteTopic(id, req.user.userId, req.user.role);
   }
 
-  @Get('get/:id')
-  async getTopicById(@Param('id') id: string) {
-    return await this.topicService.getTopicById(id);
+  @Get('get/:slug')
+  async getTopicById(@Param('slug') slug: string) {
+    return await this.topicService.getTopicBySlug(slug);
   }
 
   @Get('get-admin')

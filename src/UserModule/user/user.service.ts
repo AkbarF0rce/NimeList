@@ -136,20 +136,38 @@ export class UserService {
     );
   }
 
-  async getProfile(id: string) {
+  async getProfile(name: string) {
     const data = await this.userRepository.findOne({
-      where: { id: id },
-      select: ['id', 'username', 'email', 'bio', 'badge'],
+      where: { username: name },
+      select: ['username', 'email', 'bio', 'badge'],
     });
-    const photo = await this.photoProfileService.getPhoto(id);
+    const photo = await this.photoProfileService.getPhoto(data.id);
 
     return {
-      id: data.id,
       username: data.username,
       email: data.email,
       photo_profile: photo,
       bio: data.bio,
       badge: data.badge,
+    };
+  }
+
+  async getProfileForEdit(name: string, user: any) {
+    const data = await this.userRepository.findOne({
+      where: { username: name },
+      select: ['username', 'bio', 'id'],
+    });
+
+    if (user.userId !== data.id) {
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
+    const photo = await this.photoProfileService.getPhoto(data.id);
+
+    return {
+      id: data.id,
+      username: data.username,
+      photo_profile: photo,
+      bio: data.bio,
     };
   }
 

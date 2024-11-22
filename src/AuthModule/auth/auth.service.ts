@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/UserModule/user/dto/create-user.dto';
@@ -10,6 +11,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UserService, // Uncomment this when you implement UsersService
+    private readonly configService: ConfigService,
   ) {}
 
   // Fungsi untuk validasi user
@@ -47,6 +49,15 @@ export class AuthService {
     const access_token = this.jwtService.sign(payload);
 
     return { access_token };
+  }
+
+  async refreshToken(token: string) {
+    const payload = this.jwtService.verify(token, {
+      secret: this.configService.get<string>('JWT_SECRET'),
+      ignoreExpiration: true,
+    });
+
+    return this.generateToken(payload);
   }
 
   // Fungsi untuk register
