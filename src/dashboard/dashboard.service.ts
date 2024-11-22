@@ -37,10 +37,6 @@ export class DashboardService {
       where: {
         status_premium: status_premium.ACTIVE,
         role: { name: 'user' },
-        start_premium: Between(
-          new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-          new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
-        ),
       },
     });
 

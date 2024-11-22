@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -61,45 +61,41 @@ export class TopicService {
     }
   }
 
-  private async checkImageExists() {
-    const existTopic = await this.topicRepository.find({
-      select: ['body'],
-    });
+  // private async checkImageExists() {
+  //   const existTopic = await this.topicRepository.find({
+  //     select: ['body'],
+  //   });
 
-    if (existTopic.length > 0) {
-      const images = []; // Array untuk menyimpan path gambar yang ada dalam database
-      for (const exist of existTopic) {
-        const existImg = this.extractImageSources(exist.body);
-        if (existImg.length > 0) {
-          images.push(existImg); // Menyimpan path gambar ke dalam array
-        }
-      }
+  //   if (existTopic.length > 0) {
+  //     const images = []; // Array untuk menyimpan path gambar yang ada dalam database
+  //     for (const exist of existTopic) {
+  //       const existImg = this.extractImageSources(exist.body);
+  //       if (existImg.length > 0) {
+  //         images.push(existImg); // Menyimpan path gambar ke dalam array
+  //       }
+  //     }
 
-      const filesInFolder = await fs.promises.readdir('./images/topic/body'); // Mengambil semua path file yang ada di dalam folder
-      const existFolderFileUrl = filesInFolder.map((file) => {
-        return `/images/topic/body/${file}`; // Menyimpan path gambar yang ada dalam folder ke dalam array
-      });
+  //     const filesInFolder = await fs.promises.readdir('./images/topic/body'); // Mengambil semua path file yang ada di dalam folder
+  //     const existFolderFileUrl = filesInFolder.map((file) => {
+  //       return `/images/topic/body/${file}`; // Menyimpan path gambar yang ada dalam folder ke dalam array
+  //     });
 
-      const deletedImages = existFolderFileUrl.filter(
-        (img) => !images.flat(Infinity).includes(img),
-      ); // Melakukan penghapusan jika ada path gambar dalam folder yang tidak sesuai dengan path yang ada
+  //     const deletedImages = existFolderFileUrl.filter(
+  //       (img) => !images.flat(Infinity).includes(img),
+  //     ); // Melakukan penghapusan jika ada path gambar dalam folder yang tidak sesuai dengan path yang ada
 
-      if (deletedImages.length > 0) {
-        this.deleteOldImages(deletedImages);
-      }
-    }
-  }
+  //     if (deletedImages.length > 0) {
+  //       this.deleteOldImages(deletedImages);
+  //     }
+  //   }
+  // }
 
   async createTopic(
     createTopicDto: CreateTopicDto,
     photos: Express.Multer.File[],
   ) {
     // Generate slug dengan sebagian uuid
-    const slug = slugify(createTopicDto.title, {
-      lower: true,
-      strict: true,
-    });
-    createTopicDto.slug = `${slug}-${v4().split('-')[0]}`;
+    createTopicDto.slug = `tt-${v4().split('-')[0]}`;
 
     const topic = this.topicRepository.create(createTopicDto);
     await this.topicRepository.save(topic);
@@ -129,12 +125,7 @@ export class TopicService {
     });
 
     if (topic.title !== updateTopicDto.title) {
-      const slug = slugify(updateTopicDto.title, {
-        lower: true,
-        strict: true,
-      });
-
-      updateTopicDto.slug = `${slug}-${v4().split('-')[0]}`;
+      updateTopicDto.slug = `tt-${v4().split('-')[0]}`;
     }
 
     const { existing_photos, photos, id_user, role, ...update } =
@@ -185,14 +176,11 @@ export class TopicService {
       select: ['id_user'],
     });
 
-    console.log(getTopicCreated);
-
-    if (updateTopicDto.role === 'user') {
-      if (updateTopicDto.id_user !== getTopicCreated.id_user) {
-        throw new Error('you are not allowed to update this data');
-      }
-
-      return await this.updateTopic(id, updateTopicDto);
+    if (
+      updateTopicDto.role === 'user' &&
+      updateTopicDto.id_user !== getTopicCreated.id_user
+    ) {
+      throw new BadRequestException('you are not allowed to update this data');
     }
 
     return await this.updateTopic(id, updateTopicDto);

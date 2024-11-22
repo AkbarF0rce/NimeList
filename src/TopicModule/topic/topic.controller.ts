@@ -27,12 +27,11 @@ import { extname } from 'path';
 import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
-import { Premium } from 'src/TransactionModule/premium/entities/premium.entity';
 import { PremiumGuard } from 'src/AuthModule/auth/guards/isPremium.guard';
 import { UpdateTopicDto } from './dto/update-topic.dto';
 
-@UseGuards(PremiumGuard, JwtAuthGuard)
 @Controller('topic')
+@UseGuards(PremiumGuard, JwtAuthGuard)
 export class TopicController {
   constructor(private readonly topicService: TopicService) {}
 
@@ -44,7 +43,7 @@ export class TopicController {
       ],
       {
         storage: diskStorage({
-          destination: './images/topic/cover', // Sesuaikan destinasi storage sesuai keinginan
+          destination: './images/topic', // Sesuaikan destinasi storage sesuai keinginan
           filename: (req, file, cb) => {
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
@@ -72,7 +71,7 @@ export class TopicController {
       ],
       {
         storage: diskStorage({
-          destination: './images/topic/cover', // Sesuaikan destinasi storage sesuai keinginan
+          destination: './images/topic', // Sesuaikan destinasi storage sesuai keinginan
           filename: (req, file, cb) => {
             cb(null, `${v4()}${extname(file.originalname)}`);
           },
@@ -140,30 +139,6 @@ export class TopicController {
     return await this.topicService.getAllUser();
   }
 
-  @Post('upload-image')
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './images/topic/body', // Folder penyimpanan lokal
-        filename: (req, file, callback) => {
-          // Membuat nama file baru berdasarkan tanggal dan ekstensi asli
-          const fileExtName = extname(file.originalname);
-          const fileName = `${v4()}${fileExtName}`;
-          callback(null, fileName);
-        },
-      }),
-    }),
-  )
-  async uploadImage(
-    @UploadedFile()
-    files: Express.Multer.File,
-  ) {
-    const response = {
-      imageUrl: `http://localhost:4321/images/topic/body/${files.filename}`,
-    };
-    return response;
-  }
-
   // Fungsi untuk memfilter dan sanitasi HTML content
   private filterHtmlContent(html: string): string {
     const allowedTags = [
@@ -176,7 +151,6 @@ export class TopicController {
       'h2',
       'h3',
       'a',
-      'img',
       'ul',
       'li',
       'ol',

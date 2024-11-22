@@ -9,6 +9,7 @@ import {
   Put,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -30,13 +31,15 @@ export class CommentController {
   }
 
   @Put('update/:id')
-  async update(@Param('id') id: string, @Body() data: UpdateCommentDto) {
+  async update(@Param('id') id: string, @Body() data: UpdateCommentDto, @Request() req) {
+    data.id_user = req.user.userId;
+    data.role = req.user.role;
     return await this.commentService.updateComment(id, data);
   }
 
   @Delete('delete/:id')
-  async delete(@Param('id') id: string) {
-    return await this.commentService.deleteComment(id);
+  async delete(@Param('id') id: string, @Request() req) {
+    return await this.commentService.deleteComment(id,  req.user);
   }
 
   @Put('restore/:id')

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -32,18 +36,25 @@ export class CommentService {
       where: { id },
     });
 
+    const { id_user, role, ...update } = data;
+
     // Jika comment tidak ada tampilkan pesan error
     if (!get) {
       throw new NotFoundException('data not found');
     }
 
+    if (get.id_user !== id_user && role === 'user') {
+      throw new BadRequestException('you are not allowed to update this data');
+    }
+
+    await this.commentRepository.update(id, update);
+
     return {
       message: 'data updated',
-      data: await this.commentRepository.save({ ...get, ...data }),
     };
   }
 
-  async deleteComment(id: string) {
+  async deleteComment(id: string, user: any) {
     // Cari comment berdasarkan id yang diberikan
     const get = await this.commentRepository.findOne({
       where: { id },
@@ -52,6 +63,10 @@ export class CommentService {
     // Jika comment tidak ada tampilkan pesan error
     if (!get) {
       throw new NotFoundException('data not found');
+    }
+
+    if (get.id_user !== user.id && user.role === 'user') {
+      throw new BadRequestException('you are not allowed to delete this data');
     }
 
     // Hapus comment dari database berdasarkan id
@@ -132,7 +147,9 @@ export class CommentService {
       .innerJoinAndSelect('user.role', 'role')
       .select(['user.id', 'user.username'])
       .where('role.name = :roleName', { roleName: 'user' })
-      .andWhere('user.status_premium = :premiumStatus', { premiumStatus: 'active' })
+      .andWhere('user.status_premium = :premiumStatus', {
+        premiumStatus: 'active',
+      })
       .getMany();
 
     return users.map((user) => ({
