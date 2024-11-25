@@ -39,9 +39,10 @@ export class UserSeeder implements Seeder {
     }
 
     const adminUser = this.userRepository.create({
-      username: 'Barr77',
+      username: 'Admin',
       email: adminEmail,
       password: 'admin#1234',
+      name: 'Admin',
       role: adminRole,
       status_premium: status_premium.ACTIVE,
       salt: v4(),

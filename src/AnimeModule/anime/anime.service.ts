@@ -362,7 +362,7 @@ export class AnimeService {
       type: anime.anime_type,
       title: anime.anime_title,
       slug: anime.anime_slug,
-      averageRating: parseFloat(anime.averageRating).toFixed(1),
+      avgRating: parseFloat(anime.averageRating).toFixed(1),
     }));
   }
 

@@ -207,6 +207,7 @@ export class ReviewService {
         review: true,
         user: {
           username: true,
+          name: true,
           status_premium: true,
         },
         created_at: true,
@@ -218,6 +219,7 @@ export class ReviewService {
       data: reviews.map((review) => ({
         id: review.id,
         username: review.user.username,
+        name: review.user.name,
         review: review.review,
         rating: review.rating,
         status_premium: review.user.status_premium,
