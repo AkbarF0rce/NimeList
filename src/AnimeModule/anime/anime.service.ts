@@ -323,6 +323,7 @@ export class AnimeService {
       photo_cover: anime.anime_photo_cover,
       trailer_link: anime.anime_trailer_link,
       type: anime.anime_type,
+      slug: anime.anime_slug,
       avgRating: parseFloat(anime.averageRating).toFixed(1),
       genres: anime.genres,
     }));
@@ -391,6 +392,7 @@ export class AnimeService {
         'anime.title',
         'anime.photo_cover',
         'anime.type',
+        'anime.slug',
         'AVG(review.rating) AS avg_rating',
         'COUNT(review.id) AS review_count',
       ])
@@ -408,6 +410,7 @@ export class AnimeService {
       title: anime.anime_title,
       photo_cover: anime.anime_photo_cover,
       type: anime.anime_type,
+      slug: anime.anime_slug,
       avgRating: parseFloat(anime.avg_rating).toFixed(1),
     }));
   }
@@ -465,6 +468,7 @@ export class AnimeService {
             id: anime.id,
             photo_cover: anime.photo_cover,
             type: anime.type,
+            slug: anime.slug,
             total_reviews: totalReviews,
             avgRating: avgRatingAnime.toFixed(1), // Rata-rata rating biasa
             weighted_rating: weightedRating.toFixed(1), // Weighted Rating (WR)

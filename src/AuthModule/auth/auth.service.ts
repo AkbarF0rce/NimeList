@@ -21,6 +21,7 @@ export class AuthService {
 
     if (user && (await bcrypt.compareSync(password, user.password))) {
       const { password, ...result } = user;
+      console.log(result);
       return result;
     }
     return null;
@@ -33,6 +34,7 @@ export class AuthService {
       email: user.email,
       userId: user.id,
       role: user.role,
+      name: user.name
     };
     return this.generateToken(payload);
   }
@@ -44,6 +46,7 @@ export class AuthService {
       username: user.username,
       role: user.role,
       email: user.email,
+      name: user.name
     };
 
     const access_token = this.jwtService.sign(payload);
@@ -68,6 +71,7 @@ export class AuthService {
       userId: register.id,
       role: register.role,
       email: register.email,
+      name: register.name
     };
     return this.generateToken(payload);
   }
@@ -79,36 +83,5 @@ export class AuthService {
 
   isTokenBlacklisted(token: string): boolean {
     return this.blacklistedTokens.has(token);
-  }
-
-  async generateResetToken(): Promise<string> {
-    // Generate 6 digit random numeric token
-    return Math.floor(100000 + Math.random() * 900000).toString(); // 6 angka
-  }
-
-  async hashToken(token: string): Promise<string> {
-    // Hash the token for secure storage
-    const saltRounds = 10;
-    return bcrypt.hash(token, saltRounds);
-  }
-
-  async validateToken(token: string, hashedToken: string): Promise<boolean> {
-    // Compare token input dengan hash yang disimpan
-    return bcrypt.compare(token, hashedToken);
-  }
-
-  async generateTokenResetPassword(email: string) {
-    const user = await this.usersService.findByEmail(email);
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const token = await this.generateResetToken();
-    const hashedToken = await this.hashToken(token);
-
-    await this.usersService.updateResetToken(user.id, hashedToken);
-
-    return { message: 'Reset token sent to email' };
   }
 }

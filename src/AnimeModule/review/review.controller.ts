@@ -93,8 +93,15 @@ export class ReviewController {
     return await this.reviewService.getReviewById(id);
   }
 
-  @Get('anime-reviewed/:id')
-  async getAnimeReviewed(@Param('id') id: string) {
-    return await this.reviewService.getAnimeReviewed(id);
+  @Get('anime-reviewed')
+  @UseGuards(JwtAuthGuard)
+  async getAnimeReviewed(@Request() req) {
+    return await this.reviewService.getAnimeReviewed(req.user.userId);
+  }
+
+  @Get('user-rating')
+  @UseGuards(JwtAuthGuard)
+  async getUserRating(@Request() req, @Query('id_anime') id_anime: string) {
+    return await this.reviewService.getUserRating(req.user.userId, id_anime);
   }
 }

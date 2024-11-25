@@ -8,5 +8,6 @@ import { FavoriteAnime } from './entities/favorite_anime.entity';
   controllers: [FavoriteAnimeController],
   providers: [FavoriteAnimeService],
   imports: [TypeOrmModule.forFeature([FavoriteAnime])],
+  exports: [FavoriteAnimeService],
 })
 export class FavoriteAnimeModule {}

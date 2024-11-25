@@ -10,8 +10,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Review } from './entities/review.entity';
 import { Repository } from 'typeorm';
 import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
-import { User } from 'src/UserModule/user/entities/user.entity';
+import { status_premium, User } from 'src/UserModule/user/entities/user.entity';
 import { parse } from 'path';
+import { status } from 'src/TransactionModule/transaction/entities/transaction.entity';
 
 @Injectable()
 export class ReviewService {
@@ -206,6 +207,7 @@ export class ReviewService {
         review: true,
         user: {
           username: true,
+          status_premium: true,
         },
         created_at: true,
         updated_at: true,
@@ -218,10 +220,24 @@ export class ReviewService {
         username: review.user.username,
         review: review.review,
         rating: review.rating,
+        status_premium: review.user.status_premium,
         created_at: review.created_at,
         updated_at: review.updated_at,
       })),
       total,
     };
+  }
+
+  async totalReviewsByUser(id: string) {
+    return await this.reviewRepository.count({ where: { id_user: id } });
+  }
+
+  async getUserRating(id_user: string, id_anime: string) {
+    const rating = await this.reviewRepository.findOne({
+      where: { id_user: id_user, id_anime: id_anime },
+      select: ['rating'],
+    });
+
+    return Number(rating.rating);
   }
 }

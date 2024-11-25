@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -343,5 +347,9 @@ export class TopicService {
       data: topics,
       total,
     };
+  }
+
+  async totalTopicsByUser(id: string) {
+    return await this.topicRepository.count({ where: { id_user: id } });
   }
 }

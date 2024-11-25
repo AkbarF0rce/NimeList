@@ -13,6 +13,9 @@ import { Transaction } from 'src/TransactionModule/transaction/entities/transact
 import { AuthModule } from '../../AuthModule/auth/auth.module';
 import { PhotoProfileModule } from '../photo_profile/photo_profile.module';
 import { JwtModule } from '@nestjs/jwt';
+import { TopicModule } from 'src/TopicModule/topic/topic.module';
+import { ReviewModule } from 'src/AnimeModule/review/review.module';
+import { FavoriteAnimeModule } from 'src/AnimeModule/favorite_anime/favorite_anime.module';
 
 @Module({
   controllers: [UserController],
@@ -30,6 +33,9 @@ import { JwtModule } from '@nestjs/jwt';
     ]),
     PhotoProfileModule,
     JwtModule,
+    // TopicModule,
+    // ReviewModule,
+    // FavoriteAnimeModule,
   ],
   exports: [UserService],
 })

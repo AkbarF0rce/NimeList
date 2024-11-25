@@ -19,18 +19,21 @@ export class FavoriteAnimeService {
       throw new Error('data not created');
     }
 
+    await this.favoriteAnimeRepository.save(create);
+
     return {
+      status: 200,
       message: 'data created',
-      data: await this.favoriteAnimeRepository.save(create),
     };
   }
 
-  async deleteFav(id: string) {
-    // Hapus data like berdasarkan id
-    await this.favoriteAnimeRepository.softDelete(id);
+  async deleteFav(id_user: string, id_anime: string) {
+    // Hapus data like berdasarkan id user
+    await this.favoriteAnimeRepository.delete({ id_user, id_anime });
 
     // Tampilkan pesan data berhasil di hapus
     return {
+      status: 200,
       message: 'data deleted',
     };
   }
@@ -43,5 +46,29 @@ export class FavoriteAnimeService {
     return {
       message: 'data restored',
     };
+  }
+
+  async totalFavsByUser(id: string) {
+    return await this.favoriteAnimeRepository.count({
+      where: { id_user: id },
+    });
+  }
+
+  async userFavorites(id: string) {
+    const get = await this.favoriteAnimeRepository.find({
+      where: { id_user: id },
+    });
+
+    return get.map((get) => get.id_anime);
+  }
+
+  async byUserAndAnime(id_user: string, id_anime: string) {
+    const get = await this.favoriteAnimeRepository.findOne({
+      where: { id_user, id_anime },
+    });
+
+    if (get) {
+      return true;
+    }
   }
 }

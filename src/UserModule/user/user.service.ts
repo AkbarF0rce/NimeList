@@ -13,7 +13,11 @@ import { v4 } from 'uuid';
 import { Role } from 'src/UserModule/role/entities/role.entity';
 import { PhotoProfileService } from '../photo_profile/photo_profile.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { TopicService } from 'src/TopicModule/topic/topic.service';
+import { ReviewService } from 'src/AnimeModule/review/review.service';
+import { FavoriteAnimeService } from 'src/AnimeModule/favorite_anime/favorite_anime.service';
 
 @Injectable()
 export class UserService {
@@ -23,7 +27,9 @@ export class UserService {
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
     private readonly photoProfileService: PhotoProfileService,
-    private readonly jwtService: JwtService,
+    // private readonly topicService: TopicService,
+    // private readonly reviewService: ReviewService,
+    // private readonly favoriteAnimeService: FavoriteAnimeService,
   ) {}
   async create(createUserDto: CreateUserDto) {
     // Mencari role user
@@ -63,6 +69,7 @@ export class UserService {
       email: user.email,
       salt: user.salt,
       id: user.id,
+      name: user.name,
     };
   }
 
@@ -91,7 +98,7 @@ export class UserService {
 
   async findOneByUsername(username: string) {
     const user = await this.userRepository.findOne({
-      select: ['salt', 'username', 'password', 'email', 'role', 'id'],
+      select: ['username', 'password', 'email', 'role', 'id', 'name'],
       where: { username: username },
       relations: ['role'],
     });
@@ -106,6 +113,7 @@ export class UserService {
       password: user.password,
       email: user.email,
       role: user.role.name,
+      name: user.name,
     };
   }
 
@@ -139,13 +147,14 @@ export class UserService {
   async getProfile(name: string) {
     const data = await this.userRepository.findOne({
       where: { username: name },
-      select: ['username', 'email', 'bio', 'badge'],
+      select: ['username', 'email', 'bio', 'badge', 'id', 'name'],
     });
     const photo = await this.photoProfileService.getPhoto(data.id);
 
     return {
       username: data.username,
       email: data.email,
+      name: data.name,
       photo_profile: photo,
       bio: data.bio,
       badge: data.badge,
@@ -155,7 +164,7 @@ export class UserService {
   async getProfileForEdit(name: string, user: any) {
     const data = await this.userRepository.findOne({
       where: { username: name },
-      select: ['username', 'bio', 'id'],
+      select: ['username', 'bio', 'id', 'name'],
     });
 
     if (user.userId !== data.id) {
@@ -168,7 +177,42 @@ export class UserService {
       username: data.username,
       photo_profile: photo,
       bio: data.bio,
+      name: data.name,
     };
+  }
+
+  async updatePassword(id: string, password: string) {
+    const get = await this.userRepository.findOne({
+      where: { id: id },
+      select: ['salt', 'password'],
+    });
+
+    if (!bcrypt.compare(password, get.password)) {
+      return {
+        status: 400,
+        message: 'Password salah',
+      };
+    }
+
+    await this.userRepository.update({ id: id }, { password: password });
+  }
+
+  async update(id: string, body: UpdateUserDto) {
+    const user = await this.userRepository.findOne({
+      select: ['username'],
+      where: { id: id },
+    });
+
+    const existingUsername = await this.userRepository.findOne({
+      select: ['username'],
+      where: { username: body.username },
+    });
+
+    if (user.username !== body.username && existingUsername) {
+      throw new ConflictException('Username already exists');
+    }
+
+    await this.userRepository.update({ id: id }, body);
   }
 
   async updateProfile(
@@ -176,7 +220,7 @@ export class UserService {
     body: UpdateUserDto,
     photo?: Express.Multer.File,
   ) {
-    await this.userRepository.update({ id: id }, body);
+    await this.update(id, body);
 
     if (photo) {
       await this.photoProfileService.create(id, photo);
@@ -214,9 +258,5 @@ export class UserService {
     });
 
     return user;
-  }
-
-  async updateResetToken(id: string, token: string) {
-    await this.userRepository.update(id, { reset_token: token });
   }
 }

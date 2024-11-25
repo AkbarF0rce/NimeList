@@ -102,6 +102,12 @@ export class UserController {
     );
   }
 
+  @Put('update-password')
+  @UseGuards(JwtAuthGuard)
+  async updatePassword(@Request() req, @Body('password') password: string) {
+    return await this.userService.updatePassword(req.user.userId, password);
+  }
+
   @Get('check-premium')
   @UseGuards(JwtAuthGuard)
   async getCheckPremium(@Request() req) {

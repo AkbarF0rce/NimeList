@@ -8,8 +8,8 @@ import {
 
 export class CreateUserDto {
   @IsNotEmpty()
-  @MinLength(3)
-  @MaxLength(20)
+  @MinLength(3, { message: 'username must be at least 3 characters' })
+  @MaxLength(20, { message: 'username must be at most 20 characters' })
   username: string;
 
   @MinLength(6)
@@ -24,4 +24,9 @@ export class CreateUserDto {
   @IsEmail()
   @MaxLength(50)
   email: string;
+
+  @IsNotEmpty()
+  @MinLength(3, { message: 'name must be at least 3 characters' })
+  @MaxLength(20, { message: 'name must be at most 20 characters' })
+  name: string;
 }

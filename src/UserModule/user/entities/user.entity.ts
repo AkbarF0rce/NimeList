@@ -39,19 +39,22 @@ export class User {
   @Column('text')
   id_role: string;
 
-  @Column('varchar', { length: 255, unique: true })
+  @Column('varchar', { length: 20, unique: true })
   username: string;
+
+  @Column('varchar', { length: 20 })
+  name: string;
 
   @Column('text', { unique: true })
   password: string;
 
-  @Column('varchar', { length: 255, unique: true })
+  @Column('varchar', { length: 50, unique: true })
   email: string;
 
   @Column('uuid')
   salt: string;
 
-  @Column('text', { nullable: true, default: null })
+  @Column('varchar', { nullable: true, default: null, length: 250 })
   bio: string;
 
   @Column('enum', { enum: status_premium, default: status_premium.INACTIVE })
@@ -65,9 +68,6 @@ export class User {
 
   @Column('timestamp', { nullable: true, default: null })
   end_premium: Date;
-
-  @Column('text', { nullable: true, default: null })
-  reset_token: string;
 
   @CreateDateColumn()
   created_at: Date;
