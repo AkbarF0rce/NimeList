@@ -22,18 +22,15 @@ export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Post('create')
-  @UseGuards(JwtAuthGuard)
-  async createTransaction(@Body() body: CreateTransactionDto) {
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  async createTransaction(@Req() req, @Body() body: CreateTransactionDto) {
+    body.id_user = req.user.userId;
     const { id_user, id_premium } = body;
 
-    if (!id_user || !id_premium) {
-      throw new HttpException(
-        'userId and membershipId are required',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
     const { token, redirect_url } =
       await this.transactionService.createMidtransToken(id_user, id_premium);
+      
     return { token, redirect_url };
   }
 

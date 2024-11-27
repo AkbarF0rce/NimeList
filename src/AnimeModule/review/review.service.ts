@@ -63,24 +63,21 @@ export class ReviewService {
   }
 
   async deleteReview(id: string, userId: string, role: string) {
-    if (role === 'user') {
-      if (userId !== id) {
-        throw new Error('you are not allowed to delete this data');
-      }
+    const review = await this.reviewRepository.findOne({
+      where: { id: id },
+      select: ['id_user'],
+    });
 
-      return await this.reviewRepository.delete(id);
+    // Cek apakah user memiliki akses untuk menghapus data
+    if (role === 'user' && review.id_user !== userId) {
+      throw new Error('you are not allowed to delete this data');
     }
 
-    return await this.reviewRepository.delete(id);
-  }
+    await this.reviewRepository.delete(id);
 
-  async restoreReview(id: string) {
-    // Restore data berdasarkan id
-    await this.reviewRepository.restore({ id });
-
-    // Tampilkan pesan data berhasil di restore
     return {
-      message: 'data restored',
+      message: 'data successfully deleted',
+      status: 200,
     };
   }
 
@@ -213,6 +210,7 @@ export class ReviewService {
         created_at: true,
         updated_at: true,
       },
+      order: { created_at: 'DESC' },
     });
 
     return {

@@ -50,11 +50,6 @@ export class ReviewController {
     return await this.reviewService.updateReview(id, updateReviewDto);
   }
 
-  @Put('restore/:id')
-  async restore(@Param('id') id: string) {
-    return await this.reviewService.restoreReview(id);
-  }
-
   @Delete('delete/:id')
   @UseGuards(JwtAuthGuard)
   async delete(@Param('id') id: string, @Request() req) {

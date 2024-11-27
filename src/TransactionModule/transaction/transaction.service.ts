@@ -167,7 +167,10 @@ export class TransactionService {
       // Update user berdasarkan data transaksi
       await this.updateUser(transaction.id_user, transaction.id_premium);
 
-      return { message: 'Transaction and user updated successfully' };
+      return {
+        message: 'Transaction and user updated successfully',
+        status: 200,
+      };
     } else if (transaction_status === 'pending') {
       const data: any = {
         order_id: order_id,
@@ -270,7 +273,7 @@ export class TransactionService {
       where: { id: id },
       relations: ['user', 'premium'],
     });
-    
+
     if (user.role === 'user' && user.userId !== transaction.user.id) {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }

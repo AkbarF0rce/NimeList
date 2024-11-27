@@ -34,9 +34,9 @@ export class GenreController {
     return await this.genreService.deleteGenre(id);
   }
 
-  @Get('get/:id')
-  async getOneGenre(@Param('id') id: string) {
-    return await this.genreService.getById(id);
+  @Get('get-all')
+  async getAll() {
+    return await this.genreService.getAll();
   }
 
   @Put('update/:id')
@@ -57,6 +57,6 @@ export class GenreController {
     @Query('limit') limit: number,
     @Query('search') search: string,
   ) {
-    return await this.genreService.getAllGenre(page, limit, search);
+    return await this.genreService.getAdmin(page, limit, search);
   }
 }

@@ -140,7 +140,7 @@ export class AnimeController {
     const updatedAnime = await this.animeService.updateAnime(
       animeId,
       updateAnimeDto,
-      genres,
+      genres || [],
       files.photos_anime || [],
       files?.photo_cover?.[0],
       existingPhotosString,
@@ -195,32 +195,5 @@ export class AnimeController {
   @Get('get-most-popular')
   async getMostPopular() {
     return await this.animeService.getMostPopular();
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('favorite-user')
-  async getFavoriteAnime(@Request() req) {
-    return await this.animeService.getFavoriteAnimeByUserLogin(req.user.userId);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('add-favorite-by-user')
-  async addFavoriteAnime(@Request() req, @Body('id_anime') id_anime: string) {
-    return await this.animeService.addFavoriteAnimeByUserLogin(
-      req.user.userId,
-      id_anime,
-    );
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Delete('delete-favorite-by-user/:id_anime')
-  async deleteFavoriteAnime(
-    @Request() req,
-    @Param('id_anime') id_anime: string,
-  ) {
-    return await this.animeService.deleteFavoriteAnimeByUserLogin(
-      req.user.userId,
-      id_anime,
-    );
   }
 }

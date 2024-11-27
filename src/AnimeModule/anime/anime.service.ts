@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, ILike, Repository } from 'typeorm';
 import { Anime } from './entities/anime.entity';
@@ -249,6 +249,14 @@ export class AnimeService {
     const photoDeleted = await this.photoRepository.softDelete({
       id_anime: animeId,
     });
+
+    // Tampilkan pesan jika data berhasil dihapus
+    if (deleted && photoDeleted) {
+      return {
+        status: 200,
+        message: 'data deleted',
+      }
+    }
   }
 
   async getAllAnimeAdmin(
@@ -505,32 +513,5 @@ export class AnimeService {
 
   async getAllGenre() {
     return await this.genreRepository.find();
-  }
-
-  async getFavoriteAnimeByUserLogin(id: string) {
-    const favoriteAnimes = await this.favoriteAnimeRepository.find({
-      where: { id_user: id },
-      select: ['id_anime'],
-    });
-
-    return favoriteAnimes;
-  }
-
-  async addFavoriteAnimeByUserLogin(id_user: string, id_anime: string) {
-    const favoriteAnimes = await this.favoriteAnimeRepository.save({
-      id_anime: id_anime,
-      id_user: id_user,
-    });
-
-    return favoriteAnimes;
-  }
-
-  async deleteFavoriteAnimeByUserLogin(id_user: string, id_anime: string) {
-    const favoriteAnimes = await this.favoriteAnimeRepository.delete({
-      id_user: id_user,
-      id_anime: id_anime,
-    });
-
-    return favoriteAnimes;
   }
 }

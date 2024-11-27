@@ -39,7 +39,11 @@ export class GenreService {
     return get;
   }
 
-  async getAllGenre(page: number = 1, limit: number = 10, search: string = '') {
+  async getAll() {
+    return await this.genreRepository.find();
+  }
+
+  async getAdmin(page: number = 1, limit: number = 10, search: string = '') {
     const [data, total] = await this.genreRepository.findAndCount({
       where: { name: ILike(`%${search}%`) },
       skip: (page - 1) * limit,
