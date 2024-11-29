@@ -1,4 +1,10 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, ILike, Repository } from 'typeorm';
 import { Anime } from './entities/anime.entity';
@@ -30,10 +36,6 @@ export class AnimeService {
     private genreRepository: Repository<Genre>,
     @InjectRepository(PhotoAnime)
     private photoRepository: Repository<PhotoAnime>,
-    @InjectRepository(Review)
-    private reviewRepository: Repository<Review>,
-    @InjectRepository(Topic)
-    private topicRepository: Repository<Topic>,
     @InjectRepository(FavoriteAnime)
     private favoriteAnimeRepository: Repository<FavoriteAnime>,
     private readonly reviewService: ReviewService,
@@ -77,7 +79,12 @@ export class AnimeService {
       genres: genreEntities,
       slug: slugify(title, { lower: true, strict: true }),
     });
-    await this.animeRepository.save(anime);
+
+    const save = await this.animeRepository.save(anime);
+
+    if (!save) {
+      throw new BadRequestException('data not created');
+    }
 
     // Save photos if available
     if (files && files.length > 0) {
@@ -90,10 +97,7 @@ export class AnimeService {
       }
     }
 
-    return {
-      status: 201,
-      message: 'Data created',
-    };
+    throw new HttpException('data created', 201);
   }
 
   // Fungsi untuk Menghitung hash SHA-256 dari isi file
@@ -109,16 +113,16 @@ export class AnimeService {
 
   async updateAnime(
     animeId: string,
-    updateAnimeDto: UpdateAnimeDto, // Data anime yang ingin diupdate
-    genres: [], // ID genre baru yang ingin dihubungkan dengan anime ini
+    updateAnimeDto: UpdateAnimeDto,
+    genres: [],
     photo_anime: Express.Multer.File[],
-    photo_cover: Express.Multer.File, // File cover baru yang di-upload
+    photo_cover: Express.Multer.File,
     existing_photos: string[],
   ) {
     // Cari anime berdasarkan ID
     const anime = await this.animeRepository.findOne({
       where: { id: animeId },
-      relations: ['genres', 'photos'], // Ambil relasi genre dan photo saat ini
+      relations: ['genres', 'photos'],
     });
 
     if (!anime) {
@@ -132,6 +136,9 @@ export class AnimeService {
       });
     }
 
+    // Update informasi dasar anime
+    Object.assign(anime, updateAnimeDto);
+
     if (photo_cover) {
       const fileHash = this.calculateFileHash(photo_cover.path);
       const existingHash = this.calculateFileHash(anime.photo_cover);
@@ -140,69 +147,74 @@ export class AnimeService {
         // Hapus file cover lama di sistem
         const Path = join(process.cwd(), anime.photo_cover);
         try {
-          await unlink(Path); // Hapus file cover lama dari sistem
+          await unlink(Path);
         } catch (err) {
-          console.error('Error hapus data file foto: ', err);
+          throw new InternalServerErrorException(
+            'Error hapus data file foto cover',
+          );
         }
 
         // Ubah path cover dengan path yang baru
         anime.photo_cover = photo_cover.path;
-        console.log(photo_cover.path);
-      } else {
-        fs.unlinkSync(photo_cover.path);
       }
+
+      // Hapus file baru yang tidak diperlukan
+      fs.unlinkSync(photo_cover.path);
     }
 
-    // Update informasi dasar anime
-    Object.assign(anime, updateAnimeDto);
+    // Jika ada genre yang diberikan
+    if (genres.length > 0) {
+      const genreEntities = await this.genreRepository.find({
+        where: { id: In(genres) },
+      });
 
-    const genreEntities = await this.genreRepository.find({
-      where: { id: In(genres) },
-    });
+      if (genreEntities.length !== genres.length) {
+        throw new NotFoundException('Satu atau lebih genre tidak ditemukan');
+      }
 
-    if (genreEntities.length !== genres.length) {
-      throw new NotFoundException('Satu atau lebih genre tidak ditemukan');
+      anime.genres = genreEntities;
     }
 
-    // Update genre
-    anime.genres = genreEntities;
     // Save anime
     const save = await this.animeRepository.save(anime);
 
-    if (save) {
-      // Identifikasi dan hapus foto lama yang tidak ada di file baru
-      for (const photo of anime.photos) {
-        const oldFilePath = join(process.cwd(), photo.file_path);
+    if (!save) {
+      throw new BadRequestException('data not updated');
+    }
 
-        // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
-        if (!existing_photos.includes(photo.file_path)) {
-          try {
-            await unlink(oldFilePath); // Hapus file lama dari sistem
-          } catch (err) {
-            console.error('Error deleting old photo file:', err);
-          }
-          await this.photoRepository.remove(photo); // Hapus data foto lama dari database
+    // Identifikasi dan hapus foto lama yang tidak ada di file baru
+    for (const photo of anime.photos) {
+      const oldFilePath = join(process.cwd(), photo.file_path);
+
+      // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
+      if (!existing_photos.includes(photo.file_path)) {
+        try {
+          await unlink(oldFilePath);
+        } catch (err) {
+          throw new InternalServerErrorException(
+            'Error hapus data file foto anime',
+          );
         }
-      }
 
-      if (photo_anime && photo_anime.length > 0) {
-        // Simpan path dan file foto baru yang belum ada di database
-        const newPhotos = photo_anime
-          .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
-          .map(async (file) => {
-            const photo = this.photoRepository.create({
-              file_path: file.path,
-              anime,
-            });
-            await this.photoRepository.save(photo);
-          });
+        // Hapus foto dari database
+        await this.photoRepository.delete(photo.id);
       }
     }
 
-    return {
-      status: 200,
-      message: 'Data updated',
-    };
+    if (photo_anime && photo_anime.length > 0) {
+      // Simpan path dan file foto baru yang belum ada di database
+      const newPhotos = photo_anime
+        .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
+        .map(async (file) => {
+          const photo = this.photoRepository.create({
+            file_path: file.path,
+            id_anime: anime.id,
+          });
+          await this.photoRepository.save(photo);
+        });
+    }
+
+    throw new HttpException('data updated', 200);
   }
 
   async getAnimeBySlug(slug: string) {
@@ -251,12 +263,11 @@ export class AnimeService {
     });
 
     // Tampilkan pesan jika data berhasil dihapus
-    if (deleted && photoDeleted) {
-      return {
-        status: 200,
-        message: 'data deleted',
-      }
+    if (!deleted && !photoDeleted) {
+      throw new BadRequestException('data not deleted');
     }
+
+    throw new HttpException('data deleted', 200);
   }
 
   async getAllAnimeAdmin(
@@ -352,7 +363,7 @@ export class AnimeService {
         'anime.slug',
       ])
       .addSelect('COALESCE(AVG(review.rating), 0)', 'averageRating')
-      .where('genre.name = :name', { name }) // Menyaring anime berdasarkan id genre
+      .where('genre.name = :name', { name }) // Menyaring anime berdasarkan nama genre
       .groupBy('anime.id')
       .getRawMany();
 
@@ -509,9 +520,5 @@ export class AnimeService {
 
     // Tampilkan hasil query
     return data;
-  }
-
-  async getAllGenre() {
-    return await this.genreRepository.find();
   }
 }

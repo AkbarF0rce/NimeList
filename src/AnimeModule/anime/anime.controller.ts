@@ -142,7 +142,7 @@ export class AnimeController {
       updateAnimeDto,
       genres || [],
       files.photos_anime || [],
-      files?.photo_cover?.[0],
+      files?.photo_cover?.[0] || null,
       existingPhotosString,
     );
 
@@ -185,11 +185,6 @@ export class AnimeController {
   @Get('recommended')
   async getRecommendedAnime() {
     return await this.animeService.getRecommended();
-  }
-
-  @Get('get-all-genre')
-  async getAllGenre() {
-    return await this.animeService.getAllGenre();
   }
 
   @Get('get-most-popular')

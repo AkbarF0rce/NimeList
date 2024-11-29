@@ -20,5 +20,6 @@ import { Premium } from 'src/TransactionModule/premium/entities/premium.entity';
   ],
   providers: [TransactionService],
   controllers: [TransactionController],
+  exports: [TransactionService],
 })
 export class TransactionModule {}

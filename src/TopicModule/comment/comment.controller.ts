@@ -26,7 +26,8 @@ export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
   @Post('post')
-  async create(@Body() data: CreateCommentDto) {
+  async create(@Body() data: CreateCommentDto, @Request() req) {
+    data.id_user = req.user.userId;
     return await this.commentService.createComment(data);
   }
 
@@ -40,11 +41,6 @@ export class CommentController {
   @Delete('delete/:id')
   async delete(@Param('id') id: string, @Request() req) {
     return await this.commentService.deleteComment(id,  req.user);
-  }
-
-  @Put('restore/:id')
-  async restore(@Param('id') id: string) {
-    return await this.commentService.restoreComment(id);
   }
 
   @Get('get-admin')
@@ -61,17 +57,5 @@ export class CommentController {
   @Get('get/:id')
   async getCommentById(@Param('id') id: string) {
     return await this.commentService.getCommentById(id);
-  }
-
-  @Get('get-all-user')
-  @UseGuards(RolesGuard)
-  @Roles('admin')
-  async getAllUser() {
-    return await this.commentService.getAllUser();
-  }
-
-  @Get('get-all-topic')
-  async getAllTopic() {
-    return await this.commentService.getAllTopic();
   }
 }

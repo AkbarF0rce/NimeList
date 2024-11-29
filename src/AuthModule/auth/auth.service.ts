@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -8,6 +8,7 @@ import { UserService } from 'src/UserModule/user/user.service';
 @Injectable()
 export class AuthService {
   private blacklistedTokens: Set<string> = new Set();
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UserService, // Uncomment this when you implement UsersService
@@ -15,13 +16,12 @@ export class AuthService {
   ) {}
 
   // Fungsi untuk validasi user
-  async validateUser(username: string, password: string): Promise<any> {
-    // Mencari user berdasarkan username
-    const user = await this.usersService.findOneByUsername(username);
+  async validateUser(email: string, password: string): Promise<any> {
+    // Mencari user berdasarkan email
+    const user = await this.usersService.findOneByEmail(email);
 
     if (user && (await bcrypt.compareSync(password, user.password))) {
       const { password, ...result } = user;
-      console.log(result);
       return result;
     }
     return null;
@@ -34,9 +34,10 @@ export class AuthService {
       email: user.email,
       userId: user.id,
       role: user.role,
-      name: user.name
+      name: user.name,
     };
-    return this.generateToken(payload);
+
+    throw new HttpException(this.generateToken(payload), 200);
   }
 
   // Fungsi untuk generate token
@@ -46,7 +47,7 @@ export class AuthService {
       username: user.username,
       role: user.role,
       email: user.email,
-      name: user.name
+      name: user.name,
     };
 
     const access_token = this.jwtService.sign(payload);
@@ -71,14 +72,9 @@ export class AuthService {
       userId: register.id,
       role: register.role,
       email: register.email,
-      name: register.name
+      name: register.name,
     };
     return this.generateToken(payload);
-  }
-
-  async logout(token: string) {
-    const blacklisted = this.blacklistedTokens.add(token); // Tambahkan token ke daftar hitam
-    return { message: 'Successfully logged out', status: 200 };
   }
 
   isTokenBlacklisted(token: string): boolean {

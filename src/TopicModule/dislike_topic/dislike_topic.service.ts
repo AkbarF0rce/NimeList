@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateDislikeTopicDto } from './dto/create-dislike_topic.dto';
 import { DislikeTopic } from './entities/dislike_topic.entity';
 import { Repository } from 'typeorm';
@@ -14,15 +14,28 @@ export class DislikeTopicService {
   async createDislike(data: CreateDislikeTopicDto) {
     // Membuat data like berdasarkan data yang diterima
     const create = await this.dislikeTopicRepository.create(data);
-    await this.dislikeTopicRepository.save(create);
+    const saved = await this.dislikeTopicRepository.save(create);
+
+    if (!saved) {
+      throw new HttpException('data not created', 400);
+    }
+
+    throw new HttpException('data created', 201);
   }
 
-  async deleteDislike (id: string) {
-    // Hapus data like berdasarkan id
-    await this.dislikeTopicRepository.delete(id);
+  async deleteDislike(id_topic: string, id_user: string) {
+    const deleted = await this.dislikeTopicRepository.delete({
+      id_topic: id_topic,
+      id_user: id_user,
+    });
+
+    if (!deleted) {
+      throw new HttpException('data not deleted', 400);
+    }
 
     // Tampilkan pesan data berhasil di hapus
     return {
+      status: 200,
       message: 'data deleted',
     };
   }

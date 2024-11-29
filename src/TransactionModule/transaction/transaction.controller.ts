@@ -28,10 +28,13 @@ export class TransactionController {
     body.id_user = req.user.userId;
     const { id_user, id_premium } = body;
 
-    const { token, redirect_url } =
-      await this.transactionService.createMidtransToken(id_user, id_premium);
-      
-    return { token, redirect_url };
+    // const { token, redirect_url } =
+    //   await this.transactionService.createMidtransToken(id_user, id_premium);
+
+    return await this.transactionService.createMidtransToken(
+      id_user,
+      id_premium,
+    );
   }
 
   @Post('handle-notification-midtrans')
@@ -58,6 +61,13 @@ export class TransactionController {
       decodeURIComponent(premium),
       platform,
     );
+  }
+
+  @Get('get-by-user')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
+  async getTransactionByUser(@Request() req) {
+    return await this.transactionService.getTransactionByUser(req.user.userId);
   }
 
   @Get('get/:id')

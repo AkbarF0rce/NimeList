@@ -4,6 +4,8 @@ import {
   ExecutionContext,
   ForbiddenException,
   UnauthorizedException,
+  NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -28,17 +30,11 @@ export class PremiumGuard implements CanActivate {
       });
 
       // Check status premium dari userId yang ada di payload
-      const premium = await this.userService.getCheckPremium(payload.userId);
-
-      if (premium.status !== 200) {
-        throw new ForbiddenException(
-          'Akses ini hanya tersedia untuk pengguna berlangganan.',
-        );
-      }
-
-      return true;
+      return await this.userService.getCheckPremium(payload.userId);
     } catch (error) {
-      throw new UnauthorizedException('Token tidak valid.');
+      throw error instanceof BadRequestException
+        ? error
+        : new UnauthorizedException('Token tidak valid.');
     }
   }
 }

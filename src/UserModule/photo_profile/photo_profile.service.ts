@@ -12,6 +12,7 @@ export class PhotoProfileService {
     @InjectRepository(PhotoProfile)
     private photoProfileRepository: Repository<PhotoProfile>,
   ) {}
+
   async create(id_user: string, photo: Express.Multer.File) {
     const find = await this.photoProfileRepository.findOne({
       where: { id_user: id_user },
@@ -20,6 +21,7 @@ export class PhotoProfileService {
     if (find) {
       this.updatePhotoIfExist(id_user, photo.path, find.path_photo);
     }
+    
     const create = this.photoProfileRepository.create({
       id_user: id_user,
       path_photo: photo.path,

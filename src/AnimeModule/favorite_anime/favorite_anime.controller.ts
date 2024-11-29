@@ -26,14 +26,10 @@ export class FavoriteAnimeController {
     return this.favoriteAnimeService.createFav(data);
   }
 
-  @Put('restore/:id')
-  async restore(@Param('id') id: string) {
-    return this.favoriteAnimeService.restoreFav(id);
-  }
-
-  @Delete('delete/:id_anime')
+  @Delete('delete')
   @UseGuards(JwtAuthGuard)
-  async delete(@Request() req, @Param('id_anime') id_anime: string) {
+  async delete(@Request() req, @Body('id_anime') id_anime: string) {
+    console.log(req.user.userId);
     return this.favoriteAnimeService.deleteFav(req.user.userId, id_anime);
   }
 
@@ -41,11 +37,5 @@ export class FavoriteAnimeController {
   @UseGuards(JwtAuthGuard)
   async userFavorites(@Request() req) {
     return this.favoriteAnimeService.userFavorites(req.user.userId);
-  }
-
-  @Get('by-user-and-anime/:id_anime')
-  @UseGuards(JwtAuthGuard)
-  async byUserAndAnime(@Request() req, @Param('id_anime') id_anime: string) {
-    return this.favoriteAnimeService.byUserAndAnime(req.user.userId, id_anime);
   }
 }

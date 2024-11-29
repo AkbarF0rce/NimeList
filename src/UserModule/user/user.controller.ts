@@ -14,6 +14,7 @@ import {
   HttpStatus,
   Request,
   Req,
+  Delete,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../../AuthModule/auth/guards/jwt-auth.guard';
@@ -25,10 +26,14 @@ import { diskStorage } from 'multer';
 import { v4 } from 'uuid';
 import { extname } from 'path';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   @Get('get-admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -49,15 +54,9 @@ export class UserController {
     return await this.userService.refreshUsers();
   }
 
-  @Get('profile/:name')
-  async getProfile(@Param('name') name: string) {
-    return await this.userService.getProfile(name);
-  }
-
-  @Get('profile-for-edit/:name')
-  @UseGuards(JwtAuthGuard)
-  async getProfileForEdit(@Param('name') name: string, @Request() req) {
-    return await this.userService.getProfileForEdit(name, req.user);
+  @Get('profile/:username')
+  async getProfile(@Param('username') username: string) {
+    return await this.userService.getProfile(username);
   }
 
   @Put('update-profile')
@@ -95,22 +94,30 @@ export class UserController {
       photo_profile?: Express.Multer.File;
     },
   ) {
+    console.log(files);
     return await this.userService.updateProfile(
       req.user.userId,
       body,
-      files.photo_profile?.[0],
+      files.photo_profile?.[0] || null,
     );
   }
 
-  @Put('update-password')
+  @Delete('delete-account')
   @UseGuards(JwtAuthGuard)
-  async updatePassword(@Request() req, @Body('password') password: string) {
-    return await this.userService.updatePassword(req.user.userId, password);
+  async deleteUser(@Request() req, @Body('password') password: string) {
+    return await this.userService.deleteUser(req.user.userId, password);
   }
 
   @Get('check-premium')
   @UseGuards(JwtAuthGuard)
   async getCheckPremium(@Request() req) {
     return await this.userService.getCheckPremium(req.user.userId);
+  }
+
+  @Get('detail/:username')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async getDetailUser(@Param('username') username: string) {
+    return await this.userService.getUserDetail(username);
   }
 }

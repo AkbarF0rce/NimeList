@@ -34,10 +34,4 @@ export class AuthController {
   async refreshAccessToken(@Body('token') token: string) {
     return this.authService.refreshToken(token);
   }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('logout')
-  async logout(@Body('token') token: string) {
-    return this.authService.logout(token);
-  }
 }

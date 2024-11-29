@@ -8,15 +8,15 @@ import { User } from 'src/UserModule/user/entities/user.entity';
 import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from 'src/UserModule/user/user.module';
-import { PremiumGuard } from 'src/AuthModule/auth/guards/isPremium.guard';
 
 @Module({
   controllers: [CommentController],
-  providers: [CommentService, PremiumGuard],
+  providers: [CommentService],
   imports: [
     TypeOrmModule.forFeature([Comment, LikeComment, User, Topic]),
     UserModule,
     JwtModule,
   ],
+  exports: [CommentService],
 })
 export class CommentModule {}

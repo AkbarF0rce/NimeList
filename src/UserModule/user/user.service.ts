@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   HttpStatus,
@@ -14,10 +15,11 @@ import { Role } from 'src/UserModule/role/entities/role.entity';
 import { PhotoProfileService } from '../photo_profile/photo_profile.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import { TopicService } from 'src/TopicModule/topic/topic.service';
-import { ReviewService } from 'src/AnimeModule/review/review.service';
-import { FavoriteAnimeService } from 'src/AnimeModule/favorite_anime/favorite_anime.service';
+import { Transaction } from 'src/TransactionModule/transaction/entities/transaction.entity';
+import { Review } from 'src/AnimeModule/review/entities/review.entity';
+import { FavoriteAnime } from 'src/AnimeModule/favorite_anime/entities/favorite_anime.entity';
+import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
+import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
 
 @Injectable()
 export class UserService {
@@ -26,10 +28,17 @@ export class UserService {
     private userRepository: Repository<User>,
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
+    @InjectRepository(Transaction)
+    private transactionRepository: Repository<Transaction>,
+    @InjectRepository(Review)
+    private reviewRepository: Repository<Review>,
+    @InjectRepository(FavoriteAnime)
+    private favoriteAnimeRepository: Repository<FavoriteAnime>,
+    @InjectRepository(Comment)
+    private commentRepository: Repository<Comment>,
+    @InjectRepository(Topic)
+    private topicRepository: Repository<Topic>,
     private readonly photoProfileService: PhotoProfileService,
-    // private readonly topicService: TopicService,
-    // private readonly reviewService: ReviewService,
-    // private readonly favoriteAnimeService: FavoriteAnimeService,
   ) {}
   async create(createUserDto: CreateUserDto) {
     // Mencari role user
@@ -96,10 +105,10 @@ export class UserService {
     };
   }
 
-  async findOneByUsername(username: string) {
+  async findOneByEmail(email: string) {
     const user = await this.userRepository.findOne({
       select: ['username', 'password', 'email', 'role', 'id', 'name'],
-      where: { username: username },
+      where: { email: email },
       relations: ['role'],
     });
 
@@ -144,16 +153,15 @@ export class UserService {
     );
   }
 
-  async getProfile(name: string) {
+  async getProfile(username: string) {
     const data = await this.userRepository.findOne({
-      where: { username: name },
-      select: ['username', 'email', 'bio', 'badge', 'id', 'name'],
+      where: { username },
+      select: ['username', 'bio', 'badge', 'id', 'name'],
     });
     const photo = await this.photoProfileService.getPhoto(data.id);
 
     return {
       username: data.username,
-      email: data.email,
       name: data.name,
       photo_profile: photo,
       bio: data.bio,
@@ -226,9 +234,79 @@ export class UserService {
       await this.photoProfileService.create(id, photo);
     }
 
+    throw new HttpException('data updated', 200);
+  }
+
+  async deleteUser(id: string, password: string) {
+    const get = await this.userRepository.findOne({
+      where: { id: id },
+      select: ['password', 'id'],
+    });
+
+    console.log({
+      get: get.id,
+      id: id,
+    });
+
+    if (get.id !== id) {
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
+
+    if (!bcrypt.compare(password, get.password)) {
+      throw new BadRequestException('wrong password');
+    }
+
+    const deleted = await this.userRepository.delete({ id: id });
+
+    if (!deleted) {
+      throw new BadRequestException('data not deleted');
+    }
+
+    throw new HttpException('data deleted', 200);
+  }
+
+  async getUserDetail(username: string) {
+    const user = await this.userRepository.findOne({
+      where: { username: username },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        bio: true,
+        badge: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const photo = await this.photoProfileService.getPhoto(user.id);
+    const totalReview = await this.reviewRepository.count({
+      where: { id_user: user.id },
+    });
+    const totalFav = await this.favoriteAnimeRepository.count({
+      where: { id_user: user.id },
+    });
+    const totalTopic = await this.topicRepository.count({
+      where: { id_user: user.id },
+    });
+    const totalComment = await this.commentRepository.count({
+      where: { id_user: user.id },
+    });
+    const totalTransaction = await this.transactionRepository.count({
+      where: { id_user: user.id },
+    });
+
     return {
-      status: 200,
-      message: 'Updated successfully',
+      ...user,
+      photo_profile: photo,
+      review_created: totalReview || 0,
+      favorite_anime: totalFav || 0,
+      topic_created: totalTopic || 0,
+      comment_created: totalComment || 0,
+      transaction_created: totalTransaction || 0,
     };
   }
 
@@ -237,26 +315,10 @@ export class UserService {
       where: { id: id, status_premium: status_premium.ACTIVE },
     });
 
-    if (!user) {
-      return {
-        status: 404,
-        message: 'User not found',
-      };
+    if (user === null) {
+      throw new BadRequestException('User not premium');
     }
 
-    return {
-      status: 200,
-      message: 'User found',
-    };
-  }
-
-  async findByEmail(email: string) {
-    const user = await this.userRepository.findOne({
-      select: ['salt', 'username', 'password', 'email', 'role', 'id'],
-      where: { email: email },
-      relations: ['role'],
-    });
-
-    return user;
+    return true;
   }
 }

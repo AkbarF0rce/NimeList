@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateFavoriteAnimeDto } from './dto/create-favorite_anime.dto';
 import { UpdateFavoriteAnimeDto } from './dto/update-favorite_anime.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -29,7 +29,20 @@ export class FavoriteAnimeService {
 
   async deleteFav(id_user: string, id_anime: string) {
     // Hapus data like berdasarkan id user
-    await this.favoriteAnimeRepository.delete({ id_user, id_anime });
+    const get = await this.favoriteAnimeRepository.findOne({
+      where: { id_anime: id_anime, id_user: id_user },
+      select: ['id_user', 'id'],
+    });
+
+    if (get.id_user !== id_user) {
+      throw new HttpException('you are not allowed to delete this data', 403);
+    }
+
+    const deleted = await this.favoriteAnimeRepository.delete(get.id);
+
+    if (!deleted) {
+      throw new HttpException('data not deleted', 400);
+    }
 
     // Tampilkan pesan data berhasil di hapus
     return {
@@ -38,37 +51,11 @@ export class FavoriteAnimeService {
     };
   }
 
-  async restoreFav(id: string) {
-    // Restore data like berdasarkan id
-    await this.favoriteAnimeRepository.restore(id);
-
-    // Tampilkan pesan data berhasil di restore
-    return {
-      message: 'data restored',
-    };
-  }
-
-  async totalFavsByUser(id: string) {
-    return await this.favoriteAnimeRepository.count({
-      where: { id_user: id },
-    });
-  }
-
   async userFavorites(id: string) {
     const get = await this.favoriteAnimeRepository.find({
       where: { id_user: id },
     });
 
     return get.map((get) => get.id_anime);
-  }
-
-  async byUserAndAnime(id_user: string, id_anime: string) {
-    const get = await this.favoriteAnimeRepository.findOne({
-      where: { id_user, id_anime },
-    });
-
-    if (get) {
-      return true;
-    }
   }
 }

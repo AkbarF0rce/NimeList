@@ -54,13 +54,12 @@ export class TopicController {
   async create(
     @Body() createTopicDto: CreateTopicDto,
     @UploadedFiles() files: { photos?: Express.Multer.File[] },
+    @Request() req,
   ) {
-    const sanitizedHtml = this.filterHtmlContent(createTopicDto.body);
+    createTopicDto.id_user = req.user.userId;
+    createTopicDto.body = this.filterHtmlContent(createTopicDto.body);
 
-    return this.topicService.createTopic(
-      { ...createTopicDto, body: sanitizedHtml },
-      files.photos,
-    );
+    return this.topicService.createTopic(createTopicDto, files.photos);
   }
 
   @Put('update/:id')
@@ -102,15 +101,21 @@ export class TopicController {
     updateTopicDto.id_user = req.user.userId;
     updateTopicDto.role = req.user.role;
 
-    return await this.topicService.update(
-      id,
-      updateTopicDto,
-    );
+    return await this.topicService.update(id, updateTopicDto);
   }
 
   @Delete('delete/:id')
   async delete(@Param('id') id: string, @Request() req) {
-    return await this.topicService.deleteTopic(id, req.user.userId, req.user.role);
+    return await this.topicService.deleteTopic(
+      id,
+      req.user.userId,
+      req.user.role,
+    );
+  }
+
+  @Get('get-all')
+  async getAll() {
+    return await this.topicService.getAll();
   }
 
   @Get('get/:slug')
@@ -127,16 +132,6 @@ export class TopicController {
     @Query('search') search: string = '',
   ) {
     return await this.topicService.getAllTopic(page, limit, search);
-  }
-
-  @Get('get-all-anime')
-  async getAllAnime() {
-    return await this.topicService.getAllAnime();
-  }
-
-  @Get('get-all-user')
-  async getAllUser() {
-    return await this.topicService.getAllUser();
   }
 
   // Fungsi untuk memfilter dan sanitasi HTML content

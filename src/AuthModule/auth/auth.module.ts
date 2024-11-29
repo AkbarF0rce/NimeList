@@ -17,7 +17,7 @@ import { PremiumGuard } from './guards/isPremium.guard';
       imports: [ConfigModule], // Impor ConfigModule untuk akses ConfigService
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'), // Mengambil JWT_SECRET dari .env
+        secret: configService.get<string>('JWT_SECRET'), // Mengambil JWT_SECRET dari .env
         signOptions: { expiresIn: '20m' }, // Atur waktu kedaluwarsa token
       }),
     }),

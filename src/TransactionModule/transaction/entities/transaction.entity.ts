@@ -37,6 +37,9 @@ export class Transaction {
   @Column('int')
   total: number;
 
+  @Column('text', { nullable: true })
+  token_midtrans: string;
+
   @Column('enum', { enum: status, default: status.PENDING })
   status: status;
 

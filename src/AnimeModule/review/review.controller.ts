@@ -24,15 +24,8 @@ export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
   @Post('post')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  async post(@Body() createReviewDto: CreateReviewDto) {
-    return await this.reviewService.createReview(createReviewDto);
-  }
-
-  @Post('create')
   @UseGuards(JwtAuthGuard)
-  async create(@Body() createReviewDto: CreateReviewDto, @Request() req) {
+  async post(@Body() createReviewDto: CreateReviewDto, @Request() req) {
     createReviewDto.id_user = req.user.userId;
     return await this.reviewService.createReview(createReviewDto);
   }
@@ -71,27 +64,9 @@ export class ReviewController {
     return await this.reviewService.getAllReview(page, limit, search);
   }
 
-  @Get('get-all-anime')
-  async getAllAnime() {
-    return await this.reviewService.getAllAnime();
-  }
-
-  @Get('get-all-user')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  async getAllUser() {
-    return await this.reviewService.getAllUser();
-  }
-
   @Get('get/:id')
   async get(@Param('id') id: string) {
     return await this.reviewService.getReviewById(id);
-  }
-
-  @Get('anime-reviewed')
-  @UseGuards(JwtAuthGuard)
-  async getAnimeReviewed(@Request() req) {
-    return await this.reviewService.getAnimeReviewed(req.user.userId);
   }
 
   @Get('user-rating')

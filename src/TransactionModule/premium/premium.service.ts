@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { CreatePremiumDto } from './dto/create-premium.dto';
 import { UpdatePremiumDto } from './dto/update-premium.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,11 +12,15 @@ export class PremiumService {
     private readonly premiumRepository: Repository<Premium>,
   ) {}
 
-  async createPremium(createPremiumDto: CreatePremiumDto) {
-    const premium = this.premiumRepository.create(createPremiumDto);
-
+  async createPremium(data: CreatePremiumDto) {
     // Save data ke database
-    await this.premiumRepository.save(premium);
+    const save = await this.premiumRepository.save(data);
+
+    if (!save) {
+      throw new BadRequestException('data not created');
+    }
+
+    throw new HttpException('data created', 201);
   }
 
   async findById(id: string) {
@@ -41,7 +45,12 @@ export class PremiumService {
 
   async deletePremium(id: string) {
     const premium = await this.premiumRepository.delete(id);
-    return premium;
+
+    if (!premium) {
+      throw new BadRequestException('data not deleted');
+    }
+
+    throw new HttpException('data deleted', 200);
   }
 
   async getPremiumEdit(id: string) {
@@ -54,9 +63,11 @@ export class PremiumService {
 
   async updatePremium(id: string, updatePremiumDto: UpdatePremiumDto) {
     const premium = await this.premiumRepository.update(id, updatePremiumDto);
-    return {
-      message: 'Premium updated successfully',
-      staus: 200,
+
+    if (!premium) {
+      throw new BadRequestException('data not updated');
     }
+
+    throw new HttpException('data updated', 200);
   }
 }

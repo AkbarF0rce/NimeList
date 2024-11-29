@@ -31,16 +31,13 @@ export class ReviewService {
       throw new BadRequestException('You have already reviewed this anime');
     }
 
-    const post = this.reviewRepository.create(data);
+    const post = this.reviewRepository.save(data);
 
     if (!post) {
-      throw new Error('data not created');
+      throw new BadRequestException('data not created');
     }
 
-    await this.reviewRepository.save(post);
-    return {
-      message: 'data created',
-    };
+    throw new HttpException('data created', 201);
   }
 
   async updateReview(id: string, data: UpdateReviewDto) {
@@ -51,15 +48,20 @@ export class ReviewService {
     });
     const { id_user, role, ...update } = data;
 
-    if (role === 'user') {
-      if (id_user !== review.id_user) {
-        throw new HttpException('you are not allowed to update this data', 403);
-      }
-
-      return await this.reviewRepository.update(id, update);
+    if (role === 'user' && id_user !== review.id_user) {
+      throw new HttpException('you are not allowed to update this data', 403);
     }
 
-    return await this.reviewRepository.update(id, update);
+    const updateReview = await this.reviewRepository.update(id, update);
+
+    if (!updateReview) {
+      throw new HttpException('data not updated', 400);
+    }
+
+    return {
+      message: 'data updated',
+      status: 200,
+    };
   }
 
   async deleteReview(id: string, userId: string, role: string) {
@@ -73,12 +75,13 @@ export class ReviewService {
       throw new Error('you are not allowed to delete this data');
     }
 
-    await this.reviewRepository.delete(id);
+    const deleted = await this.reviewRepository.delete(id);
 
-    return {
-      message: 'data successfully deleted',
-      status: 200,
-    };
+    if (!deleted) {
+      throw new BadRequestException('data not deleted');
+    }
+
+    throw new HttpException('data deleted', 200);
   }
 
   async getAllReview(page: number = 1, limit: number = 10, search?: string) {
@@ -228,15 +231,13 @@ export class ReviewService {
     };
   }
 
-  async totalReviewsByUser(id: string) {
-    return await this.reviewRepository.count({ where: { id_user: id } });
-  }
-
   async getUserRating(id_user: string, id_anime: string) {
     const rating = await this.reviewRepository.findOne({
       where: { id_user: id_user, id_anime: id_anime },
       select: ['rating'],
     });
+
+    if (!rating) return 0;
 
     return Number(rating.rating);
   }

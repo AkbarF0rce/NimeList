@@ -1,18 +1,30 @@
-import { Controller, Post, Body, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { DislikeTopicService } from './dislike_topic.service';
 import { CreateDislikeTopicDto } from './dto/create-dislike_topic.dto';
+import { PremiumGuard } from 'src/AuthModule/auth/guards/isPremium.guard';
+import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 
 @Controller('dislike-topic')
+@UseGuards(JwtAuthGuard, PremiumGuard)
 export class DislikeTopicController {
   constructor(private readonly dislikeTopicService: DislikeTopicService) {}
 
   @Post('post')
-  async create(@Body() createDislikeTopicDto: CreateDislikeTopicDto) {
-    return await this.dislikeTopicService.createDislike(createDislikeTopicDto);
+  async create(@Body() data: CreateDislikeTopicDto, @Request() req) {
+    data.id_user = req.user.userId;
+    return await this.dislikeTopicService.createDislike(data);
   }
 
-  @Delete('delete/:id')
-  async remove(@Param('id') id: string) {
-    return await this.dislikeTopicService.deleteDislike(id);
+  @Delete('delete')
+  async remove(@Body('id_topic') id_topic: string, @Request() req) {
+    return await this.dislikeTopicService.deleteDislike(id_topic, req.user.userId);
   }
 }

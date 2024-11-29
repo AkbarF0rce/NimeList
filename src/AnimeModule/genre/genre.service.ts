@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
 import { Genre } from './entities/genre.entity';
@@ -18,17 +18,32 @@ export class GenreService {
 
   async deleteGenre(id: string) {
     // Hapus data genre berdasarkan id yang diberikan
-    const deleted = await this.genreRepository.softDelete(id);
+    const deleted = await this.genreRepository.delete(id);
 
     // Tampilkan pesan jika data berhasil di hapus
-    if (deleted) {
-      return `data deleted`;
+    if (!deleted) {
+      throw new HttpException('data not deleted', 400);
+    }
+
+    return {
+      status: 200,
+      message: 'data deleted',
     }
   }
 
   async updateGenre(id: string, updateGenreDto: CreateGenreDto) {
     // Update data genre berdasarkan id yang diberikan
-    await this.genreRepository.update(id, updateGenreDto);
+    const updated = await this.genreRepository.update(id, updateGenreDto);
+
+    if (!updated) {
+      throw new HttpException('data not updated', 400);
+    }
+
+    // Tampilkan pesan jika data berhasil di update
+    return {
+      status: 200,
+      message: 'data updated',
+    };
   }
 
   async getById(id: string) {

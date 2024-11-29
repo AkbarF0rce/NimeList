@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -35,65 +36,6 @@ export class TopicService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
-  // Helper function to extract image sources from HTML content
-  private extractImageSources(content: string): string[] {
-    const imageSources: string[] = [];
-    const regex = /<img[^>]+src\s*=\s*["']([^"']+)["'][^>]*>/gi;
-    let match;
-
-    while ((match = regex.exec(content)) !== null) {
-      let src = match[1];
-      src = src.replace('http://localhost:4321', '');
-      imageSources.push(src);
-    }
-
-    return imageSources;
-  }
-
-  // Fungsi untuk menghapus gambar lama dari body topic
-  private async deleteOldImages(images: string[]) {
-    if (images.length > 0) {
-      for (const img of images) {
-        const oldFilePath = join(process.cwd(), img);
-        // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
-        try {
-          await unlink(oldFilePath); // Hapus file lama dari sistem
-        } catch (err) {
-          console.error('Error deleting old photo file:', err);
-        }
-      }
-    }
-  }
-
-  // private async checkImageExists() {
-  //   const existTopic = await this.topicRepository.find({
-  //     select: ['body'],
-  //   });
-
-  //   if (existTopic.length > 0) {
-  //     const images = []; // Array untuk menyimpan path gambar yang ada dalam database
-  //     for (const exist of existTopic) {
-  //       const existImg = this.extractImageSources(exist.body);
-  //       if (existImg.length > 0) {
-  //         images.push(existImg); // Menyimpan path gambar ke dalam array
-  //       }
-  //     }
-
-  //     const filesInFolder = await fs.promises.readdir('./images/topic/body'); // Mengambil semua path file yang ada di dalam folder
-  //     const existFolderFileUrl = filesInFolder.map((file) => {
-  //       return `/images/topic/body/${file}`; // Menyimpan path gambar yang ada dalam folder ke dalam array
-  //     });
-
-  //     const deletedImages = existFolderFileUrl.filter(
-  //       (img) => !images.flat(Infinity).includes(img),
-  //     ); // Melakukan penghapusan jika ada path gambar dalam folder yang tidak sesuai dengan path yang ada
-
-  //     if (deletedImages.length > 0) {
-  //       this.deleteOldImages(deletedImages);
-  //     }
-  //   }
-  // }
-
   async createTopic(
     createTopicDto: CreateTopicDto,
     photos: Express.Multer.File[],
@@ -102,7 +44,7 @@ export class TopicService {
     createTopicDto.slug = `tt-${v4().split('-')[0]}`;
 
     const topic = this.topicRepository.create(createTopicDto);
-    await this.topicRepository.save(topic);
+    const savedTopic = await this.topicRepository.save(topic);
 
     // Simpan photo jika ada
     if (photos && photos.length > 0) {
@@ -115,10 +57,11 @@ export class TopicService {
       }
     }
 
-    return {
-      topic: topic,
-      photos,
-    };
+    if (!savedTopic) {
+      throw new BadRequestException('Topic not created');
+    }
+
+    throw new HttpException('Topic created', 201);
   }
 
   private async updateTopic(id: string, updateTopicDto: UpdateTopicDto) {
@@ -142,7 +85,11 @@ export class TopicService {
 
     // Update informasi dasar topic
     Object.assign(topic, update);
-    await this.topicRepository.save(topic);
+    const savedTopic = await this.topicRepository.save(topic);
+
+    if (!savedTopic) {
+      throw new BadRequestException('Topic not updated');
+    }
 
     // Hapus data foto lama
     for (const photo of topic.photos) {
@@ -172,6 +119,8 @@ export class TopicService {
 
       console.log(newPhotos);
     }
+
+    throw new HttpException('Topic updated', 200);
   }
 
   async update(id: string, updateTopicDto: UpdateTopicDto) {
@@ -199,24 +148,48 @@ export class TopicService {
       throw new NotFoundException('Topic tidak ditemukan');
     }
 
-    if (role === 'user') {
-      if (userId !== topic.id_user) {
-        throw new Error('you are not allowed to delete this data');
-      }
-
-      await this.topicRepository.softDelete(id);
-
-      return {
-        message: 'Topic data deleted successfully',
-      };
+    if (role === 'user' && userId !== topic.id_user) {
+      throw new Error('you are not allowed to delete this data');
     }
 
-    await this.topicRepository.softDelete(id);
+    const deleted = await this.topicRepository.softDelete(id);
+
+    if (!deleted) {
+      throw new BadRequestException('Topic not deleted');
+    }
 
     // Tampilkan pesan saat data berhasil dihapus
-    return {
-      message: 'Topic data deleted successfully',
-    };
+    throw new HttpException('Topic deleted successfully', 200);
+  }
+
+  async getAll() {
+    const get = await this.topicRepository.find({
+      order: { created_at: 'DESC' },
+      relations: ['user', 'anime'],
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        created_at: true,
+        updated_at: true,
+        user: {
+          name: true,
+        },
+        anime: {
+          title: true,
+        },
+      },
+    });
+
+    return get.map((data) => ({
+      id: data.id,
+      title: data.title,
+      slug: data.slug,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      username: data.user.name,
+      title_anime: data.anime.title,
+    }));
   }
 
   async getTopicBySlug(slug: string) {
@@ -257,7 +230,6 @@ export class TopicService {
       ...get,
       user: get.user.username,
       anime: get.anime.title,
-      id_anime: get.anime.id,
       totalLikes: likes,
       totalComments: comments,
       totalDislikes: dislikes,
@@ -299,35 +271,6 @@ export class TopicService {
     };
   }
 
-  async getAllAnime() {
-    const animes = await this.animeRepository
-      .createQueryBuilder('anime')
-      .select(['anime.id', 'anime.title'])
-      .getMany();
-
-    return animes.map((anime) => ({
-      id: anime.id,
-      title: anime.title,
-    }));
-  }
-
-  async getAllUser() {
-    const users = await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoinAndSelect('user.role', 'role')
-      .select(['user.id', 'user.username'])
-      .where('role.name = :roleName', { roleName: 'user' })
-      .andWhere('user.status_premium = :premiumStatus', {
-        premiumStatus: 'active',
-      })
-      .getMany();
-
-    return users.map((user) => ({
-      id: user.id,
-      username: user.username,
-    }));
-  }
-
   async getAndCountByAnime(id: string) {
     const [topics, total] = await this.topicRepository.findAndCount({
       where: { id_anime: id },
@@ -347,9 +290,5 @@ export class TopicService {
       data: topics,
       total,
     };
-  }
-
-  async totalTopicsByUser(id: string) {
-    return await this.topicRepository.count({ where: { id_user: id } });
   }
 }

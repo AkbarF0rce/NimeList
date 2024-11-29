@@ -1,6 +1,11 @@
 // src/midtrans/midtrans.service.ts
 
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { status, Transaction } from './entities/transaction.entity';
@@ -15,7 +20,10 @@ import {
 } from 'src/UserModule/user/entities/user.entity';
 import { Premium } from 'src/TransactionModule/premium/entities/premium.entity';
 import * as fetch from 'node-fetch';
+import * as crypto from 'crypto';
 import { nanoid } from 'nanoid';
+
+const tokenStore = new Map<string, string>();
 
 @Injectable()
 export class TransactionService {
@@ -45,7 +53,11 @@ export class TransactionService {
     };
 
     const response = await fetch(url, options);
-    return response.json();
+    const { token } = await response.json();
+
+    tokenStore.set(data.transaction_details.order_id, token);
+
+    return { token };
   }
 
   async createMidtransToken(userId: string, membershipId: string) {
@@ -142,35 +154,71 @@ export class TransactionService {
     }
 
     // Simpan perubahan pada user
-    await this.usersRepository.save(user);
+    const save = await this.usersRepository.save(user);
+
+    if (!save) {
+      throw new BadRequestException('User not updated');
+    }
+
+    return;
+  }
+
+  private async checkNotification(data: any) {
+    // Data dari Midtrans notifikasi
+    const { order_id, status_code, gross_amount, signature_key } = data;
+
+    // Midtrans server key
+    const serverKey = this.configService.get<string>('MIDTRNAS_SERVER_KEY');
+
+    // Format: order_id + status_code + gross_amount + server_key
+    const input = `${order_id}${status_code}${gross_amount}${serverKey}`;
+
+    // Generate SHA-512 hash local signature
+    const localSignature = crypto
+      .createHash('sha512')
+      .update(input)
+      .digest('hex');
+
+    return localSignature === signature_key;
   }
 
   async handleNotification(notification: any) {
     const { order_id, transaction_status, fraud_status } = notification;
+
+    // Validasi notifikasi
+    const isValid = await this.checkNotification(notification);
+
+    if (!isValid) {
+      throw new BadRequestException('Invalid notification data');
+    }
 
     // Cek status pembayaran dari Midtrans
     if (transaction_status === 'settlement' && fraud_status === 'accept') {
       // Ambil data transaksi berdasarkan order_id
       const transaction = await this.transactionsRepository.findOne({
         where: { order_id: order_id },
+        select: ['payment_platform', 'status', 'token_midtrans'],
       });
 
       if (!transaction) {
         throw new Error('Transaction not found');
       }
 
-      // Update status transaksi menjadi sukses
+      // Update data transaksi
+      if (notification.payment_type === 'qris') {
+        transaction.payment_platform = notification.issuer;
+      }
       transaction.status = status.SUCCESS;
-      transaction.payment_platform = notification.issuer;
+      transaction.token_midtrans = null;
       await this.transactionsRepository.save(transaction);
 
-      // Update user berdasarkan data transaksi
+      // Hapus token dari cache
+      tokenStore.delete(order_id);
+
+      // Lakukan update pada user
       await this.updateUser(transaction.id_user, transaction.id_premium);
 
-      return {
-        message: 'Transaction and user updated successfully',
-        status: 200,
-      };
+      throw new HttpException('Transaction success and user updated', 200);
     } else if (transaction_status === 'pending') {
       const data: any = {
         order_id: order_id,
@@ -178,11 +226,13 @@ export class TransactionService {
         total: parseInt(notification.gross_amount),
         id_user: notification.metadata.user_id,
         id_premium: notification.metadata.premium_id,
+        token_midtrans: tokenStore.get(order_id),
       };
 
       if (notification.payment_type === 'bank_transfer') {
         data.payment_platform = notification.va_numbers[0].bank;
       }
+
       await this.createPayment(data);
     } else if (
       transaction_status === 'expire' ||
@@ -191,17 +241,23 @@ export class TransactionService {
       // Update transaksi jika pembayaran expired atau dibatalkan
       const transaction = await this.transactionsRepository.findOne({
         where: { order_id: order_id },
+        select: ['status', 'token_midtrans'],
       });
 
-      if (transaction) {
-        transaction.status = status.FAILED;
-        await this.transactionsRepository.save(transaction);
+      if (!transaction) {
+        throw new BadRequestException('Transaction not found');
       }
 
-      return { message: 'Transaction failed or expired' };
-    }
+      // Update status transaksi dan hapus token
+      transaction.status = status.FAILED;
+      transaction.token_midtrans = null;
+      await this.transactionsRepository.save(transaction);
 
-    return { message: 'Unhandled transaction status' };
+      // Hapus token dari cache
+      tokenStore.delete(order_id);
+
+      throw new HttpException('Transaction expired or canceled', 200);
+    }
   }
 
   async getTransaction(
@@ -268,6 +324,27 @@ export class TransactionService {
     };
   }
 
+  async getTransactionByUser(id_user: string) {
+    const transactions = await this.transactionsRepository.find({
+      where: { id_user: id_user },
+      order: { created_at: 'DESC' },
+      relations: ['user', 'premium'],
+    });
+
+    return transactions.map((transaction) => ({
+      id: transaction.id,
+      order_id: transaction.order_id,
+      payment_platform: transaction.payment_platform,
+      username: transaction.user.username,
+      premium: transaction.premium.name,
+      status: transaction.status,
+      token_midtrans: transaction.token_midtrans,
+      total: transaction.total,
+      created_at: transaction.created_at,
+      updated_at: transaction.updated_at,
+    }));
+  }
+
   async getTransactionById(id: string, user: any) {
     const transaction = await this.transactionsRepository.findOne({
       where: { id: id },
@@ -285,6 +362,7 @@ export class TransactionService {
       premium: transaction.premium,
       status: transaction.status,
       total: transaction.total,
+      token_midtrans: transaction.token_midtrans,
       created_at: transaction.created_at,
       updated_at: transaction.updated_at,
     };

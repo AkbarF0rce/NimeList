@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  ForbiddenException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -23,11 +25,13 @@ export class CommentService {
   ) {}
 
   async createComment(data: CreateCommentDto) {
-    const post = this.commentRepository.save(data);
+    const post = await this.commentRepository.save(data);
 
     if (!post) {
       throw new Error('data not created');
     }
+
+    throw new HttpException('data created', 201);
   }
 
   async updateComment(id: string, data: UpdateCommentDto) {
@@ -44,14 +48,16 @@ export class CommentService {
     }
 
     if (get.id_user !== id_user && role === 'user') {
-      throw new BadRequestException('you are not allowed to update this data');
+      throw new HttpException('you are not allowed to update this data', 403);
     }
 
-    await this.commentRepository.update(id, update);
+    const updated = await this.commentRepository.update(id, update);
 
-    return {
-      message: 'data updated',
-    };
+    if (!updated) {
+      throw new BadRequestException('data not updated');
+    }
+
+    throw new HttpException('data updated', 200);
   }
 
   async deleteComment(id: string, user: any) {
@@ -60,21 +66,34 @@ export class CommentService {
       where: { id },
     });
 
+    const topicCreated = await this.topicRepository.findOne({
+      where: { id: get.id_topic },
+      select: ['id_user'],
+    });
+
     // Jika comment tidak ada tampilkan pesan error
     if (!get) {
       throw new NotFoundException('data not found');
     }
 
-    if (get.id_user !== user.id && user.role === 'user') {
-      throw new BadRequestException('you are not allowed to delete this data');
+    // Jika comment tidak dibuat oleh user yang login dan pembuat topik, tampilkan pesan error
+    if (
+      get.id_user !== user.id &&
+      user.role === 'user' &&
+      topicCreated.id_user !== user.userId
+    ) {
+      throw new ForbiddenException('you are not allowed to delete this data');
     }
 
     // Hapus comment dari database berdasarkan id
-    await this.commentRepository.softDelete(id);
+    const deleted = await this.commentRepository.delete(id);
 
-    return {
-      message: 'data deleted',
-    };
+    // Jika comment tidak terhapus tampilkan pesan error
+    if (!deleted) {
+      throw new BadRequestException('data not deleted');
+    }
+
+    throw new HttpException('data deleted', 200);
   }
 
   async getAllCommentAdmin(page: number, limit: number, search: string) {
@@ -130,43 +149,5 @@ export class CommentService {
       topic: get.topic.title,
       likes: likes,
     };
-  }
-
-  async restoreComment(id: string) {
-    // Restore comment dari database berdasarkan id
-    await this.commentRepository.restore(id);
-
-    return {
-      message: 'data restored',
-    };
-  }
-
-  async getAllUser() {
-    const users = await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoinAndSelect('user.role', 'role')
-      .select(['user.id', 'user.username'])
-      .where('role.name = :roleName', { roleName: 'user' })
-      .andWhere('user.status_premium = :premiumStatus', {
-        premiumStatus: 'active',
-      })
-      .getMany();
-
-    return users.map((user) => ({
-      id: user.id,
-      username: user.username,
-    }));
-  }
-
-  async getAllTopic() {
-    const topic = await this.topicRepository
-      .createQueryBuilder('topic')
-      .select(['topic'])
-      .getMany();
-
-    return topic.map((anime) => ({
-      id: anime.id,
-      title: anime.title,
-    }));
   }
 }
