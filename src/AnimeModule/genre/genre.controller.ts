@@ -39,6 +39,13 @@ export class GenreController {
     return await this.genreService.getAll();
   }
 
+  @Get('get/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async getGenreById(@Param('id') id: string) {
+    return await this.genreService.getById(id);
+  }
+
   @Put('update/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

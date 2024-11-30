@@ -20,9 +20,9 @@ export class LikeCommentService {
   async createLike(data: CreateLikeCommentDto) {
     const search = await this.likeCommentRepository.findOne({
       where: {
-        id_user: data.id_user,
         id_comment: data.id_comment,
-      },
+        id_user: data.id_user,
+      }
     });
 
     if (search) {

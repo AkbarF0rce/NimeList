@@ -47,6 +47,7 @@ export class UserService {
     // Membuat data user
     const user = this.userRepository.create({
       ...createUserDto,
+      name: createUserDto.username,
       id_role: role.id,
       salt: v4(),
     });
@@ -70,7 +71,11 @@ export class UserService {
     }
 
     // Simpan data user
-    await this.userRepository.save(user);
+    const save = await this.userRepository.save(user);
+
+    if (!save) {
+      throw new BadRequestException('User not created');
+    }
 
     return {
       role: role.name,

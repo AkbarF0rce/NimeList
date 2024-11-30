@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, HttpException, Injectable } from '@nestjs/common';
 import { CreateFavoriteAnimeDto } from './dto/create-favorite_anime.dto';
 import { UpdateFavoriteAnimeDto } from './dto/update-favorite_anime.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,15 +16,12 @@ export class FavoriteAnimeService {
     const create = await this.favoriteAnimeRepository.create(data);
 
     if (!create) {
-      throw new Error('data not created');
+      throw new BadRequestException('data not created');
     }
 
     await this.favoriteAnimeRepository.save(create);
 
-    return {
-      status: 200,
-      message: 'data created',
-    };
+    throw new HttpException('data created', 201);
   }
 
   async deleteFav(id_user: string, id_anime: string) {
@@ -35,20 +32,17 @@ export class FavoriteAnimeService {
     });
 
     if (get.id_user !== id_user) {
-      throw new HttpException('you are not allowed to delete this data', 403);
+      throw new ForbiddenException('you are not allowed to delete this data');
     }
 
     const deleted = await this.favoriteAnimeRepository.delete(get.id);
 
     if (!deleted) {
-      throw new HttpException('data not deleted', 400);
+      throw new BadRequestException('data not deleted');
     }
 
     // Tampilkan pesan data berhasil di hapus
-    return {
-      status: 200,
-      message: 'data deleted',
-    };
+    throw new HttpException('data deleted', 200);
   }
 
   async userFavorites(id: string) {

@@ -8,7 +8,6 @@ export class UpdateTopicDto {
   body?: string;
   existing_photos?: string[];
   id_user?: string;
-  id_anime?: string;
   role?: string;
   slug?: string;
 }

@@ -29,7 +29,6 @@ export class FavoriteAnimeController {
   @Delete('delete')
   @UseGuards(JwtAuthGuard)
   async delete(@Request() req, @Body('id_anime') id_anime: string) {
-    console.log(req.user.userId);
     return this.favoriteAnimeService.deleteFav(req.user.userId, id_anime);
   }
 

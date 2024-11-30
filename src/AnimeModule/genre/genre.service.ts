@@ -28,7 +28,7 @@ export class GenreService {
     return {
       status: 200,
       message: 'data deleted',
-    }
+    };
   }
 
   async updateGenre(id: string, updateGenreDto: CreateGenreDto) {

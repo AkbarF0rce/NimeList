@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   HttpException,
   Injectable,
   NotFoundException,
@@ -14,12 +15,11 @@ import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { LikeTopic } from 'src/TopicModule/like_topic/entities/like_topic.entity';
 import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
-import * as fs from 'fs';
 import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
 import { User } from 'src/UserModule/user/entities/user.entity';
 import { DislikeTopic } from 'src/TopicModule/dislike_topic/entities/dislike_topic.entity';
-import slugify from 'slugify';
 import { v4 } from 'uuid';
+import { LikeComment } from '../like_comment/entities/like_comment.entity';
 
 @Injectable()
 export class TopicService {
@@ -32,8 +32,7 @@ export class TopicService {
     @InjectRepository(DislikeTopic)
     private dislikeTopicRepository: Repository<DislikeTopic>,
     @InjectRepository(Comment) private commentRepository: Repository<Comment>,
-    @InjectRepository(Anime) private animeRepository: Repository<Anime>,
-    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(LikeComment) private likeCommentRepository: Repository<LikeComment>,
   ) {}
 
   async createTopic(
@@ -80,7 +79,7 @@ export class TopicService {
 
     // Jika topic tidak ada tampilkan pesan error
     if (!topic) {
-      throw new NotFoundException('Topic tidak ditemukan');
+      throw new NotFoundException('Topic not found');
     }
 
     // Update informasi dasar topic
@@ -99,7 +98,7 @@ export class TopicService {
         try {
           await unlink(oldFilePath); // Hapus file lama dari sistem
         } catch (err) {
-          console.error('Error deleting old photo file:', err);
+          throw new BadRequestException('photo not deleted');
         }
         await this.photoTopicRepository.remove(photo); // Hapus data foto lama dari database
       }
@@ -116,8 +115,6 @@ export class TopicService {
           });
           await this.photoTopicRepository.save(photo);
         });
-
-      console.log(newPhotos);
     }
 
     throw new HttpException('Topic updated', 200);
@@ -133,7 +130,7 @@ export class TopicService {
       updateTopicDto.role === 'user' &&
       updateTopicDto.id_user !== getTopicCreated.id_user
     ) {
-      throw new BadRequestException('you are not allowed to update this data');
+      throw new ForbiddenException('you are not allowed to update this data');
     }
 
     return await this.updateTopic(id, updateTopicDto);
@@ -193,46 +190,54 @@ export class TopicService {
   }
 
   async getTopicBySlug(slug: string) {
-    const get = await this.topicRepository
-      .createQueryBuilder('topic')
-      .leftJoin('topic.user', 'user')
-      .leftJoin('topic.anime', 'anime')
-      .leftJoin('topic.photos', 'photos')
-      .select([
-        'topic.id',
-        'topic.title',
-        'topic.created_at',
-        'topic.updated_at',
-        'user',
-        'anime',
-        'topic.body',
-        'photos.file_path',
-      ])
-      .where('topic.slug = :slug', { slug })
-      .getOne();
+    const get = await this.topicRepository.findOne({
+      where: { slug: slug },
+      relations: ['user', 'anime', 'photos'],
+      select: {
+        id: true,
+        title: true,
+        body: true,
+        created_at: true,
+        updated_at: true,
+        user: {
+          username: true,
+        },
+        anime: {
+          title: true,
+        },
+      },
+    });
 
-    const likes = await this.likeTopicRepository
-      .createQueryBuilder('like')
-      .where('like.id_topic = :id', { id: get.id })
-      .getCount();
+    const likes = await this.likeTopicRepository.count({
+      where: { id_topic: get.id },
+    });
 
-    const dislikes = await this.dislikeTopicRepository
-      .createQueryBuilder('dislike')
-      .where('dislike.id_topic = :id', { id: get.id })
-      .getCount();
+    const dislikes = await this.dislikeTopicRepository.count({
+      where: { id_topic: get.id },
+    });
 
-    const comments = await this.commentRepository
-      .createQueryBuilder('comment')
-      .where('comment.id_topic = :id', { id: get.id })
-      .getCount();
+    const [data, total] = await this.commentRepository.findAndCount({
+      where: { id_topic: get.id },
+      order: { created_at: 'DESC' },
+      relations: ['user', 'likes'],
+    });
 
     return {
       ...get,
+      comments: data.map((comment) => ({
+        id: comment.id,
+        comment: comment.comment,
+        created_at: comment.created_at,
+        updated_at: comment.updated_at,
+        username: comment.user.username,
+        name: comment.user.name,
+        total_likes: comment.likes.length
+      })),
       user: get.user.username,
       anime: get.anime.title,
-      totalLikes: likes,
-      totalComments: comments,
-      totalDislikes: dislikes,
+      totalLikes: likes || 0,
+      totalComments: total || 0,
+      totalDislikes: dislikes || 0,
     };
   }
 
