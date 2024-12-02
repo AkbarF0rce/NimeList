@@ -14,6 +14,7 @@ import { PremiumGuard } from 'src/AuthModule/auth/guards/isPremium.guard';
 import { UserModule } from 'src/UserModule/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { LikeComment } from '../like_comment/entities/like_comment.entity';
+import { CommentModule } from '../comment/comment.module';
 
 @Module({
   controllers: [TopicController],
@@ -30,6 +31,7 @@ import { LikeComment } from '../like_comment/entities/like_comment.entity';
       LikeComment
     ]),
     UserModule,
+    CommentModule,
     JwtModule
   ],
   exports: [TopicService],

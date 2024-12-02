@@ -1,19 +1,14 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   UseGuards,
   Param,
   Query,
   Put,
-  UploadedFile,
   UploadedFiles,
   UseInterceptors,
-  HttpException,
-  HttpStatus,
   Request,
-  Req,
   Delete,
 } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -22,18 +17,12 @@ import { RolesGuard } from '../../AuthModule/common/guards/roles.guard';
 import { Roles } from '../../AuthModule/common/decorators/roles.decorator';
 import { status_premium } from './entities/user.entity';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { v4 } from 'uuid';
-import { extname } from 'path';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtService } from '@nestjs/jwt';
+import { fileFields, fileUploadConfig } from 'src/config/upload-photo-profile';
 
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Get('get-admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -61,40 +50,16 @@ export class UserController {
 
   @Put('update-profile')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(
-    FileFieldsInterceptor([{ name: 'photo_profile', maxCount: 1 }], {
-      fileFilter: (req, file, cb) => {
-        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-          return cb(
-            new HttpException(
-              'Hanya file gambar yang diperbolehkan!',
-              HttpStatus.BAD_REQUEST,
-            ),
-            false,
-          );
-        }
-        cb(null, true);
-      },
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-          cb(null, './images/photo-profile');
-        },
-        filename: (req, file, cb) => {
-          // Generate UUID untuk nama file
-          cb(null, `${v4()}${extname(file.originalname)}`);
-        },
-      }),
-    }),
-  )
-  async updateProfileAdmin(
+  @UseInterceptors(FileFieldsInterceptor(fileFields, fileUploadConfig))
+  async updateProfile(
     @Request() req,
     @Body() body: UpdateUserDto,
     @UploadedFiles()
-    files?: {
-      photo_profile?: Express.Multer.File;
+    files: {
+      photo_profile?: Express.Multer.File[];
     },
   ) {
-    console.log(files);
+    console.log(files.photo_profile);
     return await this.userService.updateProfile(
       req.user.userId,
       body,
@@ -111,7 +76,7 @@ export class UserController {
   @Get('check-premium')
   @UseGuards(JwtAuthGuard)
   async getCheckPremium(@Request() req) {
-    return await this.userService.getCheckPremium(req.user.userId);
+    return await this.userService.checkPremium(req.user.userId);
   }
 
   @Get('detail/:username')

@@ -8,7 +8,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
-  JoinColumn,
 } from 'typeorm';
 import { Genre } from 'src/AnimeModule/genre/entities/genre.entity';
 import { PhotoAnime } from 'src/AnimeModule/photo_anime/entities/photo_anime.entity';

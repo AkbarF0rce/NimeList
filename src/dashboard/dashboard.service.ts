@@ -18,7 +18,7 @@ export class DashboardService {
     @InjectRepository(Transaction)
     private transactionsRepository: Repository<Transaction>,
   ) {}
-  async getTotalTopic() {
+  async getTotalTopicThisMonth() {
     return {
       totalTopic:
         (await this.topicRepository.count({
@@ -185,7 +185,7 @@ export class DashboardService {
     return data;
   }
 
-  async totalTransaction() {
+  async totalTransactionThisMonth() {
     return {
       total:
         (await this.transactionsRepository.count({
@@ -199,7 +199,7 @@ export class DashboardService {
     };
   }
 
-  async totalIncome() {
+  async totalIncomeThisMonth() {
     const count = await this.transactionsRepository
       .createQueryBuilder('transaction')
       .select('SUM(transaction.total) as total_income')

@@ -30,7 +30,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     TypeOrmModule.forFeature([Role, User]),
     RoleModule,
     UserModule,
-    // Impor modul lain yang diperlukan oleh seeder
   ],
   providers: [RoleSeeder, SeederService, UserSeeder],
   exports: [SeederService],

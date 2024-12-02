@@ -30,7 +30,7 @@ export class PremiumGuard implements CanActivate {
       });
 
       // Check status premium dari userId yang ada di payload
-      return await this.userService.getCheckPremium(payload.userId);
+      return await this.userService.checkPremium(payload.userId);
     } catch (error) {
       throw error instanceof BadRequestException
         ? error

@@ -3,32 +3,25 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseInterceptors,
   UploadedFiles,
   Put,
-  UploadedFile,
   Query,
   UseGuards,
   Request,
 } from '@nestjs/common';
 import { TopicService } from './topic.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
-import { diskStorage } from 'multer';
-import {
-  FileFieldsInterceptor,
-  FileInterceptor,
-} from '@nestjs/platform-express';
-import { v4 } from 'uuid';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import * as sanitize from 'sanitize-html';
-import { extname } from 'path';
 import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
 import { PremiumGuard } from 'src/AuthModule/auth/guards/isPremium.guard';
 import { UpdateTopicDto } from './dto/update-topic.dto';
+import { fileFields, fileUploadConfig } from 'src/config/upload-photo-topic';
 
 @Controller('topic')
 @UseGuards(PremiumGuard, JwtAuthGuard)
@@ -36,57 +29,20 @@ export class TopicController {
   constructor(private readonly topicService: TopicService) {}
 
   @Post('post')
-  @UseInterceptors(
-    FileFieldsInterceptor(
-      [
-        { name: 'photos', maxCount: 4 }, // Limit file foto yang akan diupload sesuai keinginan
-      ],
-      {
-        storage: diskStorage({
-          destination: './images/topic', // Sesuaikan destinasi storage sesuai keinginan
-          filename: (req, file, cb) => {
-            cb(null, `${v4()}${extname(file.originalname)}`);
-          },
-        }),
-      },
-    ),
-  )
+  @UseInterceptors(FileFieldsInterceptor(fileFields, fileUploadConfig))
   async create(
     @Body() createTopicDto: CreateTopicDto,
-    @UploadedFiles() files: { photos?: Express.Multer.File[] },
+    @UploadedFiles() files: { photos_topic?: Express.Multer.File[] },
     @Request() req,
   ) {
     createTopicDto.id_user = req.user.userId;
     createTopicDto.body = this.filterHtmlContent(createTopicDto.body);
 
-    return this.topicService.createTopic(createTopicDto, files.photos);
+    return this.topicService.createTopic(createTopicDto, files.photos_topic);
   }
 
   @Put('update/:id')
-  @UseInterceptors(
-    FileFieldsInterceptor(
-      [
-        { name: 'new_photos', maxCount: 4 }, // Limit file foto yang akan diupload sesuai keinginan
-      ],
-      {
-        storage: diskStorage({
-          destination: './images/topic', // Sesuaikan destinasi storage sesuai keinginan
-          filename: (req, file, cb) => {
-            cb(null, `${v4()}${extname(file.originalname)}`);
-          },
-        }),
-        fileFilter: (req, file, cb) => {
-          if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-            return cb(
-              new Error('Hanya file gambar yang diperbolehkan!'),
-              false,
-            );
-          }
-          cb(null, true);
-        },
-      },
-    ),
-  )
+  @UseInterceptors(FileFieldsInterceptor(fileFields, fileUploadConfig))
   async update(
     @Param('id') id: string,
     @Request() req,
@@ -131,7 +87,7 @@ export class TopicController {
     @Query('limit') limit: number = 10,
     @Query('search') search: string = '',
   ) {
-    return await this.topicService.getAllTopic(page, limit, search);
+    return await this.topicService.getAllTopicAdmin(page, limit, search);
   }
 
   // Fungsi untuk memfilter dan sanitasi HTML content

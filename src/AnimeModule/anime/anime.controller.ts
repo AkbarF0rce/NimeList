@@ -4,33 +4,21 @@ import {
   Body,
   UploadedFiles,
   UseInterceptors,
-  Patch,
   Param,
-  UploadedFile,
   Delete,
-  NotFoundException,
   Put,
   Get,
-  HttpStatus,
-  HttpException,
   Query,
   UseGuards,
-  Request,
 } from '@nestjs/common';
 import { AnimeService } from './anime.service';
 import { CreateAnimeDto } from './dto/create-anime.dto';
-import {
-  FileFieldsInterceptor,
-  FileInterceptor,
-} from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import path, { extname, join } from 'path';
-import * as fs from 'fs';
-import { v4 } from 'uuid';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { UpdateAnimeDto } from './dto/update-anime.dto';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
 import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
+import { fileFields, fileUploadConfig } from 'src/config/upload-photo-anime';
 
 @Controller('anime')
 export class AnimeController {
@@ -39,39 +27,7 @@ export class AnimeController {
   @Post('post')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @UseInterceptors(
-    FileFieldsInterceptor(
-      [
-        { name: 'photos_anime', maxCount: 4 }, // You can limit the number of photos
-        { name: 'photo_cover', maxCount: 1 },
-      ],
-      {
-        fileFilter: (req, file, cb) => {
-          if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-            return cb(
-              new Error('Hanya file gambar yang diperbolehkan!'),
-              false,
-            );
-          }
-          cb(null, true);
-        },
-        storage: diskStorage({
-          destination: (req, file, cb) => {
-            // Menentukan folder penyimpanan berdasarkan fieldname (photo_cover atau photo_content)
-            if (file.fieldname === 'photo_cover') {
-              cb(null, './images/anime/cover');
-            } else if (file.fieldname === 'photos_anime') {
-              cb(null, './images/anime/content');
-            }
-          },
-          filename: (req, file, cb) => {
-            // Generate UUID untuk nama file
-            cb(null, `${v4()}${extname(file.originalname)}`);
-          },
-        }),
-      },
-    ),
-  )
+  @UseInterceptors(FileFieldsInterceptor(fileFields, fileUploadConfig))
   async create(
     @Body() createAnimeDto: CreateAnimeDto,
     @UploadedFiles()
@@ -90,45 +46,10 @@ export class AnimeController {
   @Put('update/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @UseInterceptors(
-    FileFieldsInterceptor(
-      [
-        { name: 'photos_anime', maxCount: 4 }, // photos untuk foto anime pada table photo_anime
-        { name: 'photo_cover', maxCount: 1 }, // photo_cover untuk foto cover anime pada kolom photo_cover
-      ],
-      {
-        fileFilter: (req, file, cb) => {
-          if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-            return cb(
-              new HttpException(
-                'Hanya file gambar yang diperbolehkan!',
-                HttpStatus.BAD_REQUEST,
-              ),
-              false,
-            );
-          }
-          cb(null, true);
-        },
-        storage: diskStorage({
-          destination: (req, file, cb) => {
-            // Menentukan folder penyimpanan berdasarkan fieldname (photo_cover atau photo_content)
-            if (file.fieldname === 'photo_cover') {
-              cb(null, './images/anime/cover');
-            } else if (file.fieldname === 'photos_anime') {
-              cb(null, './images/anime/content');
-            }
-          },
-          filename: (req, file, cb) => {
-            // Generate UUID untuk nama file
-            cb(null, `${v4()}${extname(file.originalname)}`);
-          },
-        }),
-      },
-    ),
-  )
+  @UseInterceptors(FileFieldsInterceptor(fileFields, fileUploadConfig))
   async updateAnimeDetails(
     @Param('id') animeId: string,
-    @Body() updateAnimeDto: UpdateAnimeDto, // DTO untuk data anime
+    @Body() updateAnimeDto: UpdateAnimeDto,
     @Body('genres') genres: [],
     @Body('existing_photos') existingPhotosString: string[],
     @UploadedFiles()
@@ -142,7 +63,7 @@ export class AnimeController {
       updateAnimeDto,
       genres || [],
       files.photos_anime || [],
-      files?.photo_cover?.[0] || null,
+      files.photo_cover?.[0] || null,
       existingPhotosString,
     );
 

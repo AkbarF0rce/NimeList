@@ -3,18 +3,23 @@ import { AppModule } from './app.module';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as express from 'express';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Middleware untuk menyajikan file statis
+  const configService = app.get(ConfigService);
+
+  // Middleware untuk melayani file statis dari folder "images"
   app.use('/images', express.static(join(__dirname, '..', 'images')));
 
+  // Konfigurasi CORS untuk mengizinkan akses dari domain tertentu
   app.enableCors({
-    origin: 'http://localhost:3000', // Specify the frontend URL
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: configService.get<string>('BASE_URL_FRONT_END'),
     credentials: true,
   });
-  await app.listen(4321,'0.0.0.0');
+
+  // Menjalankan aplikasi di port 4321
+  await app.listen(4321);
 }
 bootstrap();

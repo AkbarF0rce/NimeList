@@ -15,7 +15,7 @@ export class DashboardController {
 
   @Get('total-topic')
   async getTotal() {
-    return await this.dashboardService.getTotalTopic();
+    return await this.dashboardService.getTotalTopicThisMonth();
   }
 
   @Get('total-premium')
@@ -35,11 +35,11 @@ export class DashboardController {
 
   @Get('total-transaction')
   async totalTransaction() {
-    return await this.dashboardService.totalTransaction();
+    return await this.dashboardService.totalTransactionThisMonth();
   }
 
   @Get('total-income')
   async totalIncome() {
-    return await this.dashboardService.totalIncome();
+    return await this.dashboardService.totalIncomeThisMonth();
   }
 }

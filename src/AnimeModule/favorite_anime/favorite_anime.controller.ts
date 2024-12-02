@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { FavoriteAnimeService } from './favorite_anime.service';
 import { CreateFavoriteAnimeDto } from './dto/create-favorite_anime.dto';
-import { UpdateFavoriteAnimeDto } from './dto/update-favorite_anime.dto';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 
 @Controller('favorite-anime')

@@ -87,6 +87,7 @@ export class UserService {
     };
   }
 
+  // Mendapatkan semua user untuk admin
   async getUsers(
     page: number = 1,
     limit: number = 10,
@@ -110,6 +111,7 @@ export class UserService {
     };
   }
 
+  // Mendapatkan user berdasarkan email
   async findOneByEmail(email: string) {
     const user = await this.userRepository.findOne({
       select: ['username', 'password', 'email', 'role', 'id', 'name'],
@@ -117,7 +119,7 @@ export class UserService {
       relations: ['role'],
     });
 
-    if (user === null) {
+    if (!user) {
       throw new NotFoundException('User not found');
     }
 
@@ -131,18 +133,20 @@ export class UserService {
     };
   }
 
+  // Mendapatkan user berdasarkan id
   async findById(id: string) {
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.role', 'role')
-      .where('user.id = :id', { id: id })
-      .getOne();
+    const user = await this.userRepository.findOne({
+      where: { id: id },
+      select: ['username', 'email'],
+    });
+
     return {
       username: user.username,
       email: user.email,
     };
   }
 
+  // Fungsi untuk cek masa premium
   async refreshUsers() {
     await this.userRepository.update(
       {
@@ -158,9 +162,10 @@ export class UserService {
     );
   }
 
+  // Fungsi mendapatkan data user berdasarkan username untuk profile
   async getProfile(username: string) {
     const data = await this.userRepository.findOne({
-      where: { username },
+      where: { username: username },
       select: ['username', 'bio', 'badge', 'id', 'name'],
     });
     const photo = await this.photoProfileService.getPhoto(data.id);
@@ -174,43 +179,8 @@ export class UserService {
     };
   }
 
-  async getProfileForEdit(name: string, user: any) {
-    const data = await this.userRepository.findOne({
-      where: { username: name },
-      select: ['username', 'bio', 'id', 'name'],
-    });
-
-    if (user.userId !== data.id) {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-    }
-    const photo = await this.photoProfileService.getPhoto(data.id);
-
-    return {
-      id: data.id,
-      username: data.username,
-      photo_profile: photo,
-      bio: data.bio,
-      name: data.name,
-    };
-  }
-
-  async updatePassword(id: string, password: string) {
-    const get = await this.userRepository.findOne({
-      where: { id: id },
-      select: ['salt', 'password'],
-    });
-
-    if (!bcrypt.compare(password, get.password)) {
-      return {
-        status: 400,
-        message: 'Password salah',
-      };
-    }
-
-    await this.userRepository.update({ id: id }, { password: password });
-  }
-
-  async update(id: string, body: UpdateUserDto) {
+  // Fungsi update user
+  async updateUser(id: string, body: UpdateUserDto) {
     const user = await this.userRepository.findOne({
       select: ['username'],
       where: { id: id },
@@ -225,15 +195,22 @@ export class UserService {
       throw new ConflictException('Username already exists');
     }
 
-    await this.userRepository.update({ id: id }, body);
+    const update = await this.userRepository.update({ id: id }, body);
+
+    if (!update) {
+      throw new BadRequestException('data not updated');
+    }
+
+    return;
   }
 
+  // Fungsi update profile
   async updateProfile(
     id: string,
     body: UpdateUserDto,
-    photo?: Express.Multer.File,
+    photo: Express.Multer.File,
   ) {
-    await this.update(id, body);
+    await this.updateUser(id, body);
 
     if (photo) {
       await this.photoProfileService.create(id, photo);
@@ -242,15 +219,11 @@ export class UserService {
     throw new HttpException('data updated', 200);
   }
 
+  // Fungsi delete user
   async deleteUser(id: string, password: string) {
     const get = await this.userRepository.findOne({
       where: { id: id },
       select: ['password', 'id'],
-    });
-
-    console.log({
-      get: get.id,
-      id: id,
     });
 
     if (get.id !== id) {
@@ -270,6 +243,7 @@ export class UserService {
     throw new HttpException('data deleted', 200);
   }
 
+  // Fungsi mendapatkan detail user untuk admin
   async getUserDetail(username: string) {
     const user = await this.userRepository.findOne({
       where: { username: username },
@@ -315,7 +289,8 @@ export class UserService {
     };
   }
 
-  async getCheckPremium(id: string) {
+  // Fungsi cek user premium
+  async checkPremium(id: string) {
     const user = await this.userRepository.findOne({
       where: { id: id, status_premium: status_premium.ACTIVE },
     });

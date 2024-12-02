@@ -30,7 +30,6 @@ import { PhotoProfileModule } from './UserModule/photo_profile/photo_profile.mod
       envFilePath: '.env', // Lokasi file .env
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('DB_HOST'),

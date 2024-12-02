@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -7,11 +7,9 @@ import { UserService } from 'src/UserModule/user/user.service';
 
 @Injectable()
 export class AuthService {
-  private blacklistedTokens: Set<string> = new Set();
-
   constructor(
     private readonly jwtService: JwtService,
-    private readonly usersService: UserService, // Uncomment this when you implement UsersService
+    private readonly usersService: UserService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -24,7 +22,8 @@ export class AuthService {
       const { password, ...result } = user;
       return result;
     }
-    return null;
+
+    throw new BadRequestException('Invalid password');
   }
 
   // Fungsi untuk login
@@ -55,6 +54,7 @@ export class AuthService {
     return { access_token };
   }
 
+  // Fungsi untuk refresh token
   async refreshToken(token: string) {
     const payload = this.jwtService.verify(token, {
       secret: this.configService.get<string>('JWT_SECRET'),
@@ -75,9 +75,5 @@ export class AuthService {
       name: register.name,
     };
     return this.generateToken(payload);
-  }
-
-  isTokenBlacklisted(token: string): boolean {
-    return this.blacklistedTokens.has(token);
   }
 }

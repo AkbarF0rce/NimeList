@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   Put,
@@ -14,7 +13,6 @@ import {
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
-import { get } from 'http';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
 import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
@@ -61,7 +59,7 @@ export class ReviewController {
     @Query('limit') limit: number,
     @Query('search') search: string,
   ) {
-    return await this.reviewService.getAllReview(page, limit, search);
+    return await this.reviewService.getAllReviewAdmin(page, limit, search);
   }
 
   @Get('get/:id')

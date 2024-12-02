@@ -1,51 +1,52 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateGenreDto } from './dto/create-genre.dto';
-import { UpdateGenreDto } from './dto/update-genre.dto';
 import { Genre } from './entities/genre.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Like, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
 @Injectable()
 export class GenreService {
   constructor(
     @InjectRepository(Genre) private genreRepository: Repository<Genre>,
   ) {}
+
+  // Fungsi untuk membuat data genre
   async createGenre(data: CreateGenreDto) {
     const addGenre = await this.genreRepository.create(data);
     await this.genreRepository.save(addGenre);
     return { message: 'data created', genreName: data.name };
   }
 
+  // Fungsi untuk menghapus data genre berdasarkan id
   async deleteGenre(id: string) {
     // Hapus data genre berdasarkan id yang diberikan
     const deleted = await this.genreRepository.delete(id);
 
-    // Tampilkan pesan jika data berhasil di hapus
     if (!deleted) {
-      throw new HttpException('data not deleted', 400);
+      throw new BadRequestException('data not deleted');
     }
 
-    return {
-      status: 200,
-      message: 'data deleted',
-    };
+    throw new HttpException('data deleted', 200);
   }
 
+  // Fungsi untuk mengupdate data genre
   async updateGenre(id: string, updateGenreDto: CreateGenreDto) {
     // Update data genre berdasarkan id yang diberikan
     const updated = await this.genreRepository.update(id, updateGenreDto);
 
     if (!updated) {
-      throw new HttpException('data not updated', 400);
+      throw new BadRequestException('data not updated');
     }
 
-    // Tampilkan pesan jika data berhasil di update
-    return {
-      status: 200,
-      message: 'data updated',
-    };
+    throw new HttpException('data updated', 200);
   }
 
+  // Fungsi untuk mendapatkan data genre berdasarkan id
   async getById(id: string) {
     const get = await this.genreRepository.findOne({ where: { id } });
     if (!get) {
@@ -54,10 +55,12 @@ export class GenreService {
     return get;
   }
 
+  // Fungsi untuk mendapatkan semua data genre
   async getAll() {
     return await this.genreRepository.find();
   }
 
+  // Fungsi untuk mendapatkan semua data genre untuk admin
   async getAdmin(page: number = 1, limit: number = 10, search: string = '') {
     const [data, total] = await this.genreRepository.findAndCount({
       where: { name: ILike(`%${search}%`) },
@@ -72,11 +75,17 @@ export class GenreService {
     };
   }
 
+  // Fungsi untuk mendapatkan data genre berdasarkan id anime
   async getByAnime(id: string) {
     const get = await this.genreRepository.find({
       where: { animes: { id } },
       select: ['id', 'name'],
     });
+
+    if (!get) {
+      throw new NotFoundException('data not found');
+    }
+
     return get;
   }
 }

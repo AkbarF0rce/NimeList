@@ -1,4 +1,3 @@
-import { Role } from 'src/UserModule/role/entities/role.entity';
 import {
   BeforeInsert,
   Column,
@@ -20,6 +19,7 @@ import { Review } from 'src/AnimeModule/review/entities/review.entity';
 import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
 import { Transaction } from 'src/TransactionModule/transaction/entities/transaction.entity';
 import { PhotoProfile } from 'src/UserModule/photo_profile/entities/photo_profile.entity';
+import { Role } from 'src/UserModule/role/entities/role.entity';
 
 export enum status_premium {
   ACTIVE = 'active',

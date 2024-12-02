@@ -28,9 +28,6 @@ export class TransactionController {
     body.id_user = req.user.userId;
     const { id_user, id_premium } = body;
 
-    // const { token, redirect_url } =
-    //   await this.transactionService.createMidtransToken(id_user, id_premium);
-
     return await this.transactionService.createMidtransToken(
       id_user,
       id_premium,
@@ -70,9 +67,9 @@ export class TransactionController {
     return await this.transactionService.getTransactionByUser(req.user.userId);
   }
 
-  @Get('get/:id')
+  @Get('get/:order_id')
   @UseGuards(JwtAuthGuard)
-  async getTransactionById(@Param('id') id: string, @Request() req) {
-    return await this.transactionService.getTransactionById(id, req.user);
+  async getTransactionById(@Param('order_id') order_id: string, @Request() req) {
+    return await this.transactionService.getTransactionByOrderId(order_id, req.user);
   }
 }

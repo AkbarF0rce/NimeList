@@ -1,10 +1,8 @@
 import {
   Body,
   Controller,
-  Get,
   Post,
   Request,
-  UnauthorizedException,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -12,7 +10,6 @@ import {
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CreateUserDto } from 'src/UserModule/user/dto/create-user.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {

@@ -12,16 +12,12 @@ import { Genre } from 'src/AnimeModule/genre/entities/genre.entity';
 import { PhotoAnime } from 'src/AnimeModule/photo_anime/entities/photo_anime.entity';
 import { CreateAnimeDto } from './dto/create-anime.dto';
 import { In } from 'typeorm';
-import path, { join } from 'path';
+import { join } from 'path';
 import { unlink } from 'fs/promises';
-import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
-import { v4 } from 'uuid';
 import { FavoriteAnime } from 'src/AnimeModule/favorite_anime/entities/favorite_anime.entity';
-import { Review } from 'src/AnimeModule/review/entities/review.entity';
 import { UpdateAnimeDto } from './dto/update-anime.dto';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
-import { min } from 'class-validator';
 import { ReviewService } from '../review/review.service';
 import { TopicService } from 'src/TopicModule/topic/topic.service';
 import { GenreService } from '../genre/genre.service';
@@ -48,33 +44,17 @@ export class AnimeService {
     files: Express.Multer.File[],
     photo_cover: Express.Multer.File,
   ) {
-    const {
-      title,
-      synopsis,
-      release_date,
-      genres,
-      trailer_link,
-      type,
-      episodes,
-      watch_link,
-      slug,
-    } = createAnimeDto;
+    const { title, genres } = createAnimeDto;
 
     // Cari genre berdasarkan ID
     const genreEntities = await this.genreRepository.find({
       where: {
-        id: In(genres),
+        id: In(Array.isArray(genres) ? genres : [genres]),
       },
     });
 
     const anime = this.animeRepository.create({
-      title,
-      synopsis,
-      release_date,
-      trailer_link,
-      episodes,
-      type,
-      watch_link,
+      ...createAnimeDto,
       photo_cover: photo_cover.path,
       genres: genreEntities,
       slug: slugify(title, { lower: true, strict: true }),
@@ -83,14 +63,20 @@ export class AnimeService {
     const save = await this.animeRepository.save(anime);
 
     if (!save) {
+      if (files && files.length > 0) {
+        for (const file of files) {
+          fs.unlinkSync(file.path);
+        }
+      }
+      fs.unlinkSync(photo_cover?.path);
       throw new BadRequestException('data not created');
     }
 
-    // Save photos if available
-    if (files && files.length > 0) {
+    // Simpan photo jika ada dan save data anime berhasil
+    if (save && files && files.length > 0) {
       for (const file of files) {
         const photo = this.photoRepository.create({
-          file_path: file.path, // Adjust if using a different storage strategy
+          file_path: file.path,
           anime,
         });
         await this.photoRepository.save(photo);
@@ -111,6 +97,7 @@ export class AnimeService {
     return hashSum.digest('hex');
   }
 
+  // Fungsi untuk Mengupdate Anime
   async updateAnime(
     animeId: string,
     updateAnimeDto: UpdateAnimeDto,
@@ -182,7 +169,7 @@ export class AnimeService {
       throw new BadRequestException('data not updated');
     }
 
-    // Identifikasi dan hapus foto lama yang tidak ada di file baru
+    // Hapus data foto lama
     for (const photo of anime.photos) {
       const oldFilePath = join(process.cwd(), photo.file_path);
 
@@ -203,7 +190,7 @@ export class AnimeService {
 
     if (photo_anime && photo_anime.length > 0) {
       // Simpan path dan file foto baru yang belum ada di database
-      const newPhotos = photo_anime
+      photo_anime
         .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
         .map(async (file) => {
           const photo = this.photoRepository.create({
@@ -217,6 +204,7 @@ export class AnimeService {
     throw new HttpException('data updated', 200);
   }
 
+  // Fungsi untuk Mendapatkan Anime berdasarkan slug
   async getAnimeBySlug(slug: string) {
     // Cari anime berdasarkan id
     const anime = await this.animeRepository.findOne({
@@ -249,12 +237,13 @@ export class AnimeService {
       anime,
       genres,
       review,
-      avgRating: getAvgRating || 0, // Set 0 jika tidak ada rating
+      avgRating: getAvgRating,
       topic,
       totalFav,
     };
   }
 
+  // Fungsi untuk Menghapus Anime
   async deleteAnime(animeId: string) {
     // Hapus anime dari database berdasarkan id yang diberikan
     const deleted = await this.animeRepository.softDelete({ id: animeId });
@@ -270,6 +259,7 @@ export class AnimeService {
     throw new HttpException('data deleted', 200);
   }
 
+  // Fungsi untuk Mendapatkan semua Anime untuk admin dengan pagination
   async getAllAnimeAdmin(
     page: number = 1,
     limit: number = 10,
@@ -323,6 +313,7 @@ export class AnimeService {
     };
   }
 
+  // Fungsi untuk Mendapatkan Anime Terbaru
   async getAnimeNewest(limit: number) {
     const animes = await this.animeRepository
       .createQueryBuilder('anime')
@@ -350,6 +341,7 @@ export class AnimeService {
     return { data: result };
   }
 
+  // Fungsi untuk Mendapatkan Anime Berdasarkan Genre
   async getAnimeByGenre(name: string) {
     const animes = await this.animeRepository
       .createQueryBuilder('anime')
@@ -385,6 +377,7 @@ export class AnimeService {
     }));
   }
 
+  // Fungsi untuk Mendapatkan Anime Rekomendasi
   async getRecommended() {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
@@ -434,6 +427,7 @@ export class AnimeService {
     }));
   }
 
+  // Fungsi untuk Mendapatkan Anime Populer dengan sistem weighted rating
   async getMostPopular() {
     // Mencari semua data anime dan relasi review
     const allAnimes = await this.animeRepository.find({

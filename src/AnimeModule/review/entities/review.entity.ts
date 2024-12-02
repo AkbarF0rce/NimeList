@@ -6,7 +6,6 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   Unique,

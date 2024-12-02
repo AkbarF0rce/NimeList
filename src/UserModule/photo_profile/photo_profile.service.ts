@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreatePhotoProfileDto } from './dto/create-photo_profile.dto';
-import { UpdatePhotoProfileDto } from './dto/update-photo_profile.dto';
 import { PhotoProfile } from './entities/photo_profile.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -18,15 +16,16 @@ export class PhotoProfileService {
       where: { id_user: id_user },
     });
 
-    if (find) {
-      this.updatePhotoIfExist(id_user, photo.path, find.path_photo);
+    if (find === null) {
+      const create = this.photoProfileRepository.create({
+        id_user: id_user,
+        path_photo: photo.path,
+      });
+
+      await this.photoProfileRepository.save(create);
     }
-    
-    const create = this.photoProfileRepository.create({
-      id_user: id_user,
-      path_photo: photo.path,
-    });
-    return await this.photoProfileRepository.save(create);
+
+    await this.updatePhotoIfExist(id_user, photo.path, find.path_photo);
   }
 
   async updatePhotoIfExist(
@@ -35,11 +34,13 @@ export class PhotoProfileService {
     photoOld?: string,
   ) {
     try {
-      await this.photoProfileRepository.delete({ id_user: id_user });
       await unlink(photoOld);
-      await this.photoProfileRepository.update(id_user, {
-        path_photo: photoNew,
-      });
+      await this.photoProfileRepository.update(
+        { id_user: id_user },
+        {
+          path_photo: photoNew,
+        },
+      );
     } catch (error) {
       console.log(error);
     }

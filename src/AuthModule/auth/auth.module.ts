@@ -14,7 +14,7 @@ import { PremiumGuard } from './guards/isPremium.guard';
     PassportModule,
     UserModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule], // Impor ConfigModule untuk akses ConfigService
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'), // Mengambil JWT_SECRET dari .env
@@ -23,7 +23,7 @@ import { PremiumGuard } from './guards/isPremium.guard';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy, PremiumGuard],
-  exports: [AuthService, JwtModule],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}

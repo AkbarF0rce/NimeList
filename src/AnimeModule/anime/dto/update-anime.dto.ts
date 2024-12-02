@@ -8,7 +8,6 @@ export class UpdateAnimeDto extends PartialType(CreateAnimeDto) {
   title?: string;
   synopsis?: string;
   release_date?: string;
-  genres?: [];
   trailer_link?: string;
   type?: Types;
   watch_link?: string;

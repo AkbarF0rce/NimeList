@@ -22,6 +22,7 @@ export class ReviewService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
+  // Fungsi untuk membuat review
   async createReview(data: CreateReviewDto) {
     const exist = await this.reviewRepository.findOne({
       where: { id_anime: data.id_anime, id_user: data.id_user },
@@ -40,14 +41,15 @@ export class ReviewService {
     throw new HttpException('data created', 201);
   }
 
+  // Fungsi untuk mengupdate review
   async updateReview(id: string, data: UpdateReviewDto) {
-    // Cari review berdasarkan id
     const review = await this.reviewRepository.findOne({
       where: { id: id },
       select: ['id_user'],
     });
     const { id_user, role, ...update } = data;
 
+    // Cek apakah user memiliki akses untuk mengupdate data
     if (role === 'user' && id_user !== review.id_user) {
       throw new HttpException('you are not allowed to update this data', 403);
     }
@@ -55,15 +57,13 @@ export class ReviewService {
     const updateReview = await this.reviewRepository.update(id, update);
 
     if (!updateReview) {
-      throw new HttpException('data not updated', 400);
+      throw new BadRequestException('data not updated');
     }
 
-    return {
-      message: 'data updated',
-      status: 200,
-    };
+    throw new HttpException('data updated', 200);
   }
 
+  // Fungsi untuk menghapus review
   async deleteReview(id: string, userId: string, role: string) {
     const review = await this.reviewRepository.findOne({
       where: { id: id },
@@ -84,7 +84,8 @@ export class ReviewService {
     throw new HttpException('data deleted', 200);
   }
 
-  async getAllReview(page: number = 1, limit: number = 10, search?: string) {
+  // Fungsi untuk mendapatkan semua review untuk admin dengan pagination
+  async getAllReviewAdmin(page: number = 1, limit: number = 10, search?: string) {
     const query = this.reviewRepository
       .createQueryBuilder('review')
       .leftJoin('review.user', 'user') // Join table review
@@ -101,7 +102,7 @@ export class ReviewService {
       .take(limit)
       .orderBy('review.created_at', 'DESC');
 
-    if (search && search !== '' && search !== null) {
+    if (search) {
       query
         .where('anime.title ILIKE :search', { search: `%${search}%` })
         .orWhere('user.username ILIKE :search', { search: `%${search}%` });
@@ -124,21 +125,24 @@ export class ReviewService {
     };
   }
 
+  // Fungsi untuk mendapatkan review berdasarkan id
   async getReviewById(id: string) {
-    const review = await this.reviewRepository
-      .createQueryBuilder('review')
-      .leftJoin('review.user', 'user')
-      .leftJoin('review.anime', 'anime')
-      .select([
-        'review.rating',
-        'review.review',
-        'user.username',
-        'anime.title',
-        'review.created_at',
-        'review.updated_at',
-      ])
-      .where('review.id = :id', { id })
-      .getOne();
+    const review = await this.reviewRepository.findOne({
+      where: { id: id },
+      relations: ['user', 'anime'],
+      select: {
+        review: true,
+        rating: true,
+        created_at: true,
+        updated_at: true,
+        user: {
+          username: true,
+        },
+        anime: {
+          title: true,
+        },
+      },
+    });
 
     return {
       username: review.user.username,
@@ -150,43 +154,22 @@ export class ReviewService {
     };
   }
 
-  async getAllAnime() {
-    const animes = await this.animeRepository
-      .createQueryBuilder('anime')
-      .select(['anime.id', 'anime.title'])
-      .getMany();
-
-    return animes.map((anime) => ({
-      id: anime.id,
-      title: anime.title,
-    }));
-  }
-
-  async getAllUser() {
-    const users = await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoinAndSelect('user.role', 'role')
-      .select(['user.id', 'user.username'])
-      .where('role.name = :roleName', { roleName: 'user' })
-      .getMany();
-
-    return users.map((user) => ({
-      id: user.id,
-      username: user.username,
-    }));
-  }
-
-  async getAnimeReviewed(id: string) {
-    const anime = await this.reviewRepository
-      .createQueryBuilder('review')
-      .leftJoin('review.anime', 'anime')
-      .select(['review.id', 'review.rating', 'anime.id'])
-      .where('review.id_user = :id', { id })
-      .getMany();
+  // Fungsi untuk mendapatkan daftar anime yang telah diulas oleh user
+  async getAnimeReviewed(id_user: string) {
+    const anime = await this.reviewRepository.find({
+      where: { id_user: id_user },
+      relations: ['anime'],
+      select: {
+        anime: {
+          id: true,
+        },
+      },
+    })
 
     return anime.map((anime) => anime.anime.id);
   }
 
+  // Fungsi untuk mendapatkan rata-rata rating berdasarkan id anime
   async getAvgRatingByAnime(id: string) {
     const review = await this.reviewRepository.average('rating', {
       id_anime: id,
@@ -197,6 +180,7 @@ export class ReviewService {
     return Number(parseFloat(review.toString()).toFixed(1));
   }
 
+  // Fungsi untuk mendapatkan daftar review berdasarkan id anime
   async getAndCountByAnime(id: string) {
     const [reviews, total] = await this.reviewRepository.findAndCount({
       where: { id_anime: id },
@@ -231,6 +215,7 @@ export class ReviewService {
     };
   }
 
+  // Fungsi untuk mendapatkan rating berdasarkan id user
   async getUserRating(id_user: string, id_anime: string) {
     const rating = await this.reviewRepository.findOne({
       where: { id_user: id_user, id_anime: id_anime },

@@ -23,6 +23,7 @@ import * as fetch from 'node-fetch';
 import * as crypto from 'crypto';
 import { nanoid } from 'nanoid';
 
+// Untuk menyimpan token Midtrans
 const tokenStore = new Map<string, string>();
 
 @Injectable()
@@ -40,7 +41,7 @@ export class TransactionService {
   ) {}
 
   async handleApiMidtrans(data: any) {
-    // Midtrans API untuk membuat transaksi
+    // Midtrans API untuk membuat token
     const url = 'https://app.sandbox.midtrans.com/snap/v1/transactions';
     const options = {
       method: 'POST',
@@ -55,6 +56,7 @@ export class TransactionService {
     const response = await fetch(url, options);
     const { token } = await response.json();
 
+    // Simpan token ke dalam Map
     tokenStore.set(data.transaction_details.order_id, token);
 
     return { token };
@@ -97,10 +99,7 @@ export class TransactionService {
       const data = await this.handleApiMidtrans(orderData);
       return data;
     } catch (error) {
-      throw new HttpException(
-        'Midtrans transaction failed ' + error,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new BadRequestException('Failed to create Midtrans token');
     }
   }
 
@@ -197,7 +196,13 @@ export class TransactionService {
       // Ambil data transaksi berdasarkan order_id
       const transaction = await this.transactionsRepository.findOne({
         where: { order_id: order_id },
-        select: ['payment_platform', 'status', 'token_midtrans'],
+        select: [
+          'payment_platform',
+          'status',
+          'token_midtrans',
+          'id_user',
+          'id_premium',
+        ],
       });
 
       if (!transaction) {
@@ -210,7 +215,7 @@ export class TransactionService {
       }
       transaction.status = status.SUCCESS;
       transaction.token_midtrans = null;
-      await this.transactionsRepository.save(transaction);
+      await this.transactionsRepository.update(order_id, transaction);
 
       // Hapus token dari cache
       tokenStore.delete(order_id);
@@ -345,9 +350,9 @@ export class TransactionService {
     }));
   }
 
-  async getTransactionById(id: string, user: any) {
+  async getTransactionByOrderId(order_id: string, user: any) {
     const transaction = await this.transactionsRepository.findOne({
-      where: { id: id },
+      where: { order_id: order_id },
       relations: ['user', 'premium'],
     });
 

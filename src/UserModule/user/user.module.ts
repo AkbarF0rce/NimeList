@@ -12,11 +12,6 @@ import { FavoriteAnime } from 'src/AnimeModule/favorite_anime/entities/favorite_
 import { Transaction } from 'src/TransactionModule/transaction/entities/transaction.entity';
 import { PhotoProfileModule } from '../photo_profile/photo_profile.module';
 import { JwtModule } from '@nestjs/jwt';
-import { TopicModule } from 'src/TopicModule/topic/topic.module';
-import { ReviewModule } from 'src/AnimeModule/review/review.module';
-import { FavoriteAnimeModule } from 'src/AnimeModule/favorite_anime/favorite_anime.module';
-import { TransactionModule } from 'src/TransactionModule/transaction/transaction.module';
-import { CommentModule } from 'src/TopicModule/comment/comment.module';
 import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
 
 @Module({

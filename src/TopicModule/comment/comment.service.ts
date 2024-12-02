@@ -127,6 +127,39 @@ export class CommentService {
     };
   }
 
+  async getCommentByTopic(id: string) {
+    const [data, total] = await this.commentRepository.findAndCount({
+      where: { id_topic: id },
+      relations: ['user', 'likes'],
+      order: { created_at: 'DESC' },
+      select: {
+        id: true,
+        created_at: true,
+        updated_at: true,
+        comment: true,
+        user: {
+          username: true,
+          name: true,
+        },
+      },
+    });
+
+    const result = data.map((comment) => ({
+      id: comment.id,
+      created_at: comment.created_at,
+      updated_at: comment.updated_at,
+      comment: comment.comment,
+      name: comment.user.name,
+      total_likes: comment.likes.length,
+      username: comment.user.username,
+    }));
+
+    return {
+      data: result,
+      total,
+    };
+  }
+
   async getCommentById(id: string) {
     const get = await this.commentRepository
       .createQueryBuilder('comment')

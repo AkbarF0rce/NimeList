@@ -15,11 +15,10 @@ import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { LikeTopic } from 'src/TopicModule/like_topic/entities/like_topic.entity';
 import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
-import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
-import { User } from 'src/UserModule/user/entities/user.entity';
 import { DislikeTopic } from 'src/TopicModule/dislike_topic/entities/dislike_topic.entity';
 import { v4 } from 'uuid';
-import { LikeComment } from '../like_comment/entities/like_comment.entity';
+import * as fs from 'fs';
+import { CommentService } from '../comment/comment.service';
 
 @Injectable()
 export class TopicService {
@@ -31,22 +30,31 @@ export class TopicService {
     private likeTopicRepository: Repository<LikeTopic>,
     @InjectRepository(DislikeTopic)
     private dislikeTopicRepository: Repository<DislikeTopic>,
-    @InjectRepository(Comment) private commentRepository: Repository<Comment>,
-    @InjectRepository(LikeComment) private likeCommentRepository: Repository<LikeComment>,
+    private readonly commentService: CommentService,
   ) {}
 
+  // Fungsi untuk membuat topic
   async createTopic(
     createTopicDto: CreateTopicDto,
     photos: Express.Multer.File[],
   ) {
     // Generate slug dengan sebagian uuid
     createTopicDto.slug = `tt-${v4().split('-')[0]}`;
-
     const topic = this.topicRepository.create(createTopicDto);
+
     const savedTopic = await this.topicRepository.save(topic);
 
-    // Simpan photo jika ada
-    if (photos && photos.length > 0) {
+    if (!savedTopic) {
+      if (photos) {
+        for (const file of photos) {
+          fs.unlinkSync(file.path);
+        }
+      }
+      throw new BadRequestException('Topic not created');
+    }
+
+    // Simpan photo jika ada dan berhasil simpan topik
+    if (savedTopic && photos && photos.length > 0) {
       for (const file of photos) {
         const photo = this.photoTopicRepository.create({
           file_path: file.path,
@@ -56,19 +64,21 @@ export class TopicService {
       }
     }
 
-    if (!savedTopic) {
-      throw new BadRequestException('Topic not created');
-    }
-
     throw new HttpException('Topic created', 201);
   }
 
+  // Fungsi untuk mengupdate topic
   private async updateTopic(id: string, updateTopicDto: UpdateTopicDto) {
     // Cari topic berdasarkan id
     const topic = await this.topicRepository.findOne({
       where: { id: id },
       relations: ['photos'],
     });
+
+    // Jika topic tidak ada tampilkan pesan error
+    if (!topic) {
+      throw new NotFoundException('Topic not found');
+    }
 
     if (topic.title !== updateTopicDto.title) {
       updateTopicDto.slug = `tt-${v4().split('-')[0]}`;
@@ -77,16 +87,16 @@ export class TopicService {
     const { existing_photos, photos, id_user, role, ...update } =
       updateTopicDto;
 
-    // Jika topic tidak ada tampilkan pesan error
-    if (!topic) {
-      throw new NotFoundException('Topic not found');
-    }
-
     // Update informasi dasar topic
     Object.assign(topic, update);
     const savedTopic = await this.topicRepository.save(topic);
 
     if (!savedTopic) {
+      if (photos) {
+        for (const file of photos) {
+          fs.unlinkSync(file.path);
+        }
+      }
       throw new BadRequestException('Topic not updated');
     }
 
@@ -104,9 +114,9 @@ export class TopicService {
       }
     }
 
-    if (photos && photos.length > 0) {
+    if (savedTopic && photos && photos.length > 0) {
       // Simpan foto baru
-      const newPhotos = photos
+      photos
         .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
         .map(async (file) => {
           const photo = this.photoTopicRepository.create({
@@ -120,12 +130,14 @@ export class TopicService {
     throw new HttpException('Topic updated', 200);
   }
 
+  // Fungsi untuk melakukan cek sebelum update topic
   async update(id: string, updateTopicDto: UpdateTopicDto) {
     const getTopicCreated = await this.topicRepository.findOne({
       where: { id },
       select: ['id_user'],
     });
 
+    // Verifikasi apakah pengguna memiliki akses untuk melakukan update
     if (
       updateTopicDto.role === 'user' &&
       updateTopicDto.id_user !== getTopicCreated.id_user
@@ -136,6 +148,7 @@ export class TopicService {
     return await this.updateTopic(id, updateTopicDto);
   }
 
+  // Fungsi untuk menghapus topic
   async deleteTopic(id: string, userId: string, role: string) {
     // Cari topic berdasarkan id
     const topic = await this.topicRepository.findOne({ where: { id } });
@@ -145,6 +158,7 @@ export class TopicService {
       throw new NotFoundException('Topic tidak ditemukan');
     }
 
+    // Verifikasi apakah pengguna memiliki akses untuk melakukan delete
     if (role === 'user' && userId !== topic.id_user) {
       throw new Error('you are not allowed to delete this data');
     }
@@ -155,10 +169,10 @@ export class TopicService {
       throw new BadRequestException('Topic not deleted');
     }
 
-    // Tampilkan pesan saat data berhasil dihapus
     throw new HttpException('Topic deleted successfully', 200);
   }
 
+  // Fungsi untuk mendapatkan semua topic
   async getAll() {
     const get = await this.topicRepository.find({
       order: { created_at: 'DESC' },
@@ -189,6 +203,7 @@ export class TopicService {
     }));
   }
 
+  // Fungsi untuk mendapatkan topic berdasarkan slug
   async getTopicBySlug(slug: string) {
     const get = await this.topicRepository.findOne({
       where: { slug: slug },
@@ -216,32 +231,21 @@ export class TopicService {
       where: { id_topic: get.id },
     });
 
-    const [data, total] = await this.commentRepository.findAndCount({
-      where: { id_topic: get.id },
-      order: { created_at: 'DESC' },
-      relations: ['user', 'likes'],
-    });
+    const commentData = await this.commentService.getCommentByTopic(get.id);
 
     return {
       ...get,
-      comments: data.map((comment) => ({
-        id: comment.id,
-        comment: comment.comment,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        username: comment.user.username,
-        name: comment.user.name,
-        total_likes: comment.likes.length
-      })),
+      comments: commentData.data,
       user: get.user.username,
       anime: get.anime.title,
       totalLikes: likes || 0,
-      totalComments: total || 0,
+      totalComments: commentData.total || 0,
       totalDislikes: dislikes || 0,
     };
   }
 
-  async getAllTopic(page: number, limit: number, search: string) {
+  // Fungsi untuk mendapatkan semua topic untuk admin dengan pagination
+  async getAllTopicAdmin(page: number, limit: number, search: string) {
     const [topics, total] = await this.topicRepository
       .createQueryBuilder('topic')
       .leftJoinAndSelect('topic.user', 'user') // Join table user yang berelasi dengan topic
@@ -276,6 +280,7 @@ export class TopicService {
     };
   }
 
+  // Fungsi untuk mendapatkan semua topic berdasarkan id anime
   async getAndCountByAnime(id: string) {
     const [topics, total] = await this.topicRepository.findAndCount({
       where: { id_anime: id },
