@@ -131,6 +131,7 @@ export class ReviewService {
       where: { id: id },
       relations: ['user', 'anime'],
       select: {
+        id: true,
         review: true,
         rating: true,
         created_at: true,
