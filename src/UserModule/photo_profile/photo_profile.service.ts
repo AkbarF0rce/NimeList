@@ -56,6 +56,6 @@ export class PhotoProfileService {
       return null;
     }
 
-    return get.path_photo;
+    return get.path_photo.replace(/\\/g, '/');
   }
 }

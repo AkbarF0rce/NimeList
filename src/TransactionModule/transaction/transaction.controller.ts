@@ -21,7 +21,7 @@ import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
-  @Post('create')
+  @Post('post')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('user')
   async createTransaction(@Req() req, @Body() body: CreateTransactionDto) {

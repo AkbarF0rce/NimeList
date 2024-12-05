@@ -42,6 +42,10 @@ export class TopicService {
     createTopicDto.slug = `tt-${v4().split('-')[0]}`;
     const topic = this.topicRepository.create(createTopicDto);
 
+    if (!photos || photos.length === 0) {
+      throw new BadRequestException('Photo is required');
+    }
+
     const savedTopic = await this.topicRepository.save(topic);
 
     if (!savedTopic) {

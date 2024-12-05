@@ -215,7 +215,7 @@ export class TransactionService {
       }
       transaction.status = status.SUCCESS;
       transaction.token_midtrans = null;
-      await this.transactionsRepository.update(order_id, transaction);
+      await this.transactionsRepository.update({ order_id: order_id }, transaction);
 
       // Hapus token dari cache
       tokenStore.delete(order_id);

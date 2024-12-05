@@ -18,8 +18,13 @@ export class GenreService {
   // Fungsi untuk membuat data genre
   async createGenre(data: CreateGenreDto) {
     const addGenre = await this.genreRepository.create(data);
-    await this.genreRepository.save(addGenre);
-    return { message: 'data created', genreName: data.name };
+    const saved = await this.genreRepository.save(addGenre);
+
+    if(!saved) {
+      throw new BadRequestException('data not created');
+    }
+
+    throw new HttpException('data created', 201);
   }
 
   // Fungsi untuk menghapus data genre berdasarkan id

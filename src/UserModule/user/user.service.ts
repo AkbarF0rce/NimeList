@@ -173,7 +173,7 @@ export class UserService {
     return {
       username: data.username,
       name: data.name,
-      photo_profile: photo,
+      photo_profile: photo.replace(/\\/g, '/'),
       bio: data.bio,
       badge: data.badge,
     };
@@ -191,7 +191,11 @@ export class UserService {
       where: { username: body.username },
     });
 
-    if (user.username !== body.username && existingUsername) {
+    if (
+      user.username !== body.username &&
+      existingUsername &&
+      body.username !== null
+    ) {
       throw new ConflictException('Username already exists');
     }
 
@@ -280,7 +284,7 @@ export class UserService {
 
     return {
       ...user,
-      photo_profile: photo,
+      photo_profile: photo.replace(/\\/g, '/'),
       review_created: totalReview || 0,
       favorite_anime: totalFav || 0,
       topic_created: totalTopic || 0,

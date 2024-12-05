@@ -212,6 +212,11 @@ export class AnimeService {
       relations: ['photos'],
     });
 
+    anime.photo_cover = anime.photo_cover.replace(/\\/g, '/');
+    anime.photos = anime.photos.map((photo) =>
+      photo.file_path.replace(/\\/g, '/'),
+    ) as [];
+
     if (!anime) {
       throw new NotFoundException('Anime tidak ditemukan');
     }
