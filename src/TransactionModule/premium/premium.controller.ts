@@ -43,7 +43,7 @@ export class PremiumController {
 
   @Get('get-all')
   async getAll() {
-    return await this.premiumService.getPremium();
+    return await this.premiumService.getPremiumWithTotalTransaction();
   }
 
   @Put('update/:id')

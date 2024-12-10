@@ -85,7 +85,11 @@ export class ReviewService {
   }
 
   // Fungsi untuk mendapatkan semua review untuk admin dengan pagination
-  async getAllReviewAdmin(page: number = 1, limit: number = 10, search?: string) {
+  async getAllReviewAdmin(
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+  ) {
     const query = this.reviewRepository
       .createQueryBuilder('review')
       .leftJoin('review.user', 'user') // Join table review
@@ -165,7 +169,7 @@ export class ReviewService {
           id: true,
         },
       },
-    })
+    });
 
     return anime.map((anime) => anime.anime.id);
   }
@@ -207,7 +211,7 @@ export class ReviewService {
         username: review.user.username,
         name: review.user.name,
         review: review.review,
-        rating: review.rating,
+        rating: parseFloat(review.rating.toString()),
         status_premium: review.user.status_premium,
         created_at: review.created_at,
         updated_at: review.updated_at,

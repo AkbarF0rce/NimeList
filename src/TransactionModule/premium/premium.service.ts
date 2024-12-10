@@ -28,7 +28,7 @@ export class PremiumService {
     return premium;
   }
 
-  async getPremium() {
+  async getPremiumWithTotalTransaction() {
     const premium = await this.premiumRepository.find({
       relations: ['transactions'],
       order: { price: 'ASC' },
@@ -41,6 +41,10 @@ export class PremiumService {
       ).length,
     }));
     return result;
+  }
+
+  async getALl() {
+    return await this.premiumRepository.find();
   }
 
   async deletePremium(id: string) {

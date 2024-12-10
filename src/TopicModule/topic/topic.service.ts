@@ -11,14 +11,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Topic } from './entities/topic.entity';
 import { Repository } from 'typeorm';
 import { PhotoTopic } from 'src/TopicModule/photo_topic/entities/photo_topic.entity';
-import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { LikeTopic } from 'src/TopicModule/like_topic/entities/like_topic.entity';
 import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
 import { DislikeTopic } from 'src/TopicModule/dislike_topic/entities/dislike_topic.entity';
 import { v4 } from 'uuid';
-import * as fs from 'fs';
 import { CommentService } from '../comment/comment.service';
+
+const imageStorage = process.env.IMAGE_STORAGE;
 
 @Injectable()
 export class TopicService {
@@ -51,7 +51,7 @@ export class TopicService {
     if (!savedTopic) {
       if (photos) {
         for (const file of photos) {
-          fs.unlinkSync(file.path);
+          unlink(file.path);
         }
       }
       throw new BadRequestException('Topic not created');
@@ -98,7 +98,7 @@ export class TopicService {
     if (!savedTopic) {
       if (photos) {
         for (const file of photos) {
-          fs.unlinkSync(file.path);
+          unlink(file.path);
         }
       }
       throw new BadRequestException('Topic not updated');
@@ -106,11 +106,13 @@ export class TopicService {
 
     // Hapus data foto lama
     for (const photo of topic.photos) {
-      const oldFilePath = join(process.cwd(), photo.file_path);
       // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
-      if (!existing_photos.includes(photo.file_path)) {
+      if (
+        !existing_photos.includes(photo.file_path) &&
+        existing_photos.length > 0
+      ) {
         try {
-          await unlink(oldFilePath); // Hapus file lama dari sistem
+          unlink(`${imageStorage}/${photo.file_path}`); // Hapus file lama dari sistem
         } catch (err) {
           throw new BadRequestException('photo not deleted');
         }
@@ -121,10 +123,10 @@ export class TopicService {
     if (savedTopic && photos && photos.length > 0) {
       // Simpan foto baru
       photos
-        .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
+        .filter((file) => !existing_photos.includes(file.filename)) // Hanya simpan file dan path baru yang belum ada di database
         .map(async (file) => {
           const photo = this.photoTopicRepository.create({
-            file_path: file.path,
+            file_path: file.filename,
             id_topic: id,
           });
           await this.photoTopicRepository.save(photo);
@@ -226,6 +228,8 @@ export class TopicService {
         },
       },
     });
+
+    get.photos = get.photos.map((photo) => photo.file_path) as [];
 
     const likes = await this.likeTopicRepository.count({
       where: { id_topic: get.id },

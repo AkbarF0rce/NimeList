@@ -1,21 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import './config/env.config';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as express from 'express';
-import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  const configService = app.get(ConfigService);
-
-  // Middleware untuk melayani file statis dari folder "images"
-  app.use('/images', express.static(join(__dirname, '..', 'images')));
+  // Middleware untuk melayani file statis dari image storage
+  app.use('/images', express.static(join(process.env.IMAGE_STORAGE)));
 
   // Konfigurasi CORS untuk mengizinkan akses dari domain tertentu
   app.enableCors({
-    origin: configService.get<string>('BASE_URL_FRONT_END'),
+    origin: process.env.BASE_URL_FRONT_END,
     credentials: true,
   });
 

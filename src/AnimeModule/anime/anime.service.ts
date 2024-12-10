@@ -6,22 +6,22 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, ILike, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Anime } from './entities/anime.entity';
 import { Genre } from 'src/AnimeModule/genre/entities/genre.entity';
 import { PhotoAnime } from 'src/AnimeModule/photo_anime/entities/photo_anime.entity';
 import { CreateAnimeDto } from './dto/create-anime.dto';
 import { In } from 'typeorm';
-import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { FavoriteAnime } from 'src/AnimeModule/favorite_anime/entities/favorite_anime.entity';
 import { UpdateAnimeDto } from './dto/update-anime.dto';
-import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { ReviewService } from '../review/review.service';
 import { TopicService } from 'src/TopicModule/topic/topic.service';
 import { GenreService } from '../genre/genre.service';
 import slugify from 'slugify';
+
+const imageStorage = process.env.IMAGE_STORAGE;
 
 @Injectable()
 export class AnimeService {
@@ -55,7 +55,7 @@ export class AnimeService {
 
     const anime = this.animeRepository.create({
       ...createAnimeDto,
-      photo_cover: photo_cover.path,
+      photo_cover: photo_cover.filename,
       genres: genreEntities,
       slug: slugify(title, { lower: true, strict: true }),
     });
@@ -65,10 +65,10 @@ export class AnimeService {
     if (!save) {
       if (files && files.length > 0) {
         for (const file of files) {
-          fs.unlinkSync(file.path);
+          unlink(`${imageStorage}/${file.path}`);
         }
       }
-      fs.unlinkSync(photo_cover?.path);
+      unlink(`${imageStorage}/${photo_cover.path}`);
       throw new BadRequestException('data not created');
     }
 
@@ -87,14 +87,10 @@ export class AnimeService {
   }
 
   // Fungsi untuk Menghitung hash SHA-256 dari isi file
-  private calculateFileHash(filePath: string): string {
-    if (!fs.existsSync(filePath)) return '';
-
-    const fileBuffer = fs.readFileSync(filePath);
-    const hashSum = crypto.createHash('sha256');
-    hashSum.update(fileBuffer);
-
-    return hashSum.digest('hex');
+  calculateFileHash(buffer: Buffer): string {
+    const hash = crypto.createHash('md5'); // Atau gunakan 'sha256'
+    hash.update(buffer);
+    return hash.digest('hex');
   }
 
   // Fungsi untuk Mengupdate Anime
@@ -127,36 +123,20 @@ export class AnimeService {
     Object.assign(anime, updateAnimeDto);
 
     if (photo_cover) {
-      const fileHash = this.calculateFileHash(photo_cover.path);
-      const existingHash = this.calculateFileHash(anime.photo_cover);
-
-      if (existingHash !== fileHash) {
-        // Hapus file cover lama di sistem
-        const Path = join(process.cwd(), anime.photo_cover);
-        try {
-          await unlink(Path);
-        } catch (err) {
-          throw new InternalServerErrorException(
-            'Error hapus data file foto cover',
-          );
-        }
-
-        // Ubah path cover dengan path yang baru
-        anime.photo_cover = photo_cover.path;
-      }
-
-      // Hapus file baru yang tidak diperlukan
-      fs.unlinkSync(photo_cover.path);
+      // unlink(`${imageStorage}/${anime.photo_cover}`);
+      anime.photo_cover = photo_cover.filename;
     }
 
     // Jika ada genre yang diberikan
     if (genres.length > 0) {
       const genreEntities = await this.genreRepository.find({
-        where: { id: In(genres) },
+        where: {
+          id: In(Array.isArray(genres) ? genres : [genres]),
+        },
       });
 
-      if (genreEntities.length !== genres.length) {
-        throw new NotFoundException('Satu atau lebih genre tidak ditemukan');
+      if (genreEntities.length === 0) {
+        throw new BadRequestException('Genre tidak ditemukan');
       }
 
       anime.genres = genreEntities;
@@ -171,12 +151,13 @@ export class AnimeService {
 
     // Hapus data foto lama
     for (const photo of anime.photos) {
-      const oldFilePath = join(process.cwd(), photo.file_path);
-
       // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
-      if (!existing_photos.includes(photo.file_path)) {
+      if (
+        !existing_photos.includes(photo.file_path) &&
+        existing_photos.length > 0
+      ) {
         try {
-          await unlink(oldFilePath);
+          unlink(`${imageStorage}/${photo.file_path}`);
         } catch (err) {
           throw new InternalServerErrorException(
             'Error hapus data file foto anime',
@@ -191,10 +172,10 @@ export class AnimeService {
     if (photo_anime && photo_anime.length > 0) {
       // Simpan path dan file foto baru yang belum ada di database
       photo_anime
-        .filter((file) => !existing_photos.includes(file.path)) // Hanya simpan file dan path baru yang belum ada di database
+        .filter((file) => !existing_photos.includes(file.filename)) // Hanya simpan file dan path baru yang belum ada di database
         .map(async (file) => {
           const photo = this.photoRepository.create({
-            file_path: file.path,
+            file_path: file.filename,
             id_anime: anime.id,
           });
           await this.photoRepository.save(photo);
@@ -212,10 +193,7 @@ export class AnimeService {
       relations: ['photos'],
     });
 
-    anime.photo_cover = anime.photo_cover.replace(/\\/g, '/');
-    anime.photos = anime.photos.map((photo) =>
-      photo.file_path.replace(/\\/g, '/'),
-    ) as [];
+    anime.photos = anime.photos.map((photo) => photo.file_path) as [];
 
     if (!anime) {
       throw new NotFoundException('Anime tidak ditemukan');

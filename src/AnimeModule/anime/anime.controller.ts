@@ -18,7 +18,10 @@ import { UpdateAnimeDto } from './dto/update-anime.dto';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
 import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
-import { fileFields, fileUploadConfig } from 'src/config/upload-photo-anime';
+import {
+  animeFileFields,
+  animeUploadConfig,
+} from 'src/config/upload-photo-anime';
 
 @Controller('anime')
 export class AnimeController {
@@ -27,7 +30,7 @@ export class AnimeController {
   @Post('post')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @UseInterceptors(FileFieldsInterceptor(fileFields, fileUploadConfig))
+  @UseInterceptors(FileFieldsInterceptor(animeFileFields, animeUploadConfig))
   async create(
     @Body() createAnimeDto: CreateAnimeDto,
     @UploadedFiles()
@@ -46,7 +49,7 @@ export class AnimeController {
   @Put('update/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @UseInterceptors(FileFieldsInterceptor(fileFields, fileUploadConfig))
+  @UseInterceptors(FileFieldsInterceptor(animeFileFields, animeUploadConfig))
   async updateAnimeDetails(
     @Param('id') animeId: string,
     @Body() updateAnimeDto: UpdateAnimeDto,
@@ -54,8 +57,8 @@ export class AnimeController {
     @Body('existing_photos') existingPhotosString: string[],
     @UploadedFiles()
     files: {
-      photos_anime?: Express.Multer.File[];
-      photo_cover?: Express.Multer.File[];
+      photos_anime: Express.Multer.File[];
+      photo_cover: Express.Multer.File[];
     },
   ) {
     const updatedAnime = await this.animeService.updateAnime(

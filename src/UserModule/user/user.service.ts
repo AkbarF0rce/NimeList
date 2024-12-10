@@ -173,7 +173,7 @@ export class UserService {
     return {
       username: data.username,
       name: data.name,
-      photo_profile: photo.replace(/\\/g, '/'),
+      photo_profile: photo,
       bio: data.bio,
       badge: data.badge,
     };
@@ -217,7 +217,7 @@ export class UserService {
     await this.updateUser(id, body);
 
     if (photo) {
-      await this.photoProfileService.create(id, photo);
+      await this.photoProfileService.create(id, photo.filename);
     }
 
     throw new HttpException('data updated', 200);

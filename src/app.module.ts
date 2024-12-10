@@ -27,7 +27,6 @@ import { PhotoProfileModule } from './UserModule/photo_profile/photo_profile.mod
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // Membuat ConfigModule global
-      envFilePath: '.env', // Lokasi file .env
     }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
@@ -63,6 +62,6 @@ import { PhotoProfileModule } from './UserModule/photo_profile/photo_profile.mod
     PhotoProfileModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ConfigService],
 })
 export class AppModule {}

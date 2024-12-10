@@ -14,14 +14,19 @@ import {
 } from '@nestjs/common';
 import { TopicService } from './topic.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+} from '@nestjs/platform-express';
 import * as sanitize from 'sanitize-html';
 import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
 import { PremiumGuard } from 'src/AuthModule/auth/guards/isPremium.guard';
 import { UpdateTopicDto } from './dto/update-topic.dto';
-import { fileFields, fileUploadConfig } from 'src/config/upload-photo-topic';
+import {
+  topicFileFields,
+  topicUploadConfig,
+} from 'src/config/upload-photo-topic';
 
 @Controller('topic')
 @UseGuards(PremiumGuard, JwtAuthGuard)
@@ -29,10 +34,12 @@ export class TopicController {
   constructor(private readonly topicService: TopicService) {}
 
   @Post('post')
-  @UseInterceptors(FileFieldsInterceptor(fileFields, fileUploadConfig))
+  @UseInterceptors(
+    FileFieldsInterceptor(topicFileFields.photo, topicUploadConfig),
+  )
   async create(
     @Body() createTopicDto: CreateTopicDto,
-    @UploadedFiles() files: { photos_topic?: Express.Multer.File[] },
+    @UploadedFiles() files: { photos_topic: Express.Multer.File[] },
     @Request() req,
   ) {
     createTopicDto.id_user = req.user.userId;
@@ -42,15 +49,14 @@ export class TopicController {
   }
 
   @Put('update/:id')
-  @UseInterceptors(FileFieldsInterceptor(fileFields, fileUploadConfig))
+  @UseInterceptors(
+    FileFieldsInterceptor(topicFileFields.news, topicUploadConfig),
+  )
   async update(
     @Param('id') id: string,
     @Request() req,
     @Body() updateTopicDto: UpdateTopicDto,
-    @UploadedFiles()
-    files: {
-      new_photos?: Express.Multer.File[];
-    },
+    @UploadedFiles() files: { new_photos: Express.Multer.File[] },
   ) {
     updateTopicDto.body = this.filterHtmlContent(updateTopicDto.body);
     updateTopicDto.photos = files.new_photos || [];

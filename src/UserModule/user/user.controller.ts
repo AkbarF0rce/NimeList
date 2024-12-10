@@ -18,7 +18,10 @@ import { Roles } from '../../AuthModule/common/decorators/roles.decorator';
 import { status_premium } from './entities/user.entity';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { fileFields, fileUploadConfig } from 'src/config/upload-photo-profile';
+import {
+  profileFileFields,
+  profileUploadConfig,
+} from 'src/config/upload-photo-profile';
 
 @Controller('user')
 export class UserController {
@@ -50,7 +53,9 @@ export class UserController {
 
   @Put('update-profile')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileFieldsInterceptor(fileFields, fileUploadConfig))
+  @UseInterceptors(
+    FileFieldsInterceptor(profileFileFields, profileUploadConfig),
+  )
   async updateProfile(
     @Request() req,
     @Body() body: UpdateUserDto,

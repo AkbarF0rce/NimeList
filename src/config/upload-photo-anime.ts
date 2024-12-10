@@ -3,17 +3,15 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-export const fileUploadConfig = {
+export const animeUploadConfig = {
   storage: diskStorage({
     destination: (req, file, cb) => {
-      if (file.fieldname === 'photo_cover') {
-        cb(null, './images/anime/cover');
-      } else if (file.fieldname === 'photos_anime') {
-        cb(null, './images/anime/content');
-      }
+      cb(null, `${process.env.IMAGE_STORAGE}`);
     },
     filename: (req, file, cb) => {
-      cb(null, `${uuidv4()}${extname(file.originalname)}`);
+      const pathCustom =
+        file.fieldname === 'photo_cover' ? 'Anime/Cover' : 'Anime/Content';
+      cb(null, `${pathCustom}/${uuidv4()}${extname(file.originalname)}`);
     },
   }),
   fileFilter: (req, file, cb) => {
@@ -25,9 +23,12 @@ export const fileUploadConfig = {
     }
     cb(null, true);
   },
+  limits: {
+    fileSize: 1024 * 1024 * 5,
+  },
 };
 
-export const fileFields = [
+export const animeFileFields = [
   { name: 'photos_anime', maxCount: 4 },
   { name: 'photo_cover', maxCount: 1 },
 ];

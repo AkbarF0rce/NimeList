@@ -28,11 +28,11 @@ import { CommentModule } from '../comment/comment.module';
       Anime,
       User,
       DislikeTopic,
-      LikeComment
+      LikeComment,
     ]),
     UserModule,
     CommentModule,
-    JwtModule
+    JwtModule,
   ],
   exports: [TopicService],
 })
