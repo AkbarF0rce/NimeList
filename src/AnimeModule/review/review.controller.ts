@@ -51,6 +51,15 @@ export class ReviewController {
     );
   }
 
+  @Get('get/by-anime/:id_anime')
+  async getByAnime(
+    @Param('id_anime') id_anime: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 5,
+  ) {
+    return await this.reviewService.getReviewByAnime(id_anime, page, limit);
+  }
+
   @Get('get-admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

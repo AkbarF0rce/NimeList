@@ -7,10 +7,15 @@ export const topicFileFields = {
   news: [{ name: 'new_photos', maxCount: 4 }],
 };
 
+console.log(process.env.IMAGE_STORAGE);
+
 export const topicUploadConfig = {
   storage: diskStorage({
-    destination: process.env.IMAGE_STORAGE,
+    destination: (req, file, cb) => {
+      cb(null, process.env.IMAGE_STORAGE);
+    },
     filename: (req, file, cb) => {
+      console.log(file);
       cb(null, `Topic/${v4()}${extname(file.originalname)}`);
     },
   }),

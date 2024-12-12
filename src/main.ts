@@ -1,9 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import './config/env.config';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as express from 'express';
+import * as dotenv from 'dotenv';
+
+dotenv.config(); // Memuat file .env ke dalam process.env
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -18,6 +20,6 @@ async function bootstrap() {
   });
 
   // Menjalankan aplikasi di port 4321
-  await app.listen(4321);
+  await app.listen(process.env.PORT_RUNNING);
 }
 bootstrap();

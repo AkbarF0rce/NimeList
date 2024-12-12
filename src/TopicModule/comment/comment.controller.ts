@@ -32,7 +32,11 @@ export class CommentController {
   }
 
   @Put('update/:id')
-  async update(@Param('id') id: string, @Body() data: UpdateCommentDto, @Request() req) {
+  async update(
+    @Param('id') id: string,
+    @Body() data: UpdateCommentDto,
+    @Request() req,
+  ) {
     data.id_user = req.user.userId;
     data.role = req.user.role;
     return await this.commentService.updateComment(id, data);
@@ -40,7 +44,7 @@ export class CommentController {
 
   @Delete('delete/:id')
   async delete(@Param('id') id: string, @Request() req) {
-    return await this.commentService.deleteComment(id,  req.user);
+    return await this.commentService.deleteComment(id, req.user);
   }
 
   @Get('get-admin')
@@ -57,5 +61,14 @@ export class CommentController {
   @Get('get/:id')
   async getCommentById(@Param('id') id: string) {
     return await this.commentService.getCommentById(id);
+  }
+
+  @Get('get/by-topic/:id')
+  async getCommentByTopic(
+    @Param('id') id: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 5,
+  ) {
+    return await this.commentService.getCommentByTopic(id, page, limit);
   }
 }

@@ -14,9 +14,7 @@ import {
 } from '@nestjs/common';
 import { TopicService } from './topic.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
-import {
-  FileFieldsInterceptor,
-} from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import * as sanitize from 'sanitize-html';
 import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
@@ -58,6 +56,7 @@ export class TopicController {
     @Body() updateTopicDto: UpdateTopicDto,
     @UploadedFiles() files: { new_photos: Express.Multer.File[] },
   ) {
+    console.log(files);
     updateTopicDto.body = this.filterHtmlContent(updateTopicDto.body);
     updateTopicDto.photos = files.new_photos || [];
     updateTopicDto.id_user = req.user.userId;

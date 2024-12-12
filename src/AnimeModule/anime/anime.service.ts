@@ -21,10 +21,10 @@ import { TopicService } from 'src/TopicModule/topic/topic.service';
 import { GenreService } from '../genre/genre.service';
 import slugify from 'slugify';
 
-const imageStorage = process.env.IMAGE_STORAGE;
-
 @Injectable()
 export class AnimeService {
+  private imageStorage = process.env.IMAGE_STORAGE;
+
   constructor(
     @InjectRepository(Anime)
     private animeRepository: Repository<Anime>,
@@ -65,10 +65,10 @@ export class AnimeService {
     if (!save) {
       if (files && files.length > 0) {
         for (const file of files) {
-          unlink(`${imageStorage}/${file.path}`);
+          unlink(`${this.imageStorage}/${file.path}`);
         }
       }
-      unlink(`${imageStorage}/${photo_cover.path}`);
+      unlink(`${this.imageStorage}/${photo_cover.path}`);
       throw new BadRequestException('data not created');
     }
 
@@ -76,7 +76,7 @@ export class AnimeService {
     if (save && files && files.length > 0) {
       for (const file of files) {
         const photo = this.photoRepository.create({
-          file_path: file.path,
+          file_path: file.filename,
           anime,
         });
         await this.photoRepository.save(photo);
@@ -152,12 +152,9 @@ export class AnimeService {
     // Hapus data foto lama
     for (const photo of anime.photos) {
       // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
-      if (
-        !existing_photos.includes(photo.file_path) &&
-        existing_photos.length > 0
-      ) {
+      if (!existing_photos.includes('images/' + photo.file_path)) {
         try {
-          unlink(`${imageStorage}/${photo.file_path}`);
+          unlink(`${this.imageStorage}/${photo.file_path}`);
         } catch (err) {
           throw new InternalServerErrorException(
             'Error hapus data file foto anime',
@@ -172,7 +169,7 @@ export class AnimeService {
     if (photo_anime && photo_anime.length > 0) {
       // Simpan path dan file foto baru yang belum ada di database
       photo_anime
-        .filter((file) => !existing_photos.includes(file.filename)) // Hanya simpan file dan path baru yang belum ada di database
+        .filter((file) => !existing_photos.includes('images/' + file.filename)) // Hanya simpan file dan path baru yang belum ada di database
         .map(async (file) => {
           const photo = this.photoRepository.create({
             file_path: file.filename,
@@ -193,14 +190,15 @@ export class AnimeService {
       relations: ['photos'],
     });
 
-    anime.photos = anime.photos.map((photo) => photo.file_path) as [];
+    // Konfigurasi path gambar
+    anime.photos = anime.photos.map(
+      (photo) => 'images/' + photo.file_path,
+    ) as [];
+    anime.photo_cover = 'images/' + anime.photo_cover;
 
     if (!anime) {
       throw new NotFoundException('Anime tidak ditemukan');
     }
-
-    // Ambil jumlah dan data review yang berkaitan dengan id anime
-    const review = await this.reviewService.getAndCountByAnime(anime.id);
 
     // Hitung average rating dari id anime
     const getAvgRating = await this.reviewService.getAvgRatingByAnime(anime.id);
@@ -219,7 +217,6 @@ export class AnimeService {
     return {
       anime,
       genres,
-      review,
       avgRating: getAvgRating,
       topic,
       totalFav,
@@ -300,10 +297,12 @@ export class AnimeService {
   async getAnimeNewest(limit: number) {
     const animes = await this.animeRepository
       .createQueryBuilder('anime')
+      .leftJoin('anime.photos', 'photo')
       .leftJoin('anime.review', 'review') // Join table review
       .leftJoin('anime.genres', 'genre') // Join table genre
       .addSelect('COALESCE(AVG(review.rating), 0)', 'averageRating')
       .addSelect('array_agg(distinct genre.name)', 'genres') // Aggregate genre names as an array
+      .addSelect('array_agg(DISTINCT photo.file_path)', 'photos')
       .groupBy('anime.id')
       .orderBy('anime.release_date', 'DESC')
       .limit(limit)
@@ -313,12 +312,13 @@ export class AnimeService {
       id: anime.anime_id,
       synopsis: anime.anime_synopsis,
       title: anime.anime_title,
-      photo_cover: anime.anime_photo_cover,
+      photo_cover: 'images/' + anime.anime_photo_cover,
       trailer_link: anime.anime_trailer_link,
       type: anime.anime_type,
       slug: anime.anime_slug,
       avgRating: parseFloat(anime.averageRating).toFixed(1),
       genres: anime.genres,
+      backdrop: 'images/' + anime.photos[0] || null,
     }));
 
     return { data: result };
@@ -352,7 +352,7 @@ export class AnimeService {
     // Tampilkan anime yang ada
     return animes.map((anime) => ({
       id: anime.anime_id,
-      photo_cover: anime.anime_photo_cover,
+      photo_cover: 'images/' + anime.anime_photo_cover,
       type: anime.anime_type,
       title: anime.anime_title,
       slug: anime.anime_slug,
@@ -403,7 +403,7 @@ export class AnimeService {
     return recommendedAnimes.map((anime) => ({
       id: anime.anime_id,
       title: anime.anime_title,
-      photo_cover: anime.anime_photo_cover,
+      photo_cover: 'images/' + anime.anime_photo_cover,
       type: anime.anime_type,
       slug: anime.anime_slug,
       avgRating: parseFloat(anime.avg_rating).toFixed(1),
@@ -462,7 +462,7 @@ export class AnimeService {
           return {
             title: anime.title,
             id: anime.id,
-            photo_cover: anime.photo_cover,
+            photo_cover: 'images/' + anime.photo_cover,
             type: anime.type,
             slug: anime.slug,
             total_reviews: totalReviews,

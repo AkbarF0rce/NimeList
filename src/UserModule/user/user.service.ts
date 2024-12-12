@@ -284,7 +284,7 @@ export class UserService {
 
     return {
       ...user,
-      photo_profile: photo.replace(/\\/g, '/'),
+      photo_profile: photo,
       review_created: totalReview || 0,
       favorite_anime: totalFav || 0,
       topic_created: totalTopic || 0,

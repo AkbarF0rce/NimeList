@@ -127,9 +127,11 @@ export class CommentService {
     };
   }
 
-  async getCommentByTopic(id: string) {
+  async getCommentByTopic(id: string, page: number, limit: number) {
     const [data, total] = await this.commentRepository.findAndCount({
       where: { id_topic: id },
+      skip: (page - 1) * limit,
+      take: limit,
       relations: ['user', 'likes'],
       order: { created_at: 'DESC' },
       select: {

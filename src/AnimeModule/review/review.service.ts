@@ -149,6 +149,8 @@ export class ReviewService {
       },
     });
 
+    console.log(review);
+
     return {
       username: review.user.username,
       review: review.review,
@@ -172,6 +174,48 @@ export class ReviewService {
     });
 
     return anime.map((anime) => anime.anime.id);
+  }
+
+  async getReviewByAnime(id_anime: string, page: number, limit: number) {
+    const get = await this.reviewRepository.find({
+      where: { id_anime: id_anime },
+      relations: ['user'],
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        rating: true,
+        review: true,
+        user: {
+          username: true,
+          name: true,
+          status_premium: true,
+        },
+        created_at: true,
+        updated_at: true,
+      },
+      order: { created_at: 'DESC' },
+    });
+
+    const total = await this.reviewRepository.count({
+      where: { id_anime: id_anime },
+    });
+
+    const result = get.map((get) => ({
+      id: get.id,
+      username: get.user.username,
+      name: get.user.name,
+      status_premium: get.user.status_premium,
+      rating: parseFloat(get.rating.toString()),
+      review: get.review,
+      created_at: get.created_at,
+      updated_at: get.updated_at,
+    }));
+
+    return {
+      data: result,
+      total,
+    }
   }
 
   // Fungsi untuk mendapatkan rata-rata rating berdasarkan id anime

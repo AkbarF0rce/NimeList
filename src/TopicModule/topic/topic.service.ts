@@ -18,10 +18,10 @@ import { DislikeTopic } from 'src/TopicModule/dislike_topic/entities/dislike_top
 import { v4 } from 'uuid';
 import { CommentService } from '../comment/comment.service';
 
-const imageStorage = process.env.IMAGE_STORAGE;
-
 @Injectable()
 export class TopicService {
+  private imageStorage = process.env.IMAGE_STORAGE;
+
   constructor(
     @InjectRepository(Topic) private topicRepository: Repository<Topic>,
     @InjectRepository(PhotoTopic)
@@ -98,21 +98,21 @@ export class TopicService {
     if (!savedTopic) {
       if (photos) {
         for (const file of photos) {
+          console.log(file);
           unlink(file.path);
         }
       }
       throw new BadRequestException('Topic not updated');
     }
 
+    console.log(existing_photos);
+
     // Hapus data foto lama
     for (const photo of topic.photos) {
       // Cek apakah existing_photos memberikan path yang tidak ada di dalam sistem
-      if (
-        !existing_photos.includes(photo.file_path) &&
-        existing_photos.length > 0
-      ) {
+      if (!existing_photos.includes('images/' + photo.file_path)) {
         try {
-          unlink(`${imageStorage}/${photo.file_path}`); // Hapus file lama dari sistem
+          unlink(`${this.imageStorage}/${photo.file_path}`); // Hapus file lama dari sistem
         } catch (err) {
           throw new BadRequestException('photo not deleted');
         }
@@ -123,7 +123,7 @@ export class TopicService {
     if (savedTopic && photos && photos.length > 0) {
       // Simpan foto baru
       photos
-        .filter((file) => !existing_photos.includes(file.filename)) // Hanya simpan file dan path baru yang belum ada di database
+        .filter((file) => !existing_photos.includes('images/' + file.filename)) // Hanya simpan file dan path baru yang belum ada di database
         .map(async (file) => {
           const photo = this.photoTopicRepository.create({
             file_path: file.filename,
@@ -213,7 +213,7 @@ export class TopicService {
   async getTopicBySlug(slug: string) {
     const get = await this.topicRepository.findOne({
       where: { slug: slug },
-      relations: ['user', 'anime', 'photos'],
+      relations: ['user', 'anime', 'photos', 'comments'],
       select: {
         id: true,
         title: true,
@@ -229,7 +229,7 @@ export class TopicService {
       },
     });
 
-    get.photos = get.photos.map((photo) => photo.file_path) as [];
+    get.photos = get.photos.map((photo) => 'images/' + photo.file_path) as [];
 
     const likes = await this.likeTopicRepository.count({
       where: { id_topic: get.id },
@@ -239,15 +239,13 @@ export class TopicService {
       where: { id_topic: get.id },
     });
 
-    const commentData = await this.commentService.getCommentByTopic(get.id);
+    const totalComment = get.comments.length;
 
     return {
       ...get,
-      comments: commentData.data,
       user: get.user.username,
       anime: get.anime.title,
       totalLikes: likes || 0,
-      totalComments: commentData.total || 0,
       totalDislikes: dislikes || 0,
     };
   }

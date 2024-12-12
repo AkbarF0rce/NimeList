@@ -4,10 +4,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { unlink } from 'fs/promises';
 
-const imageStorage = process.env.IMAGE_STORAGE;
-
 @Injectable()
 export class PhotoProfileService {
+  private imageStorage = process.env.IMAGE_STORAGE;
+
   constructor(
     @InjectRepository(PhotoProfile)
     private photoProfileRepository: Repository<PhotoProfile>,
@@ -36,7 +36,8 @@ export class PhotoProfileService {
     photoOld?: string,
   ) {
     try {
-      unlink(`${imageStorage}/${photoOld}`);
+      console.log(this.imageStorage);
+      unlink(`${this.imageStorage}/${photoOld}`);
       await this.photoProfileRepository.update(
         { id_user: id_user },
         {
@@ -58,6 +59,6 @@ export class PhotoProfileService {
       return null;
     }
 
-    return get.path_photo;
+    return 'images/' + get.path_photo;
   }
 }
