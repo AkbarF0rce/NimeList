@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
 import { Between, Repository } from 'typeorm';
-import { status_premium, User } from 'src/UserModule/user/entities/user.entity';
+import { is_premium, User } from 'src/UserModule/user/entities/user.entity';
 import { Transaction } from 'src/TransactionModule/transaction/entities/transaction.entity';
 import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
 import { Premium } from 'src/TransactionModule/premium/entities/premium.entity';
@@ -35,7 +35,7 @@ export class DashboardService {
   async countUserPremium() {
     const count = await this.userRepository.count({
       where: {
-        status_premium: status_premium.ACTIVE,
+        status_premium: is_premium.ACTIVE,
         role: { name: 'user' },
       },
     });

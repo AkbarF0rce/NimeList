@@ -2,8 +2,8 @@ import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { CreatePremiumDto } from './dto/create-premium.dto';
 import { UpdatePremiumDto } from './dto/update-premium.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Premium } from './entities/premium.entity';
+import { ILike, Repository } from 'typeorm';
+import { Premium, status_premium } from './entities/premium.entity';
 
 @Injectable()
 export class PremiumService {
@@ -28,23 +28,62 @@ export class PremiumService {
     return premium;
   }
 
-  async getPremiumWithTotalTransaction() {
-    const premium = await this.premiumRepository.find({
-      relations: ['transactions'],
-      order: { price: 'ASC' },
-    });
+  async getPremiumAdmin(
+    page: number,
+    limit: number,
+    search: string,
+    status: string,
+  ) {
+    const premiumQuery = await this.premiumRepository
+      .createQueryBuilder('premium')
+      .leftJoinAndSelect(
+        'premium.transactions',
+        'transactions',
+        'transactions.status = :status',
+        { status: 'success' },
+      )
+      .select([
+        'premium.id',
+        'premium.name',
+        'premium.price',
+        'premium.duration',
+        'premium.status',
+        'transactions',
+      ]);
 
-    const result = premium.map((item) => ({
-      ...item,
-      transactions: item.transactions.filter(
-        (transaction) => transaction.status === 'success',
-      ).length,
+    if (search) {
+      premiumQuery.where('premium.name ILIKE :search', {
+        search: `%${search}%`,
+      });
+    }
+
+    if (status && status !== 'all') {
+      premiumQuery.andWhere('premium.status = :status', { status });
+    }
+
+    const [premium, total] = await premiumQuery
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('premium.price', 'ASC')
+      .getManyAndCount();
+
+    const result = premium.map((premium) => ({
+      id: premium.id,
+      name: premium.name,
+      price: premium.price,
+      status: premium.status,
+      duration: premium.duration,
+      transactions: premium.transactions.length,
     }));
-    return result;
+
+    return { data: result, total };
   }
 
   async getALl() {
-    return await this.premiumRepository.find();
+    return await this.premiumRepository.find({
+      where: { status: status_premium.ACTIVE },
+      order: { price: 'ASC' },
+    });
   }
 
   async deletePremium(id: string) {
@@ -60,7 +99,7 @@ export class PremiumService {
   async getPremiumEdit(id: string) {
     const premium = await this.premiumRepository.findOne({
       where: { id },
-      select: ['id', 'name', 'price', 'duration'],
+      select: ['id', 'name', 'price', 'duration', 'status'],
     });
     return premium;
   }

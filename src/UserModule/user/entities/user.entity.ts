@@ -21,7 +21,7 @@ import { Transaction } from 'src/TransactionModule/transaction/entities/transact
 import { PhotoProfile } from 'src/UserModule/photo_profile/entities/photo_profile.entity';
 import { Role } from 'src/UserModule/role/entities/role.entity';
 
-export enum status_premium {
+export enum is_premium {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
 }
@@ -57,8 +57,8 @@ export class User {
   @Column('varchar', { nullable: true, default: null, length: 250 })
   bio: string;
 
-  @Column('enum', { enum: status_premium, default: status_premium.INACTIVE })
-  status_premium: status_premium;
+  @Column('enum', { enum: is_premium, default: is_premium.INACTIVE })
+  status_premium: is_premium;
 
   @Column('enum', { enum: badges, default: badges.NIMELIST_CITIZENS })
   badge: badges;

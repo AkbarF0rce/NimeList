@@ -9,6 +9,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export enum status_premium {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
+
 @Entity()
 export class Premium {
   @PrimaryGeneratedColumn('uuid')
@@ -19,6 +24,9 @@ export class Premium {
 
   @Column('int')
   price: number;
+
+  @Column('enum', { enum: status_premium, default: status_premium.INACTIVE })
+  status: status_premium;
 
   @Column('int')
   duration: number;

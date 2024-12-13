@@ -10,16 +10,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Review } from './entities/review.entity';
 import { Repository } from 'typeorm';
 import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
-import { status_premium, User } from 'src/UserModule/user/entities/user.entity';
-import { parse } from 'path';
-import { status } from 'src/TransactionModule/transaction/entities/transaction.entity';
+import { User } from 'src/UserModule/user/entities/user.entity';
 
 @Injectable()
 export class ReviewService {
   constructor(
     @InjectRepository(Review) private reviewRepository: Repository<Review>,
-    @InjectRepository(Anime) private animeRepository: Repository<Anime>,
-    @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
   // Fungsi untuk membuat review
@@ -215,7 +211,7 @@ export class ReviewService {
     return {
       data: result,
       total,
-    }
+    };
   }
 
   // Fungsi untuk mendapatkan rata-rata rating berdasarkan id anime

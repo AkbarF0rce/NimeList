@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Seeder } from './seeder.interface';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { status_premium, User } from 'src/UserModule/user/entities/user.entity';
+import { is_premium, User } from 'src/UserModule/user/entities/user.entity';
 import { Role } from 'src/UserModule/role/entities/role.entity';
 import { v4 } from 'uuid';
 
@@ -44,7 +44,7 @@ export class UserSeeder implements Seeder {
       password: 'admin#1234',
       name: 'Admin',
       role: adminRole,
-      status_premium: status_premium.ACTIVE,
+      status_premium: is_premium.ACTIVE,
       salt: v4(),
     });
 

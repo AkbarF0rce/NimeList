@@ -55,7 +55,7 @@ export class TransactionController {
       limit,
       search,
       status,
-      decodeURIComponent(premium),
+      premium,
       platform,
     );
   }

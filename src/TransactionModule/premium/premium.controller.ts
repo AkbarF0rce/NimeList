@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Put,
+  Query,
 } from '@nestjs/common';
 import { PremiumService } from './premium.service';
 import { CreatePremiumDto } from './dto/create-premium.dto';
@@ -15,6 +16,7 @@ import { UpdatePremiumDto } from './dto/update-premium.dto';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
 import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
+import { status_premium } from './entities/premium.entity';
 
 @Controller('premium')
 export class PremiumController {
@@ -43,7 +45,24 @@ export class PremiumController {
 
   @Get('get-all')
   async getAll() {
-    return await this.premiumService.getPremiumWithTotalTransaction();
+    return await this.premiumService.getALl();
+  }
+
+  @Get('get-admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async getPremiumAdmin(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('search') search: string = '',
+    @Query('status') status?: string,
+  ) {
+    return await this.premiumService.getPremiumAdmin(
+      page,
+      limit,
+      search,
+      status,
+    );
   }
 
   @Put('update/:id')

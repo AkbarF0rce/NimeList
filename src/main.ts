@@ -19,7 +19,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Menjalankan aplikasi di port 4321
+  // Menjalankan aplikasi berdasarkan port di .env
   await app.listen(process.env.PORT_RUNNING);
 }
 bootstrap();

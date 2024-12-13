@@ -15,7 +15,7 @@ import { UserService } from './user.service';
 import { JwtAuthGuard } from '../../AuthModule/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../AuthModule/common/guards/roles.guard';
 import { Roles } from '../../AuthModule/common/decorators/roles.decorator';
-import { status_premium } from './entities/user.entity';
+import { is_premium } from './entities/user.entity';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {
@@ -34,7 +34,7 @@ export class UserController {
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('search') search: string,
-    @Query('status') status?: status_premium,
+    @Query('status') status?: is_premium,
   ) {
     return await this.userService.getUsers(page, limit, search, status);
   }

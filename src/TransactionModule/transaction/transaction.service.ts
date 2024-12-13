@@ -1,25 +1,25 @@
-// src/midtrans/midtrans.service.ts
-
 import {
   BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { status, Transaction } from './entities/transaction.entity';
-import { ILike, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UserService } from 'src/UserModule/user/user.service';
 import { PremiumService } from 'src/TransactionModule/premium/premium.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import {
   badges,
-  status_premium,
+  is_premium,
   User,
 } from 'src/UserModule/user/entities/user.entity';
-import { Premium } from 'src/TransactionModule/premium/entities/premium.entity';
-import * as fetch from 'node-fetch';
+import {
+  Premium,
+  status_premium,
+} from 'src/TransactionModule/premium/entities/premium.entity';
 import * as crypto from 'crypto';
 import { nanoid } from 'nanoid';
 
@@ -29,7 +29,6 @@ const tokenStore = new Map<string, string>();
 @Injectable()
 export class TransactionService {
   constructor(
-    private configService: ConfigService,
     @InjectRepository(Transaction)
     private transactionsRepository: Repository<Transaction>,
     @InjectRepository(User)
@@ -48,7 +47,7 @@ export class TransactionService {
       headers: {
         accept: 'application/json',
         'content-type': 'application/json',
-        authorization: this.configService.get<string>('MIDTRANS_AUTHORIZATION'),
+        authorization: process.env.MIDTRANS_AUTHORIZATION,
       },
       body: JSON.stringify(data),
     };
@@ -115,6 +114,10 @@ export class TransactionService {
       where: { id: id_premium },
     });
 
+    if (premium.status !== status_premium.ACTIVE) {
+      throw new BadRequestException('Premium not active');
+    }
+
     const user = await this.usersRepository.findOne({
       where: { id: id_user },
     });
@@ -127,7 +130,7 @@ export class TransactionService {
     const duration = premium.duration * 24 * 60 * 60 * 1000;
 
     if (
-      user.status_premium === status_premium.ACTIVE &&
+      user.status_premium === is_premium.ACTIVE &&
       user.end_premium > current_time
     ) {
       // Perpanjang waktu end premium
@@ -141,7 +144,7 @@ export class TransactionService {
     } else {
       // Update status premium
       user.badge = badges.NIMELIST_HEROES;
-      user.status_premium = status_premium.ACTIVE;
+      user.status_premium = is_premium.ACTIVE;
       user.start_premium = current_time;
       const newEndPremium = new Date(current_time.getTime() + duration);
 
@@ -166,8 +169,13 @@ export class TransactionService {
     // Data dari Midtrans notifikasi
     const { order_id, status_code, gross_amount, signature_key } = data;
 
+    // Validasi data
+    if (!order_id || !status_code || !gross_amount || !signature_key) {
+      return false;
+    }
+
     // Midtrans server key
-    const serverKey = this.configService.get<string>('MIDTRNAS_SERVER_KEY');
+    const serverKey = process.env.MIDTRNAS_SERVER_KEY;
 
     // Format: order_id + status_code + gross_amount + server_key
     const input = `${order_id}${status_code}${gross_amount}${serverKey}`;
@@ -182,7 +190,8 @@ export class TransactionService {
   }
 
   async handleNotification(notification: any) {
-    const { order_id, transaction_status, fraud_status } = notification;
+    const { order_id, transaction_status, fraud_status, metadata } =
+      notification;
 
     // Validasi notifikasi
     const isValid = await this.checkNotification(notification);
@@ -215,10 +224,21 @@ export class TransactionService {
       }
       transaction.status = status.SUCCESS;
       transaction.token_midtrans = null;
-      await this.transactionsRepository.update({ order_id: order_id }, transaction);
+      await this.transactionsRepository.update(
+        { order_id: order_id },
+        transaction,
+      );
 
       // Hapus token dari cache
       tokenStore.delete(order_id);
+
+      // Jika user id dan premium id tidak sesuai dengan data transaksi maka kembalikan error
+      if (
+        transaction.id_user !== metadata.user_id ||
+        transaction.id_premium !== metadata.premium_id
+      ) {
+        throw new NotFoundException('Transaction not found');
+      }
 
       // Lakukan update pada user
       await this.updateUser(transaction.id_user, transaction.id_premium);
@@ -275,8 +295,8 @@ export class TransactionService {
   ) {
     const transactionsQuery = this.transactionsRepository
       .createQueryBuilder('transaction')
-      .leftJoin('transaction.user', 'user') // Join table user
-      .leftJoin('transaction.premium', 'premium') // Join table premium
+      .leftJoin('transaction.user', 'user')
+      .leftJoin('transaction.premium', 'premium')
       .select(['transaction', 'user', 'premium']);
 
     // Tambahan kondisi WHERE untuk pencarian
@@ -288,14 +308,14 @@ export class TransactionService {
         });
     }
 
-    // Tambahkan kondisi AND WHERE jika status !== 'all'
+    // Tambahkan kondisi AND WHERE jika status !== 'all' dan ada
     if (status && status !== 'all') {
       transactionsQuery.andWhere('transaction.status = :status', {
         status,
       });
     }
 
-    // Tambahkan kondisi AND WHERE jika premium !== 'all'
+    // Tambahkan kondisi AND WHERE jika premium !== 'all' dan ada
     if (premium && premium !== 'all') {
       transactionsQuery.andWhere('premium.name = :premium', { premium });
     }

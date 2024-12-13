@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { badges, status_premium, User } from './entities/user.entity';
+import { badges, is_premium, User } from './entities/user.entity';
 import { ILike, LessThan, Repository } from 'typeorm';
 import { v4 } from 'uuid';
 import { Role } from 'src/UserModule/role/entities/role.entity';
@@ -92,7 +92,7 @@ export class UserService {
     page: number = 1,
     limit: number = 10,
     search: string = '',
-    status: status_premium,
+    status: is_premium,
   ) {
     const [data, total] = await this.userRepository.findAndCount({
       where: {
@@ -150,11 +150,11 @@ export class UserService {
   async refreshUsers() {
     await this.userRepository.update(
       {
-        status_premium: status_premium.ACTIVE,
+        status_premium: is_premium.ACTIVE,
         end_premium: LessThan(new Date()),
       },
       {
-        status_premium: status_premium.INACTIVE,
+        status_premium: is_premium.INACTIVE,
         badge: badges.NIMELIST_CITIZENS,
         start_premium: null,
         end_premium: null,
@@ -296,7 +296,7 @@ export class UserService {
   // Fungsi cek user premium
   async checkPremium(id: string) {
     const user = await this.userRepository.findOne({
-      where: { id: id, status_premium: status_premium.ACTIVE },
+      where: { id: id, status_premium: is_premium.ACTIVE },
     });
 
     if (user === null) {
