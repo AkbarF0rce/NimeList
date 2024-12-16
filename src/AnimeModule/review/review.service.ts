@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   HttpException,
   Injectable,
   NotFoundException,
@@ -46,8 +47,8 @@ export class ReviewService {
     const { id_user, role, ...update } = data;
 
     // Cek apakah user memiliki akses untuk mengupdate data
-    if (role === 'user' && id_user !== review.id_user) {
-      throw new HttpException('you are not allowed to update this data', 403);
+    if (id_user !== review.id_user) {
+      throw new ForbiddenException('You are not allowed to update this data');
     }
 
     const updateReview = await this.reviewRepository.update(id, update);

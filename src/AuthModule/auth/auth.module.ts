@@ -14,12 +14,12 @@ import { PremiumGuard } from './guards/isPremium.guard';
     PassportModule,
     UserModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'), // Mengambil JWT_SECRET dari .env
-        signOptions: { expiresIn: '20m' }, // Atur waktu kedaluwarsa token
-      }),
+      useFactory: () => {
+        return {
+          secret: process.env.JWT_SECRET,
+          signOptions: { expiresIn: '20m' },
+        };
+      },
     }),
   ],
   controllers: [AuthController],

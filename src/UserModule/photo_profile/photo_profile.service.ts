@@ -55,10 +55,9 @@ export class PhotoProfileService {
       select: ['path_photo'],
     });
 
-    if (!get) {
-      return null;
-    }
+    // Pastikan selalu ada prefix 'images/'
+    const photoPath = `images/${get?.path_photo || 'Profile/default.jpg'}`;
 
-    return 'images/' + get.path_photo;
+    return photoPath;
   }
 }

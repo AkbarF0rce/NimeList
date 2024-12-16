@@ -29,7 +29,8 @@ export class ReviewController {
   }
 
   @Put('update/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('user')
   async update(
     @Param('id') id: string,
     @Request() req,
