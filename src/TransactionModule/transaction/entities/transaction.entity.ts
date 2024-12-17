@@ -37,6 +37,9 @@ export class Transaction {
   @Column('int')
   total: number;
 
+  @Column('boolean', { default: false })
+  is_processed: boolean;
+
   @Column('text', { nullable: true })
   token_midtrans: string;
 

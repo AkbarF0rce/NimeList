@@ -17,8 +17,5 @@ export class CreateTransactionDto {
   @IsNotEmpty()
   total: number;
 
-  @IsNotEmpty()
-  status: status;
-
   token_midtrans?: string;
 }

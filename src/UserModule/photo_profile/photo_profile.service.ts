@@ -36,7 +36,6 @@ export class PhotoProfileService {
     photoOld?: string,
   ) {
     try {
-      console.log(this.imageStorage);
       unlink(`${this.imageStorage}/${photoOld}`);
       await this.photoProfileRepository.update(
         { id_user: id_user },

@@ -16,12 +16,12 @@ export class CreateUserDto {
   @MaxLength(20)
   @Matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$/, {
     message:
-      'Password harus minimal 6 karakter, mengandung setidaknya satu huruf besar, satu huruf kecil, dan satu angka',
+      'passwords must be at least 6 characters long, containing at least one uppercase letter, one lowercase letter, and one number.',
   })
   password: string;
 
   @IsNotEmpty()
   @IsEmail()
-  @MaxLength(50)
+  @MaxLength(50, { message: 'email must be at most 50 characters' })
   email: string;
 }

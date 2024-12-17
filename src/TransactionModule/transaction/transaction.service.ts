@@ -22,6 +22,8 @@ import {
 } from 'src/TransactionModule/premium/entities/premium.entity';
 import * as crypto from 'crypto';
 import { nanoid } from 'nanoid';
+import { MidtransNotificationDto } from './dto/midtrans-notification.dto';
+import { parse } from 'path';
 
 // Untuk menyimpan token Midtrans
 const tokenStore = new Map<string, string>();
@@ -165,7 +167,7 @@ export class TransactionService {
     return;
   }
 
-  private async checkNotification(data: any) {
+  private async validCheckNotification(data: MidtransNotificationDto) {
     // Data dari Midtrans notifikasi
     const { order_id, status_code, gross_amount, signature_key } = data;
 
@@ -189,41 +191,67 @@ export class TransactionService {
     return localSignature === signature_key;
   }
 
-  async handleNotification(notification: any) {
+  async handleNotification(notification: MidtransNotificationDto) {
     const { order_id, transaction_status, fraud_status, metadata } =
       notification;
 
     // Validasi notifikasi
-    const isValid = await this.checkNotification(notification);
+    const isValid = await this.validCheckNotification(notification);
 
     if (!isValid) {
       throw new BadRequestException('Invalid notification data');
     }
 
-    // Cek status pembayaran dari Midtrans
-    if (transaction_status === 'settlement' && fraud_status === 'accept') {
-      // Ambil data transaksi berdasarkan order_id
-      const transaction = await this.transactionsRepository.findOne({
-        where: { order_id: order_id },
-        select: [
-          'payment_platform',
-          'status',
-          'token_midtrans',
-          'id_user',
-          'id_premium',
-        ],
-      });
+    if (transaction_status === 'pending') {
+      const data: CreateTransactionDto = {
+        order_id: order_id,
+        payment_platform: notification.payment_type,
+        total: parseInt(notification.gross_amount),
+        id_user: notification.metadata.user_id,
+        id_premium: notification.metadata.premium_id,
+        token_midtrans: tokenStore.get(order_id),
+      };
 
-      if (!transaction) {
-        throw new Error('Transaction not found');
+      if (notification.payment_type === 'bank_transfer') {
+        data.payment_platform = notification.va_numbers[0].bank;
       }
 
+      await this.createPayment(data);
+
+      return;
+    }
+
+    // Ambil data transaksi berdasarkan order_id
+    const transaction = await this.transactionsRepository.findOne({
+      where: { order_id: order_id },
+      select: [
+        'payment_platform',
+        'status',
+        'token_midtrans',
+        'is_processed',
+        'id_user',
+        'id_premium',
+      ],
+    });
+
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    // Jika transaksi sudah diproses maka kembalikan error
+    if (transaction.is_processed) {
+      throw new BadRequestException('Transaction already processed');
+    }
+
+    // Cek status pembayaran dari Midtrans
+    if (transaction_status === 'settlement' && fraud_status === 'accept') {
       // Update data transaksi
       if (notification.payment_type === 'qris') {
         transaction.payment_platform = notification.issuer;
       }
       transaction.status = status.SUCCESS;
       transaction.token_midtrans = null;
+      transaction.is_processed = true;
       await this.transactionsRepository.update(
         { order_id: order_id },
         transaction,
@@ -244,39 +272,18 @@ export class TransactionService {
       await this.updateUser(transaction.id_user, transaction.id_premium);
 
       throw new HttpException('Transaction success and user updated', 200);
-    } else if (transaction_status === 'pending') {
-      const data: any = {
-        order_id: order_id,
-        payment_platform: notification.payment_type,
-        total: parseInt(notification.gross_amount),
-        id_user: notification.metadata.user_id,
-        id_premium: notification.metadata.premium_id,
-        token_midtrans: tokenStore.get(order_id),
-      };
-
-      if (notification.payment_type === 'bank_transfer') {
-        data.payment_platform = notification.va_numbers[0].bank;
-      }
-
-      await this.createPayment(data);
     } else if (
       transaction_status === 'expire' ||
       transaction_status === 'cancel'
     ) {
-      // Update transaksi jika pembayaran expired atau dibatalkan
-      const transaction = await this.transactionsRepository.findOne({
-        where: { order_id: order_id },
-        select: ['status', 'token_midtrans'],
-      });
-
-      if (!transaction) {
-        throw new BadRequestException('Transaction not found');
-      }
-
-      // Update status transaksi dan hapus token
+      // Update status transaksi
       transaction.status = status.FAILED;
       transaction.token_midtrans = null;
-      await this.transactionsRepository.save(transaction);
+      transaction.is_processed = true;
+      await this.transactionsRepository.update(
+        { order_id: order_id },
+        transaction,
+      );
 
       // Hapus token dari cache
       tokenStore.delete(order_id);

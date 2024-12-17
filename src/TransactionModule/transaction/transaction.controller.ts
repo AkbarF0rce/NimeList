@@ -16,6 +16,7 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
 import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
+import { MidtransNotificationDto } from './dto/midtrans-notification.dto';
 
 @Controller('transactions')
 export class TransactionController {
@@ -35,8 +36,8 @@ export class TransactionController {
   }
 
   @Post('handle-notification-midtrans')
-  async handleTransaction(@Req() req: Request) {
-    return await this.transactionService.handleNotification(req.body);
+  async handleTransaction(@Body() body: MidtransNotificationDto) {
+    return await this.transactionService.handleNotification(body);
   }
 
   @Get('get-admin')
@@ -69,7 +70,13 @@ export class TransactionController {
 
   @Get('get/:order_id')
   @UseGuards(JwtAuthGuard)
-  async getTransactionById(@Param('order_id') order_id: string, @Request() req) {
-    return await this.transactionService.getTransactionByOrderId(order_id, req.user);
+  async getTransactionById(
+    @Param('order_id') order_id: string,
+    @Request() req,
+  ) {
+    return await this.transactionService.getTransactionByOrderId(
+      order_id,
+      req.user,
+    );
   }
 }
