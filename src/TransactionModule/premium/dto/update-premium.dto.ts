@@ -7,4 +7,5 @@ export class UpdatePremiumDto extends PartialType(CreatePremiumDto) {
   duration?: number;
   price?: number;
   status?: status_premium;
+  description?: string;
 }

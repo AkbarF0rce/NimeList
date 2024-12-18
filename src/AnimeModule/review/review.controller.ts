@@ -55,8 +55,8 @@ export class ReviewController {
   @Get('get/by-anime/:id_anime')
   async getByAnime(
     @Param('id_anime') id_anime: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 5,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
   ) {
     return await this.reviewService.getReviewByAnime(id_anime, page, limit);
   }

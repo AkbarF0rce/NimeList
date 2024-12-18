@@ -31,6 +31,9 @@ export class Premium {
   @Column('int')
   duration: number;
 
+  @Column('varchar', { nullable: true, length: 100 })
+  description: string;
+
   @CreateDateColumn()
   created_at: Date;
 

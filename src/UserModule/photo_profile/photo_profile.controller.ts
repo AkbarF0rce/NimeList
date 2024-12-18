@@ -8,7 +8,7 @@ export class PhotoProfileController {
 
   @Get('get')
   @UseGuards(JwtAuthGuard)
-  async getPhotoAdmin(@Request() req) {
+  async getPhoto(@Request() req) {
     return this.photoProfileService.getPhoto(req.user.userId);
   }
 }

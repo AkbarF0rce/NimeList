@@ -1,4 +1,4 @@
-import { IsNotEmpty, isNotEmpty } from 'class-validator';
+import { IsNotEmpty, isNotEmpty, IsOptional } from 'class-validator';
 
 export class CreatePremiumDto {
   @IsNotEmpty()
@@ -9,4 +9,7 @@ export class CreatePremiumDto {
 
   @IsNotEmpty()
   duration: number;
+
+  @IsOptional()
+  description?: string;
 }

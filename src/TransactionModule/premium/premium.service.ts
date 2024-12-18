@@ -39,14 +39,15 @@ export class PremiumService {
       .leftJoinAndSelect(
         'premium.transactions',
         'transactions',
-        'transactions.status = :status',
-        { status: 'success' },
+        'transactions.status = :transactionStatus',
+        { transactionStatus: 'success' },
       )
       .select([
         'premium.id',
         'premium.name',
         'premium.price',
         'premium.duration',
+        'premium.description',
         'premium.status',
         'transactions',
       ]);
@@ -71,9 +72,10 @@ export class PremiumService {
       id: premium.id,
       name: premium.name,
       price: premium.price,
+      description: premium.description,
       status: premium.status,
       duration: premium.duration,
-      transactions: premium.transactions.length,
+      transactions: premium.transactions.length || 0,
     }));
 
     return { data: result, total };
@@ -99,7 +101,7 @@ export class PremiumService {
   async getPremiumEdit(id: string) {
     const premium = await this.premiumRepository.findOne({
       where: { id },
-      select: ['id', 'name', 'price', 'duration', 'status'],
+      select: ['id', 'name', 'price', 'duration', 'status', 'description'],
     });
     return premium;
   }

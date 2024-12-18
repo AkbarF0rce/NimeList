@@ -64,7 +64,6 @@ export class UserController {
       photo_profile?: Express.Multer.File[];
     },
   ) {
-    console.log(files.photo_profile);
     return await this.userService.updateProfile(
       req.user.userId,
       body,
