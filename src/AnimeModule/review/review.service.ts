@@ -261,7 +261,7 @@ export class ReviewService {
     };
   }
 
-  // Fungsi untuk mendapatkan rating berdasarkan id user
+  // Fungsi untuk mendapatkan rating berdasarkan id user test
   async getUserRating(id_user: string, id_anime: string) {
     const rating = await this.reviewRepository.findOne({
       where: { id_user: id_user, id_anime: id_anime },
