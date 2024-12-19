@@ -15,11 +15,16 @@ import { Role } from 'src/UserModule/role/entities/role.entity';
 import { PhotoProfileService } from '../photo_profile/photo_profile.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
-import { Transaction } from 'src/TransactionModule/transaction/entities/transaction.entity';
+import {
+  status,
+  Transaction,
+} from 'src/TransactionModule/transaction/entities/transaction.entity';
 import { Review } from 'src/AnimeModule/review/entities/review.entity';
 import { FavoriteAnime } from 'src/AnimeModule/favorite_anime/entities/favorite_anime.entity';
 import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
 import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
+import { AuthService } from 'src/AuthModule/auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
@@ -39,6 +44,7 @@ export class UserService {
     @InjectRepository(Topic)
     private topicRepository: Repository<Topic>,
     private readonly photoProfileService: PhotoProfileService,
+    private readonly jwtService: JwtService,
   ) {}
   async create(createUserDto: CreateUserDto) {
     // Mencari role user
@@ -182,7 +188,8 @@ export class UserService {
   // Fungsi update user
   async updateUser(id: string, body: UpdateUserDto) {
     const user = await this.userRepository.findOne({
-      select: ['username'],
+      select: ['username', 'id', 'role', 'email', 'name'],
+      relations: ['role'],
       where: { id: id },
     });
 
@@ -201,6 +208,23 @@ export class UserService {
 
     const update = await this.userRepository.update({ id: id }, body);
 
+    if (update && body.username !== user.username) {
+      const payload = {
+        userId: user.id,
+        username: body.username,
+        role: user.role.name,
+        email: user.email,
+        name: body.name,
+      };
+
+      const access_token = this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '20m',
+      });
+
+      return access_token;
+    }
+
     if (!update) {
       throw new BadRequestException('data not updated');
     }
@@ -214,13 +238,17 @@ export class UserService {
     body: UpdateUserDto,
     photo: Express.Multer.File,
   ) {
-    await this.updateUser(id, body);
+    const update = await this.updateUser(id, body);
 
     if (photo) {
       await this.photoProfileService.create(id, photo.filename);
     }
 
-    throw new HttpException('data updated', 200);
+    return {
+      access_token: update || null,
+      message: 'data updated',
+      status: 200,
+    };
   }
 
   // Fungsi delete user

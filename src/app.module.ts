@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import path, { join } from 'path';
+import { join } from 'path';
 import { AnimeModule } from './AnimeModule/anime/anime.module';
 import { GenreModule } from './AnimeModule/genre/genre.module';
 import { PhotoAnimeModule } from './AnimeModule/photo_anime/photo_anime.module';

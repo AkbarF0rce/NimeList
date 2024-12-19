@@ -13,6 +13,7 @@ import { Transaction } from 'src/TransactionModule/transaction/entities/transact
 import { PhotoProfileModule } from '../photo_profile/photo_profile.module';
 import { JwtModule } from '@nestjs/jwt';
 import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
+import { AuthModule } from 'src/AuthModule/auth/auth.module';
 
 @Module({
   controllers: [UserController],
