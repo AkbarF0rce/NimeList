@@ -9,6 +9,7 @@ import {
   Put,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { FavoriteAnimeService } from './favorite_anime.service';
 import { CreateFavoriteAnimeDto } from './dto/create-favorite_anime.dto';
@@ -35,5 +36,11 @@ export class FavoriteAnimeController {
   @UseGuards(JwtAuthGuard)
   async userFavorites(@Request() req) {
     return this.favoriteAnimeService.userFavorites(req.user.userId);
+  }
+
+  @Get('is-favorite')
+  @UseGuards(JwtAuthGuard)
+  async isFavorite(@Request() req, @Query('id_anime') id_anime: string) {
+    return this.favoriteAnimeService.isFavorite(req.user.userId, id_anime);
   }
 }

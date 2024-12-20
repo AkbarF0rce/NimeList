@@ -8,7 +8,7 @@ import { RoleModule } from 'src/UserModule/role/role.module';
 import { User } from 'src/UserModule/user/entities/user.entity';
 import { UserModule } from 'src/UserModule/user/user.module';
 import { UserSeeder } from './user.seeder';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [

@@ -57,4 +57,17 @@ export class FavoriteAnimeService {
 
     return get.map((get) => get.id_anime);
   }
+
+  // Fungsi untuk mengecek apakah user sudah menambahkan favorite anime
+  async isFavorite(id_user: string, id_anime: string) {
+    // Jika id_user atau id_anime tidak ada, maka return false
+    if (!id_user || !id_anime) return false;
+
+    const get = await this.favoriteAnimeRepository.findOne({
+      where: { id_anime: id_anime, id_user: id_user },
+      select: ['id_user', 'id', 'id_anime'],
+    });
+
+    return !!get;
+  }
 }
