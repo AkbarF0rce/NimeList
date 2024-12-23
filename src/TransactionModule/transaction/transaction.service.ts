@@ -25,7 +25,7 @@ import { nanoid } from 'nanoid';
 import { MidtransNotificationDto } from './dto/midtrans-notification.dto';
 import { parse } from 'path';
 
-// Untuk menyimpan token Midtrans
+// Untuk menyimpan token Midtrans sementara
 const tokenStore = new Map<string, string>();
 
 @Injectable()

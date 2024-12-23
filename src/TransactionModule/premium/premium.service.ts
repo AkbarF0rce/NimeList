@@ -36,12 +36,7 @@ export class PremiumService {
   ) {
     const premiumQuery = await this.premiumRepository
       .createQueryBuilder('premium')
-      .leftJoinAndSelect(
-        'premium.transactions',
-        'transactions',
-        'transactions.status = :transactionStatus',
-        { transactionStatus: 'success' },
-      )
+      .leftJoin('premium.transactions', 'transactions')
       .select([
         'premium.id',
         'premium.name',
@@ -49,7 +44,7 @@ export class PremiumService {
         'premium.duration',
         'premium.description',
         'premium.status',
-        'transactions',
+        'transactions.id',
       ]);
 
     if (search) {
@@ -89,6 +84,19 @@ export class PremiumService {
   }
 
   async deletePremium(id: string) {
+    const find = await this.premiumRepository.findOne({
+      where: { id },
+      relations: ['transactions'],
+      select: {
+        id: true,
+        transactions: { id: true },
+      },
+    });
+
+    if (find.transactions.length < 1) {
+      throw new BadRequestException('transaction data less than one');
+    }
+
     const premium = await this.premiumRepository.delete(id);
 
     if (!premium) {
