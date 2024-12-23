@@ -15,15 +15,11 @@ import { Role } from 'src/UserModule/role/entities/role.entity';
 import { PhotoProfileService } from '../photo_profile/photo_profile.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
-import {
-  status,
-  Transaction,
-} from 'src/TransactionModule/transaction/entities/transaction.entity';
+import { Transaction } from 'src/TransactionModule/transaction/entities/transaction.entity';
 import { Review } from 'src/AnimeModule/review/entities/review.entity';
 import { FavoriteAnime } from 'src/AnimeModule/favorite_anime/entities/favorite_anime.entity';
 import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
 import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
-import { AuthService } from 'src/AuthModule/auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
