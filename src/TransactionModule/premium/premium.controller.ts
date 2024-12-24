@@ -16,7 +16,6 @@ import { UpdatePremiumDto } from './dto/update-premium.dto';
 import { JwtAuthGuard } from 'src/AuthModule/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/AuthModule/common/guards/roles.guard';
 import { Roles } from 'src/AuthModule/common/decorators/roles.decorator';
-import { status_premium } from './entities/premium.entity';
 
 @Controller('premium')
 export class PremiumController {
