@@ -40,12 +40,11 @@ export class TopicService {
   ) {
     // Generate slug dengan sebagian uuid
     createTopicDto.slug = `tt-${v4().split('-')[0]}`;
+
+    // Simpan informasi dasar topic
     const topic = this.topicRepository.create(createTopicDto);
 
-    if (!photos || photos.length === 0) {
-      throw new BadRequestException('Photo is required');
-    }
-
+    // Simpan topic
     const savedTopic = await this.topicRepository.save(topic);
 
     if (!savedTopic) {
