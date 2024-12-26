@@ -181,7 +181,7 @@ export class TopicService {
   async getAll() {
     const get = await this.topicRepository.find({
       order: { created_at: 'DESC' },
-      relations: ['user', 'anime'],
+      relations: ['user', 'anime', 'likes', 'dislikes'],
       select: {
         id: true,
         title: true,
@@ -194,6 +194,12 @@ export class TopicService {
         anime: {
           title: true,
         },
+        likes: {
+          id: true,
+        },
+        dislikes: {
+          id: true,
+        },
       },
     });
 
@@ -203,6 +209,8 @@ export class TopicService {
       slug: data.slug,
       created_at: data.created_at,
       updated_at: data.updated_at,
+      likes: data.likes.length,
+      dislikes: data.dislikes.length,
       username: data.user.name,
       title_anime: data.anime.title,
     }));
@@ -212,7 +220,7 @@ export class TopicService {
   async getTopicBySlug(slug: string) {
     const get = await this.topicRepository.findOne({
       where: { slug: slug },
-      relations: ['user', 'anime', 'photos', 'comments'],
+      relations: ['user', 'anime', 'photos'],
       select: {
         id: true,
         title: true,
@@ -237,8 +245,6 @@ export class TopicService {
     const dislikes = await this.dislikeTopicRepository.count({
       where: { id_topic: get.id },
     });
-
-    const totalComment = get.comments.length;
 
     return {
       ...get,

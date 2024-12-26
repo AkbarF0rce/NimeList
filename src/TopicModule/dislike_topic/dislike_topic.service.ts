@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { CreateDislikeTopicDto } from './dto/create-dislike_topic.dto';
 import { DislikeTopic } from './entities/dislike_topic.entity';
 import { Repository } from 'typeorm';
@@ -12,6 +12,21 @@ export class DislikeTopicService {
   ) {}
 
   async createDislike(data: CreateDislikeTopicDto) {
+    if (!data.id_user || !data.id_topic) {
+      throw new BadRequestException('user or topic not found');
+    }
+
+    const check = await this.dislikeTopicRepository.findOne({
+      where: {
+        id_topic: data.id_topic,
+        id_user: data.id_user,
+      },
+    });
+
+    if (check) {
+      throw new BadRequestException('data already exist');
+    }
+
     // Membuat data like berdasarkan data yang diterima
     const create = await this.dislikeTopicRepository.create(data);
     const saved = await this.dislikeTopicRepository.save(create);
@@ -24,6 +39,10 @@ export class DislikeTopicService {
   }
 
   async deleteDislike(id_topic: string, id_user: string) {
+    if (!id_user || !id_topic) {
+      throw new BadRequestException('user or topic not found');
+    }
+
     const deleted = await this.dislikeTopicRepository.delete({
       id_topic: id_topic,
       id_user: id_user,

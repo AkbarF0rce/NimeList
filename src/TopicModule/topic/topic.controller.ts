@@ -32,6 +32,8 @@ export class TopicController {
   constructor(private readonly topicService: TopicService) {}
 
   @Post('post')
+  @UseGuards(RolesGuard)
+  @Roles('user')
   @UseInterceptors(
     FileFieldsInterceptor(topicFileFields.photo, topicUploadConfig),
   )
