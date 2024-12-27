@@ -204,7 +204,10 @@ export class UserService {
 
     const update = await this.userRepository.update({ id: id }, body);
 
-    if (update && body.username !== user.username) {
+    if (
+      (update && body.username !== user.username) ||
+      body.name !== user.name
+    ) {
       const payload = {
         userId: user.id,
         username: body.username,

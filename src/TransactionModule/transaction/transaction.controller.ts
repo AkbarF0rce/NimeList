@@ -48,7 +48,7 @@ export class TransactionController {
     @Query('limit') limit: number = 10,
     @Query('search') search: string = '',
     @Query('status') status?: string,
-    @Query('premium') premium?: string,
+    @Query('period') period?: string,
     @Query('platform') platform?: string,
   ) {
     return await this.transactionService.getTransaction(
@@ -56,7 +56,7 @@ export class TransactionController {
       limit,
       search,
       status,
-      premium,
+      period,
       platform,
     );
   }

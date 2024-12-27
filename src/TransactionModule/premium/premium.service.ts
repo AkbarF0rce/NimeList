@@ -93,8 +93,8 @@ export class PremiumService {
       },
     });
 
-    if (find.transactions.length < 1) {
-      throw new BadRequestException('transaction data less than one');
+    if (find.transactions.length > 0) {
+      throw new BadRequestException('transaction data exist');
     }
 
     const premium = await this.premiumRepository.delete(id);

@@ -297,7 +297,7 @@ export class TransactionService {
     limit: number,
     search: string,
     status: string,
-    premium: string,
+    period: string,
     platform: string,
   ) {
     const transactionsQuery = this.transactionsRepository
@@ -322,9 +322,11 @@ export class TransactionService {
       });
     }
 
-    // Tambahkan kondisi AND WHERE jika premium !== 'all' dan ada
-    if (premium && premium !== 'all') {
-      transactionsQuery.andWhere('premium.name = :premium', { premium });
+    // Tambahkan kondisi AND WHERE jika period ada
+    if (period) {
+      transactionsQuery.andWhere('transaction.created_at >= :period', {
+        period,
+      });
     }
 
     if (platform && platform !== 'null') {

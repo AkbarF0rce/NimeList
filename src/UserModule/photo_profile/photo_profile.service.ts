@@ -18,7 +18,9 @@ export class PhotoProfileService {
       where: { id_user: id_user },
     });
 
-    if (find === null) {
+    if (find) {
+      await this.updatePhotoIfExist(id_user, path, find.path_photo);
+    } else {
       const create = this.photoProfileRepository.create({
         id_user: id_user,
         path_photo: path,
@@ -26,8 +28,6 @@ export class PhotoProfileService {
 
       await this.photoProfileRepository.save(create);
     }
-
-    await this.updatePhotoIfExist(id_user, path, find.path_photo);
   }
 
   async updatePhotoIfExist(
