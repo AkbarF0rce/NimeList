@@ -16,7 +16,6 @@ import { LikeTopic } from 'src/TopicModule/like_topic/entities/like_topic.entity
 import { Comment } from 'src/TopicModule/comment/entities/comment.entity';
 import { DislikeTopic } from 'src/TopicModule/dislike_topic/entities/dislike_topic.entity';
 import { v4 } from 'uuid';
-import { CommentService } from '../comment/comment.service';
 
 @Injectable()
 export class TopicService {
@@ -30,7 +29,6 @@ export class TopicService {
     private likeTopicRepository: Repository<LikeTopic>,
     @InjectRepository(DislikeTopic)
     private dislikeTopicRepository: Repository<DislikeTopic>,
-    private readonly commentService: CommentService,
   ) {}
 
   // Fungsi untuk membuat topic
@@ -60,7 +58,7 @@ export class TopicService {
     if (savedTopic && photos && photos.length > 0) {
       for (const file of photos) {
         const photo = this.photoTopicRepository.create({
-          file_path: file.path,
+          file_path: file.filename,
           topic,
         });
         await this.photoTopicRepository.save(photo);
