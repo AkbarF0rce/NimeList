@@ -79,14 +79,7 @@ export class UserService {
       throw new BadRequestException('User not created');
     }
 
-    return {
-      role: role.name,
-      username: user.username,
-      email: user.email,
-      salt: user.salt,
-      id: user.id,
-      name: user.name,
-    };
+    return;
   }
 
   // Mendapatkan semua user untuk admin
@@ -327,7 +320,7 @@ export class UserService {
     });
 
     if (user === null) {
-      throw new BadRequestException('User not premium');
+      return false;
     }
 
     return true;

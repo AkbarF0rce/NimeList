@@ -66,14 +66,7 @@ export class AuthService {
 
   // Fungsi untuk register
   async register(user: CreateUserDto) {
-    const register = await this.usersService.create(user);
-    const payload = {
-      username: register.username,
-      userId: register.id,
-      role: register.role,
-      email: register.email,
-      name: register.name,
-    };
-    return this.generateToken(payload);
+    await this.usersService.create(user);
+    throw new HttpException('register successfully', 201);
   }
 }

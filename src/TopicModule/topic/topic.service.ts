@@ -188,6 +188,8 @@ export class TopicService {
         updated_at: true,
         user: {
           name: true,
+          username: true,
+          badge: true,
         },
         anime: {
           title: true,
@@ -209,7 +211,9 @@ export class TopicService {
       updated_at: data.updated_at,
       likes: data.likes.length,
       dislikes: data.dislikes.length,
-      username: data.user.name,
+      user_name: data.user.name,
+      user_badge: data.user.badge,
+      user_username: data.user.username,
       title_anime: data.anime.title,
     }));
   }
