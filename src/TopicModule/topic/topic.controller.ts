@@ -81,6 +81,11 @@ export class TopicController {
     return await this.topicService.getAll();
   }
 
+  @Get('get-topics-popular')
+  async getTopicsPopular() {
+    return await this.topicService.getTopicsPopular();
+  }
+
   @Get('get/:slug')
   async getTopicById(@Param('slug') slug: string) {
     return await this.topicService.getTopicBySlug(slug);

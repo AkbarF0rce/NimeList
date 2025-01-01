@@ -9,7 +9,7 @@ import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Topic } from './entities/topic.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { PhotoTopic } from 'src/TopicModule/photo_topic/entities/photo_topic.entity';
 import { unlink } from 'fs/promises';
 import { LikeTopic } from 'src/TopicModule/like_topic/entities/like_topic.entity';
@@ -313,5 +313,52 @@ export class TopicService {
       data: topics,
       total,
     };
+  }
+
+  async getTopicsPopular() {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+
+    // Tentukan periode berdasarkan bulan saat ini
+    let startDate: Date;
+    let endDate: Date;
+
+    if (currentDate.getMonth() < 6) {
+      // Periode Januari - Juni
+      startDate = new Date(year, 0, 1); // 1 Januari
+      endDate = new Date(year, 5, 30, 23, 59, 59); // 30 Juni
+    } else {
+      // Periode Juli - Desember
+      startDate = new Date(year, 6, 1); // 1 Juli
+      endDate = new Date(year, 11, 31, 23, 59, 59); // 31 Desember
+    }
+
+    const data = await this.topicRepository
+      .createQueryBuilder('topic')
+      .leftJoin('topic.likes', 'like')
+      .select([
+        'topic.id',
+        'topic.title',
+        'topic.created_at',
+        'topic.updated_at',
+        'topic.slug',
+        'COUNT(like.id) AS total_likes',
+      ])
+      .where('like.created_at BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .orderBy('total_likes', 'DESC')
+      .groupBy('topic.id')
+      .limit(15)
+      .getRawMany();
+
+    return data.map((topic) => ({
+      id: topic.topic_id,
+      title: topic.topic_title,
+      created_at: topic.topic_created_at,
+      updated_at: topic.topic_updated_at,
+      slug: topic.topic_slug,
+    }));
   }
 }

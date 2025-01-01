@@ -86,13 +86,6 @@ export class AnimeService {
     throw new HttpException('data created', 201);
   }
 
-  // Fungsi untuk Menghitung hash SHA-256 dari isi file
-  calculateFileHash(buffer: Buffer): string {
-    const hash = crypto.createHash('md5'); // Atau gunakan 'sha256'
-    hash.update(buffer);
-    return hash.digest('hex');
-  }
-
   // Fungsi untuk Mengupdate Anime
   async updateAnime(
     animeId: string,
