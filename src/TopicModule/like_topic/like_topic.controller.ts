@@ -30,4 +30,9 @@ export class LikeTopicController {
   async delete(@Body('id_topic') id_topic: string, @Request() req) {
     return await this.likeTopicService.deleteLike(id_topic, req.user.userId);
   }
+
+  @Get('get-user-likes')
+  async getUserLikes(@Request() req) {
+    return await this.likeTopicService.getUserLikes(req.user.userId);
+  }
 }

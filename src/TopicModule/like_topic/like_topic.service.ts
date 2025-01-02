@@ -1,4 +1,9 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateLikeTopicDto } from './dto/create-like_topic.dto';
 import { LikeTopic } from './entities/like_topic.entity';
 import { Repository } from 'typeorm';
@@ -14,7 +19,7 @@ export class LikeTopicService {
 
   async createLike(data: CreateLikeTopicDto) {
     if (!data.id_user || !data.id_topic) {
-      throw new BadRequestException('user or topic not found');
+      throw new NotFoundException('user or topic not found');
     }
 
     const check = await this.likeTopicRepository.findOne({
@@ -45,7 +50,7 @@ export class LikeTopicService {
 
   async deleteLike(id_topic: string, id_user: string) {
     if (!id_user || !id_topic) {
-      throw new BadRequestException('user or topic not found');
+      throw new NotFoundException('user or topic not found');
     }
 
     const deleted = await this.likeTopicRepository.delete({
@@ -62,5 +67,12 @@ export class LikeTopicService {
       message: 'data deleted',
       status: 200,
     };
+  }
+
+  async getUserLikes(id_user: string) {
+    return await this.likeTopicRepository.find({
+      where: { id_user: id_user },
+      select: { id_topic: true },
+    });
   }
 }
