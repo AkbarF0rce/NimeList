@@ -69,10 +69,16 @@ export class LikeTopicService {
     };
   }
 
-  async getUserLikes(id_user: string) {
-    return await this.likeTopicRepository.find({
-      where: { id_user: id_user },
-      select: { id_topic: true },
+  async getUserLike(id_user: string, id_topic: string) {
+    if (!id_user || !id_topic) {
+      throw new NotFoundException('user or topic not found');
+    }
+
+    const find = await this.likeTopicRepository.find({
+      where: { id_user: id_user, id_topic: id_topic },
+      select: { id: true },
     });
+
+    return find.length > 0 ? true : false;
   }
 }

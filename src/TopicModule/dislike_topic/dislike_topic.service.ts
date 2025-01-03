@@ -1,4 +1,9 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateDislikeTopicDto } from './dto/create-dislike_topic.dto';
 import { DislikeTopic } from './entities/dislike_topic.entity';
 import { Repository } from 'typeorm';
@@ -57,5 +62,18 @@ export class DislikeTopicService {
       status: 200,
       message: 'data deleted',
     };
+  }
+
+  async getUserDislike(id_user: string, id_topic: string) {
+    if (!id_user || !id_topic) {
+      throw new NotFoundException('user or topic not found');
+    }
+
+    const find = await this.dislikeTopicRepository.find({
+      where: { id_user: id_user, id_topic: id_topic },
+      select: { id: true },
+    });
+
+    return find.length > 0 ? true : false;
   }
 }

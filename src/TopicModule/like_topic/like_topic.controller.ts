@@ -9,6 +9,7 @@ import {
   Put,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { LikeTopicService } from './like_topic.service';
 import { CreateLikeTopicDto } from './dto/create-like_topic.dto';
@@ -31,8 +32,8 @@ export class LikeTopicController {
     return await this.likeTopicService.deleteLike(id_topic, req.user.userId);
   }
 
-  @Get('get-user-likes')
-  async getUserLikes(@Request() req) {
-    return await this.likeTopicService.getUserLikes(req.user.userId);
+  @Get('get-user-like')
+  async getUserLikes(@Request() req, @Query('id_topic') id_topic: string) {
+    return await this.likeTopicService.getUserLike(req.user.userId, id_topic);
   }
 }

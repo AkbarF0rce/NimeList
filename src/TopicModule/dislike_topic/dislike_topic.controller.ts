@@ -6,6 +6,8 @@ import {
   Delete,
   UseGuards,
   Request,
+  Get,
+  Query,
 } from '@nestjs/common';
 import { DislikeTopicService } from './dislike_topic.service';
 import { CreateDislikeTopicDto } from './dto/create-dislike_topic.dto';
@@ -25,6 +27,14 @@ export class DislikeTopicController {
 
   @Delete('delete')
   async remove(@Body('id_topic') id_topic: string, @Request() req) {
-    return await this.dislikeTopicService.deleteDislike(id_topic, req.user.userId);
+    return await this.dislikeTopicService.deleteDislike(
+      id_topic,
+      req.user.userId,
+    );
+  }
+
+  @Get('get-user-dislike')
+  async getUserLikes(@Request() req, @Query('id_topic') id_topic: string) {
+    return await this.dislikeTopicService.getUserDislike(req.user.userId, id_topic);
   }
 }
