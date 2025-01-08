@@ -68,7 +68,8 @@ export class CommentController {
     @Param('id') id: string,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 5,
+    @Request() req,
   ) {
-    return await this.commentService.getCommentByTopic(id, page, limit);
+    return await this.commentService.getCommentByTopic(id, page, limit, req.user.userId);
   }
 }

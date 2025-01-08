@@ -127,7 +127,13 @@ export class CommentService {
     };
   }
 
-  async getCommentByTopic(id: string, page: number, limit: number) {
+  async getCommentByTopic(
+    id: string,
+    page: number,
+    limit: number,
+    id_user?: string,
+  ) {
+    console.log(id_user);
     const [data, total] = await this.commentRepository.findAndCount({
       where: { id_topic: id },
       skip: (page - 1) * limit,
@@ -146,15 +152,19 @@ export class CommentService {
       },
     });
 
-    const result = data.map((comment) => ({
-      id: comment.id,
-      created_at: comment.created_at,
-      updated_at: comment.updated_at,
-      comment: comment.comment,
-      name: comment.user.name,
-      total_likes: comment.likes.length,
-      username: comment.user.username,
-    }));
+    const result = data.map((comment) => {
+      const liked = comment.likes.some((like) => like.id_user === id_user);
+      return {
+        id: comment.id,
+        created_at: comment.created_at,
+        updated_at: comment.updated_at,
+        comment: comment.comment,
+        name: comment.user.name,
+        username: comment.user.username,
+        total_likes: comment.likes.length,
+        liked, // Status apakah user telah menyukai komentar ini
+      };
+    });
 
     return {
       data: result,
