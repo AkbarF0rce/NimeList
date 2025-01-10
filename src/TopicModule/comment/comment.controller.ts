@@ -66,7 +66,7 @@ export class CommentController {
   @Get('get/by-topic/:id')
   async getCommentByTopic(
     @Param('id') id: string,
-    @Query('page') page: number = 1,
+    @Query('page') page: number,
     @Query('limit') limit: number = 5,
     @Request() req,
   ) {
