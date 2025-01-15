@@ -13,6 +13,7 @@ import { Comment } from './entities/comment.entity';
 import { User } from 'src/UserModule/user/entities/user.entity';
 import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
 import { LikeComment } from 'src/TopicModule/like_comment/entities/like_comment.entity';
+import { PhotoProfileService } from 'src/UserModule/photo_profile/photo_profile.service';
 
 @Injectable()
 export class CommentService {
@@ -20,8 +21,7 @@ export class CommentService {
     @InjectRepository(Comment) private commentRepository: Repository<Comment>,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Topic) private topicRepository: Repository<Topic>,
-    @InjectRepository(LikeComment)
-    private likeCommentRepository: Repository<LikeComment>,
+    private readonly photoProfileService: PhotoProfileService,
   ) {}
 
   async createComment(data: CreateCommentDto) {
@@ -133,7 +133,6 @@ export class CommentService {
     limit: number,
     id_user?: string,
   ) {
-    console.log(id_user);
     const [data, total] = await this.commentRepository.findAndCount({
       where: { id_topic: id },
       skip: (page - 1) * limit,
@@ -148,23 +147,33 @@ export class CommentService {
         user: {
           username: true,
           name: true,
+          id: true,
         },
       },
     });
 
-    const result = data.map((comment) => {
-      const liked = comment.likes.some((like) => like.id_user === id_user);
-      return {
-        id: comment.id,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        comment: comment.comment,
-        name: comment.user.name,
-        username: comment.user.username,
-        total_likes: comment.likes.length,
-        liked, // Status apakah user telah menyukai komentar ini
-      };
-    });
+    const result = await Promise.all(
+      data.map(async (comment) => {
+        const liked = comment.likes.some((like) => like.id_user === id_user);
+
+        // Panggil getPhoto secara asinkron
+        const user_photo = await this.photoProfileService.getPhoto(
+          comment.user.id,
+        );
+
+        return {
+          id: comment.id,
+          created_at: comment.created_at,
+          updated_at: comment.updated_at,
+          comment: comment.comment,
+          name: comment.user.name,
+          username: comment.user.username,
+          total_likes: comment.likes.length,
+          user_photo,
+          liked, // Status apakah user telah menyukai komentar ini
+        };
+      }),
+    );
 
     return {
       data: result,
@@ -177,22 +186,20 @@ export class CommentService {
       .createQueryBuilder('comment')
       .leftJoin('comment.user', 'user')
       .leftJoin('comment.topic', 'topic')
-      .select(['comment', 'user', 'topic'])
+      .leftJoin('comment.likes', 'likes')
+      .select(['comment', 'user.username', 'topic.title'])
+      .addSelect('COUNT(likes.id)', 'total_likes')
       .where('comment.id = :id', { id })
-      .getOne();
-
-    const likes = await this.likeCommentRepository
-      .createQueryBuilder('like')
-      .where('like.id_comment = :id', { id })
-      .getCount();
+      .groupBy('comment.id, user.username, topic.title')
+      .getRawOne();
 
     return {
-      comment: get.comment,
-      created_at: get.created_at,
-      updated_at: get.updated_at,
-      user: get.user.username,
-      topic: get.topic.title,
-      likes: likes,
+      comment: get.comment_comment,
+      created_at: get.comment_created_at,
+      updated_at: get.comment_updated_at,
+      user: get.user_username,
+      topic: get.topic_title,
+      likes: get.total_likes,
     };
   }
 }

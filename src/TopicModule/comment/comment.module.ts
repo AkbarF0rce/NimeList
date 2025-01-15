@@ -8,6 +8,7 @@ import { User } from 'src/UserModule/user/entities/user.entity';
 import { Topic } from 'src/TopicModule/topic/entities/topic.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from 'src/UserModule/user/user.module';
+import { PhotoProfileModule } from 'src/UserModule/photo_profile/photo_profile.module';
 
 @Module({
   controllers: [CommentController],
@@ -15,6 +16,7 @@ import { UserModule } from 'src/UserModule/user/user.module';
   imports: [
     TypeOrmModule.forFeature([Comment, LikeComment, User, Topic]),
     UserModule,
+    PhotoProfileModule,
     JwtModule,
   ],
   exports: [CommentService],

@@ -12,11 +12,13 @@ import { Review } from './entities/review.entity';
 import { Repository } from 'typeorm';
 import { Anime } from 'src/AnimeModule/anime/entities/anime.entity';
 import { User } from 'src/UserModule/user/entities/user.entity';
+import { PhotoProfileService } from 'src/UserModule/photo_profile/photo_profile.service';
 
 @Injectable()
 export class ReviewService {
   constructor(
     @InjectRepository(Review) private reviewRepository: Repository<Review>,
+    private readonly photoProfileService: PhotoProfileService,
   ) {}
 
   // Fungsi untuk membuat review
@@ -186,6 +188,7 @@ export class ReviewService {
         user: {
           username: true,
           name: true,
+          id: true,
           status_premium: true,
         },
         created_at: true,
@@ -198,16 +201,25 @@ export class ReviewService {
       where: { id_anime: id_anime },
     });
 
-    const result = get.map((get) => ({
-      id: get.id,
-      username: get.user.username,
-      name: get.user.name,
-      status_premium: get.user.status_premium,
-      rating: parseFloat(get.rating.toString()),
-      review: get.review,
-      created_at: get.created_at,
-      updated_at: get.updated_at,
-    }));
+    const result = await Promise.all(
+      get.map(async (review) => {
+        const user_photo = await this.photoProfileService.getPhoto(
+          review.user.id,
+        );
+
+        return {
+          id: review.id,
+          username: review.user.username,
+          name: review.user.name,
+          status_premium: review.user.status_premium,
+          rating: parseFloat(review.rating.toString()),
+          review: review.review,
+          created_at: review.created_at,
+          updated_at: review.updated_at,
+          user_photo,
+        };
+      }),
+    );
 
     return {
       data: result,

@@ -316,7 +316,7 @@ export class TransactionService {
     }
 
     // Tambahkan kondisi AND WHERE jika status !== 'all' dan ada
-    if (status && status !== 'all') {
+    if (status) {
       transactionsQuery.andWhere('transaction.status = :status', {
         status,
       });
@@ -329,7 +329,7 @@ export class TransactionService {
       });
     }
 
-    if (platform && platform !== 'null') {
+    if (platform) {
       transactionsQuery.andWhere('transaction.payment_platform = :platform', {
         platform,
       });
