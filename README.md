@@ -32,10 +32,10 @@ cp .env.example .env
 
 ```bash
 # Run the App
-npm run start:dev
+yarn start:dev
 
 # Access via postman or others for testing
-http://localhost:4321
+http://localhost:yourport(e.g: 3000)
 ```
 
 ## Project Developer
